@@ -2,21 +2,26 @@ import React, { useState } from "react";
 import { ArrowLeft, X, Upload, MapPin } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { motion } from "framer-motion";
+import { useAuth } from "../../hooks/useAuth";
+import { useCreatePost } from "../../hooks/mutations/useCreatePost";
 
 import OptimizedImage from "../OptimizedImage";
 
 const CreateModal: React.FC = () => {
-  const { theme, setCreateModalOpen, createPost } = useAppStore();
+  const { theme, setCreateModalOpen, showToast } = useAppStore();
+  const { user, profile } = useAuth();
   const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
   const glassModal =
     theme === "dark"
       ? "bg-[#121212]/90 backdrop-blur-2xl border border-white/10"
       : "bg-white/90 backdrop-blur-2xl border border-black/10";
 
-  const [, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [location, setLocation] = useState("");
+  
+  const { mutate: createPost, isPending } = useCreatePost();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -29,9 +34,24 @@ const CreateModal: React.FC = () => {
   };
 
   const handleShare = () => {
-    if (!preview) return;
-    createPost({ image: preview, caption });
-    setCreateModalOpen(false);
+    if (!file || !user || !profile) return;
+    
+    createPost({ 
+        file, 
+        caption, 
+        location, 
+        userId: user.id, 
+        username: profile.username 
+    }, {
+        onSuccess: () => {
+            showToast("পোস্ট শেয়ার করা হয়েছে");
+            setCreateModalOpen(false);
+        },
+        onError: (error) => {
+            console.error('Error creating post:', error);
+            showToast("পোস্ট শেয়ার করতে সমস্যা হয়েছে");
+        }
+    });
   };
 
   const onClose = () => setCreateModalOpen(false);
@@ -73,9 +93,10 @@ const CreateModal: React.FC = () => {
             {preview ? (
               <button
                 onClick={handleShare}
-                className="text-[#0095f6] text-sm font-bold hover:text-white"
+                disabled={isPending}
+                className="text-[#0095f6] text-sm font-bold hover:text-white disabled:opacity-50"
               >
-                শেয়ার
+                {isPending ? "শেয়ার হচ্ছে..." : "শেয়ার"}
               </button>
             ) : (
               <X className="cursor-pointer" onClick={onClose} />
@@ -129,12 +150,12 @@ const CreateModal: React.FC = () => {
               <div className="p-4 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full overflow-hidden">
                   <OptimizedImage
-                    src="https://api.dicebear.com/9.x/avataaars/svg?seed=frostfoe"
+                    src={user?.user_metadata?.avatar_url || "https://api.dicebear.com/9.x/avataaars/svg?seed=default"}
                     className="w-full h-full"
                     alt="user"
                   />
                 </div>
-                <span className="font-semibold text-sm">frostfoe</span>
+                <span className="font-semibold text-sm">{user?.user_metadata?.username}</span>
               </div>
               <textarea
                 className={`flex-grow p-4 bg-transparent outline-none resize-none text-sm ${theme === "dark" ? "placeholder-gray-500" : "placeholder-gray-400"}`}

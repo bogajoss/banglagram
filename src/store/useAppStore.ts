@@ -27,6 +27,7 @@ interface AppState {
   toggleSave: (postId: number | string) => void;
   toggleFollow: (username: string) => void;
   updateProfile: (name: string, bio: string, avatar: string) => void;
+  setCurrentUser: (user: User) => void;
   addStory: (img: string) => void;
   createPost: (postData: { image: string; caption: string }) => void;
 }
@@ -106,6 +107,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         currentUser: { ...state.currentUser, name, bio, avatar },
       };
     }),
+
+  setCurrentUser: (user) => set({ currentUser: user }),
 
   addStory: (img) =>
     set((state) => {

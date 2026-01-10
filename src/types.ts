@@ -28,6 +28,7 @@ export interface Post {
   comments: string | number;
   time: string;
   isVerified?: boolean;
+  hasLiked?: boolean;
   commentList?: Comment[];
 }
 

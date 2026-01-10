@@ -9,13 +9,16 @@ import {
   PlusSquare,
   Sun,
   Moon,
+  LogOut,
 } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
+import { useAuth } from "../../hooks/useAuth";
 import { motion } from "framer-motion";
 import OptimizedImage from "../OptimizedImage";
 
 const Sidebar: React.FC = () => {
   const { theme, toggleTheme, currentUser, setCreateModalOpen } = useAppStore();
+  const { signOut } = useAuth();
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const themeClasses =
     theme === "dark" ? "bg-black text-white" : "bg-white text-black";
@@ -130,15 +133,27 @@ const Sidebar: React.FC = () => {
           </NavLink>
         </div>
       </div>
-      <motion.div
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={toggleTheme}
-        className={`flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
-      >
-        {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
-        <span className="text-base">থিম পরিবর্তন</span>
-      </motion.div>
+      <div className="flex flex-col gap-2">
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={toggleTheme}
+          className={`flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+        >
+          {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
+          <span className="text-base">থিম পরিবর্তন</span>
+        </motion.div>
+
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => signOut()}
+          className={`flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer text-red-500 ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+        >
+          <LogOut size={24} />
+          <span className="text-base">লগ আউট</span>
+        </motion.div>
+      </div>
     </div>
   );
 };

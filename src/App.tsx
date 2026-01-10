@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import Layout from "./components/layout/Layout";
@@ -8,12 +8,15 @@ import MessagesView from "./views/MessagesView";
 import ReelsView from "./views/ReelsView";
 import NotificationsView from "./views/NotificationsView";
 import ExploreView from "./views/ExploreView";
+import AuthView from "./views/AuthView";
 import CreateModal from "./components/modals/CreateModal";
 import EditProfileModal from "./components/modals/EditProfileModal";
 import StoryViewer from "./components/StoryViewer";
 import PostDetailsModal from "./components/modals/PostDetailsModal";
 import { useAppStore } from "./store/useAppStore";
 import PageWrapper from "./components/PageWrapper";
+import { useAuth } from "./hooks/useAuth";
+import type { User as AppUser } from "./types";
 
 export default function App() {
   const {
@@ -23,18 +26,31 @@ export default function App() {
     isEditProfileOpen,
     viewingStory,
     viewingPost,
+    setCurrentUser,
   } = useAppStore();
 
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, profile, loading: authLoading } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (profile && user) {
+      // Map Supabase profile to App User type
+      const appUser: AppUser = {
+        username: profile.username,
+        name: profile.full_name || user.email || "User",
+        avatar: profile.avatar_url || "https://api.dicebear.com/9.x/avataaars/svg?seed=default",
+        bio: profile.bio || "",
+        stats: { // These would ideally come from the DB too, simple default for now or fetch via hook
+          posts: 0,
+          followers: 0,
+          following: 0,
+        },
+      };
+      setCurrentUser(appUser);
+    }
+  }, [profile, user, setCurrentUser]);
 
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div
         className={`min-h-screen flex items-center justify-center ${theme === "dark" ? "bg-black" : "bg-white"}`}
@@ -46,6 +62,10 @@ export default function App() {
         />
       </div>
     );
+  }
+
+  if (!user) {
+    return <AuthView />;
   }
 
   return (

@@ -10,6 +10,8 @@ import MoreOptionsModal from "./modals/MoreOptionsModal";
 import ShareModal from "./modals/ShareModal";
 import { useAppStore } from "../store/useAppStore";
 import type { Post, User, Comment } from "../types";
+import { useToggleLike } from "../hooks/mutations/useToggleLike";
+import { useAuth } from "../hooks/useAuth";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -31,8 +33,9 @@ const PostItem: React.FC<PostItemProps> = ({
   onPostClick,
 }) => {
   const { theme, showToast } = useAppStore();
+  const { user } = useAuth();
+  const { mutate: toggleLike } = useToggleLike();
 
-  const [liked, setLiked] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
   const [commentsOpen] = useState(false);
   const [comments, setComments] = useState<Comment[]>(post.commentList || []);
@@ -40,8 +43,15 @@ const PostItem: React.FC<PostItemProps> = ({
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
 
+  const liked = post.hasLiked || false;
+
+  const handleLike = () => {
+    if (!user) return;
+    toggleLike({ postId: String(post.id), userId: user.id, hasLiked: liked });
+  };
+
   const handleDoubleClick = () => {
-    if (!liked) setLiked(true);
+    handleLike();
     setShowHeart(true);
     setTimeout(() => setShowHeart(false), 1000);
   };
@@ -168,7 +178,7 @@ const PostItem: React.FC<PostItemProps> = ({
             <Heart
               size={24}
               className={`cursor-pointer transition-colors ${liked ? "fill-[#f42a41] text-[#f42a41]" : ""}`}
-              onClick={() => setLiked(!liked)}
+              onClick={handleLike}
             />
           </motion.div>
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -197,7 +207,7 @@ const PostItem: React.FC<PostItemProps> = ({
 
       <div className="text-sm px-3 md:px-0">
         <div className="font-semibold mb-1">
-          {liked ? parseInt(post.likes as string) + 1 : post.likes} লাইক
+          {post.likes} লাইক
         </div>
         <div className="mb-1">
           <span

@@ -14,6 +14,7 @@ import StoryViewer from './components/StoryViewer';
 import PostDetailsModal from './components/modals/PostDetailsModal';
 import { useAppStore } from './store/useAppStore';
 import PageWrapper from './components/PageWrapper';
+import OptimizedImage from './components/OptimizedImage';
 
 export default function App() {
   const { 
@@ -37,7 +38,7 @@ export default function App() {
   if (isLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
-         <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" className="w-20 h-20 animate-pulse" alt="Loading" />
+         <OptimizedImage src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" className="w-20 h-20 animate-pulse" alt="Loading" />
       </div>
     );
   }

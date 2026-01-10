@@ -2,8 +2,8 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home, Search, Clapperboard, PlusSquare, MessageCircle } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
-
 import { motion } from 'framer-motion';
+import OptimizedImage from '../OptimizedImage';
 
 const MobileNav: React.FC = () => {
   const { theme, currentUser, setCreateModalOpen } = useAppStore();
@@ -44,7 +44,7 @@ const MobileNav: React.FC = () => {
       <NavLink to={`/profile/${currentUser.username}`} className={({ isActive }) => `block ${isActive ? 'text-[#006a4e]' : ''}`}>
         {({ isActive }) => (
           <motion.div whileTap={{ scale: 0.8 }} className="p-3">
-            <img src={currentUser.avatar} className={`w-6 h-6 rounded-full ${isActive ? 'border-2 border-[#006a4e]' : ''}`} alt="profile" />
+            <OptimizedImage src={currentUser.avatar} className={`w-6 h-6 rounded-full ${isActive ? 'border-2 border-[#006a4e]' : ''}`} alt="profile" />
           </motion.div>
         )}
       </NavLink>

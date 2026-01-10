@@ -11,8 +11,8 @@ import {
   Moon 
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
-
 import { motion } from 'framer-motion';
+import OptimizedImage from '../OptimizedImage';
 
 const Sidebar: React.FC = () => {
   const { theme, toggleTheme, currentUser, setCreateModalOpen } = useAppStore();
@@ -80,7 +80,7 @@ const Sidebar: React.FC = () => {
                   whileTap={{ scale: 0.98 }}
                   className={`flex items-center gap-4 p-3 rounded-lg ${theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
                 >
-                  <img src={currentUser.avatar} alt="Profile" className={`w-6 h-6 rounded-full ${isActive ? 'border-2 border-[#006a4e]' : ''}`} />
+                  <OptimizedImage src={currentUser.avatar} alt="Profile" className={`w-6 h-6 rounded-full ${isActive ? 'border-2 border-[#006a4e]' : ''}`} />
                   <span className="text-base truncate">প্রোফাইল</span>
                 </motion.div>
               )}

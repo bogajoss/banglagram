@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import type { User, Comment } from '../../types';
 import { motion } from 'framer-motion';
 
+import OptimizedImage from '../OptimizedImage';
+
 const PostDetailsModal: React.FC = () => {
   const { viewingPost, theme, showToast, savedPostIds, toggleSave, setViewingPost } = useAppStore();
   const navigate = useNavigate();
@@ -51,14 +53,16 @@ const PostDetailsModal: React.FC = () => {
        >
           {/* Media Section */}
           <div className="flex-1 bg-black flex items-center justify-center min-h-[300px] md:h-auto border-r border-zinc-800 relative">
-             <img src={post.content.src || post.content.poster} className="max-h-full max-w-full object-contain" alt="post detail" />
+             <OptimizedImage src={post.content.src || post.content.poster} className="max-h-full max-w-full" alt="post detail" />
           </div>
 
           {/* Details Section */}
           <div className="w-full md:w-[400px] flex flex-col h-full md:h-[90vh]">
              <div className={`p-4 border-b ${theme === 'dark' ? 'border-zinc-800' : 'border-zinc-200'} flex items-center justify-between`}>
                 <div className="flex items-center gap-3" onClick={() => onUserClick(post.user)}>
-                   <img src={post.user.avatar} className="w-8 h-8 rounded-full border border-zinc-700 cursor-pointer" alt={post.user.username} />
+                   <div className="w-8 h-8 rounded-full border border-zinc-700 overflow-hidden cursor-pointer">
+                      <OptimizedImage src={post.user.avatar} className="w-full h-full" alt={post.user.username} />
+                   </div>
                    <span className="font-semibold text-sm hover:opacity-70 cursor-pointer">{post.user.username}</span>
                 </div>
                 <MoreHorizontal size={20} className="cursor-pointer hover:opacity-70" />
@@ -66,7 +70,9 @@ const PostDetailsModal: React.FC = () => {
 
              <div className="flex-grow overflow-y-auto p-4 space-y-4">
                 <div className="flex gap-3">
-                   <img src={post.user.avatar} className="w-8 h-8 rounded-full flex-shrink-0 cursor-pointer" alt="user" onClick={() => onUserClick(post.user)} />
+                   <div className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden cursor-pointer" onClick={() => onUserClick(post.user)}>
+                      <OptimizedImage src={post.user.avatar} className="w-full h-full" alt="user" />
+                   </div>
                    <div className="text-sm">
                       <span className="font-semibold mr-2 cursor-pointer" onClick={() => onUserClick(post.user)}>{post.user.username}</span>
                       <span>{post.caption}</span>

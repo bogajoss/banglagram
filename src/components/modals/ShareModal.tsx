@@ -10,6 +10,8 @@ interface ShareModalProps {
   glassModal: string;
 }
 
+import OptimizedImage from '../OptimizedImage';
+
 const ShareModal: React.FC<ShareModalProps> = ({ onClose, theme, showToast, glassModal }) => {
     // Note: In a real app you might want to pass these users as props or fetch them
     const users = [...initialData.messages.map(m => m.user), ...initialData.suggestedUsers].slice(0, 8) as User[]; 
@@ -31,7 +33,9 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, theme, showToast, glas
                    {users.map((user, idx) => (
                       <div key={idx} className={`flex items-center justify-between p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-black/5'} cursor-pointer transition-colors`}>
                          <div className="flex items-center gap-3">
-                            <img src={user.avatar} className="w-10 h-10 rounded-full object-cover" alt={user.username} />
+                            <div className="w-10 h-10 rounded-full overflow-hidden">
+                               <OptimizedImage src={user.avatar} className="w-full h-full" alt={user.username} />
+                            </div>
                             <div className="flex flex-col">
                                <span className="text-sm font-semibold">{user.username}</span>
                                <span className="text-xs opacity-70">{user.name || user.username}</span>

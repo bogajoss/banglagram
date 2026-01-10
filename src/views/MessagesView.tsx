@@ -4,6 +4,8 @@ import { initialData } from '../data/mockData';
 import { useAppStore } from '../store/useAppStore';
 import type { User, Message, ChatMessage } from '../types';
 
+import OptimizedImage from '../components/OptimizedImage';
+
 const MessagesView: React.FC = () => {
   const { currentUser, theme, showToast } = useAppStore();
   const buttonBg = 'bg-[#006a4e] hover:bg-[#00523c]'; 
@@ -41,7 +43,9 @@ const MessagesView: React.FC = () => {
           <div className={`py-4 pl-4 overflow-x-auto scrollbar-hide flex gap-4 border-b ${borderClass}`}>
               <div className="flex flex-col items-center gap-1 cursor-pointer min-w-[70px]">
                  <div className="relative">
-                    <img src={currentUser.avatar} className="w-14 h-14 rounded-full object-cover" alt="My note" />
+                    <div className="w-14 h-14 rounded-full overflow-hidden mb-1 border-2 border-zinc-800 p-[2px]">
+                       <OptimizedImage src={currentUser.avatar} className="w-full h-full rounded-full" alt="My note" />
+                    </div>
                     <div className="absolute -top-4 -right-2 bg-white/90 text-black text-xs p-2 rounded-xl rounded-bl-none shadow-sm min-w-[60px] text-center z-10">
                        নোট দিন...
                     </div>
@@ -56,7 +60,9 @@ const MessagesView: React.FC = () => {
               {(initialData.messages as unknown as Message[]).slice(0,3).map((msg, idx) => (
                  <div key={idx} className="flex flex-col items-center gap-1 cursor-pointer min-w-[70px]">
                     <div className="relative">
-                       <img src={msg.user.avatar} className={`w-14 h-14 rounded-full object-cover border ${borderClass}`} alt="note user" />
+                       <div className="w-14 h-14 rounded-full overflow-hidden mb-1 border-2 border-zinc-800 p-[2px]">
+                          <OptimizedImage src={msg.user.avatar} className={`w-full h-full rounded-full border ${borderClass}`} alt="note user" />
+                       </div>
                        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white/90 text-black text-[11px] px-2 py-1.5 rounded-xl rounded-bl-none shadow-sm whitespace-nowrap z-10 max-w-[90px] truncate">
                           {idx === 0 ? 'বিরিয়ানি 🍗' : idx === 1 ? 'জিম টাইম 💪' : 'কাজ আর কাজ 😫'}
                        </div>
@@ -72,7 +78,9 @@ const MessagesView: React.FC = () => {
           <div className="flex-grow overflow-y-auto">
             {(initialData.messages as unknown as Message[]).map((msg) => (
               <div key={msg.id} onClick={() => handleSelectUser(msg.user)} className={`flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors ${bgHover} ${selectedUser?.username === msg.user.username ? (theme === 'dark' ? 'bg-zinc-900' : 'bg-gray-100') : ''}`}>
-                <div className="relative flex-shrink-0"><img src={msg.user.avatar} className="w-14 h-14 rounded-full object-cover" alt={msg.user.username} /></div>
+                <div className="relative flex-shrink-0 w-14 h-14 rounded-full overflow-hidden">
+                   <OptimizedImage src={msg.user.avatar} className="w-full h-full" alt={msg.user.username} />
+                </div>
                 <div className="flex-grow min-w-0">
                   <div className="text-sm truncate font-bold">{msg.user.username}</div>
                   <div className={`text-xs truncate ${theme === 'dark' ? 'text-[#a8a8a8]' : 'text-gray-500'}`}>{msg.lastMessage} · {msg.time}</div>
@@ -88,7 +96,9 @@ const MessagesView: React.FC = () => {
               <div className={`h-[75px] px-4 flex items-center justify-between border-b ${borderClass} shrink-0`}>
                 <div className="flex items-center gap-3">
                   <div className="md:hidden cursor-pointer -ml-2 p-2" onClick={() => setSelectedUser(null)}><ChevronLeft size={28} /></div>
-                  <img src={selectedUser.avatar} className="w-8 h-8 rounded-full object-cover" alt="chat user" />
+                  <div className="w-8 h-8 rounded-full overflow-hidden">
+                     <OptimizedImage src={selectedUser.avatar} className="w-full h-full" alt="chat user" />
+                  </div>
                   <div className="font-semibold text-base truncate max-w-[150px]">{selectedUser.username}</div>
                 </div>
                 <div className="flex items-center gap-4"><Phone size={24} className="cursor-pointer" /><Video size={24} className="cursor-pointer" /><Info size={24} className="cursor-pointer" /></div>
@@ -99,9 +109,28 @@ const MessagesView: React.FC = () => {
                        {msg.type === 'date' ? <span className="text-xs text-gray-500 my-2">{msg.text}</span> : (
                          <>
                            {msg.contentType === 'text' && <div className={`rounded-2xl px-4 py-2 text-sm ${theme === 'dark' ? 'bg-[#262626] text-white' : 'bg-gray-200 text-black'}`}>{msg.text}</div>}
-                           {msg.contentType === 'image' && <div className={`rounded-xl overflow-hidden border ${borderClass}`}><img src={msg.src} className="max-w-[200px]" alt="msg image" /></div>}
-                           {msg.contentType === 'profile' && <div className={`rounded-xl p-3 border ${borderClass} flex items-center gap-3 ${theme === 'dark' ? 'bg-[#262626]' : 'bg-gray-100'}`}><img src={msg.avatar} className="w-10 h-10 rounded-full" alt="profile" /><div><div className="font-bold text-sm">{msg.username}</div><div className="text-xs opacity-70">প্রোফাইল দেখুন</div></div></div>}
-                           {msg.contentType === 'post' && <div className={`rounded-xl overflow-hidden border ${borderClass} ${theme === 'dark' ? 'bg-[#262626]' : 'bg-gray-100'}`}><img src={msg.src} className="max-w-[200px]" alt="post" /><div className="p-2 text-xs opacity-80 truncate max-w-[200px]">{msg.caption}</div></div>}
+                           {msg.contentType === 'image' && (
+                              <div className={`rounded-xl overflow-hidden border ${borderClass}`}>
+                                 <OptimizedImage src={msg.src} className="max-w-[200px]" alt="msg image" />
+                              </div>
+                           )}
+                           {msg.contentType === 'profile' && (
+                              <div className={`rounded-xl p-3 border ${borderClass} flex items-center gap-3 ${theme === 'dark' ? 'bg-[#262626]' : 'bg-gray-100'}`}>
+                                 <div className="w-10 h-10 rounded-full overflow-hidden">
+                                    <OptimizedImage src={msg.avatar} className="w-full h-full" alt="profile" />
+                                 </div>
+                                 <div>
+                                    <div className="font-bold text-sm">{msg.username}</div>
+                                    <div className="text-xs opacity-70">প্রোফাইল দেখুন</div>
+                                 </div>
+                              </div>
+                           )}
+                           {msg.contentType === 'post' && (
+                              <div className={`rounded-xl overflow-hidden border ${borderClass} ${theme === 'dark' ? 'bg-[#262626]' : 'bg-gray-100'}`}>
+                                 <OptimizedImage src={msg.src} className="max-w-[200px]" alt="post" />
+                                 <div className="p-2 text-xs opacity-80 truncate max-w-[200px]">{msg.caption}</div>
+                              </div>
+                           )}
                          </>
                        )}
                     </div>

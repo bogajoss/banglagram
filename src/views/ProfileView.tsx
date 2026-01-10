@@ -6,6 +6,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import type { User, Post, Message, Reel } from '../types';
 
+import OptimizedImage from '../components/OptimizedImage';
+
 const ProfileView: React.FC = () => {
   const { 
     currentUser, 
@@ -118,7 +120,7 @@ const ProfileView: React.FC = () => {
         <div className="flex flex-row md:flex-col items-center gap-8 md:gap-0 w-full md:w-auto">
            <div className="flex-shrink-0 md:w-[290px] flex justify-start md:justify-center relative">
               <div className={`w-[77px] h-[77px] md:w-[150px] md:h-[150px] rounded-full overflow-hidden border ${borderClass} group cursor-pointer relative`}>
-                 <img src={user.avatar} className="w-full h-full object-cover" alt="profile" />
+                 <OptimizedImage src={user.avatar} className="w-full h-full" alt="profile" />
               </div>
               {isMe && (
                   <label className="absolute bottom-0 right-10 md:right-16 bg-[#0095f6] rounded-full p-1 border-2 border-black cursor-pointer">
@@ -199,8 +201,8 @@ const ProfileView: React.FC = () => {
                  className="relative aspect-square group cursor-pointer"
                  onClick={() => setViewingPost(post)}
                >
-                  <img src={post.content.src || post.content.poster} className="w-full h-full object-cover" alt="post grid" />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white font-bold">
+                  <OptimizedImage src={post.content.src || post.content.poster} className="w-full h-full" alt="post grid" />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white font-bold z-20">
                      <div className="flex items-center gap-2"><Heart fill="white" size={20} /> {post.likes}</div>
                      <div className="flex items-center gap-2"><CommentIcon fill="white" size={20} className="-scale-x-100" /> {post.comments}</div>
                   </div>

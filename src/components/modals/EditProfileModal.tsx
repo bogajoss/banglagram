@@ -3,6 +3,8 @@ import { X } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { motion } from 'framer-motion';
 
+import OptimizedImage from '../OptimizedImage';
+
 const EditProfileModal: React.FC = () => {
     const { currentUser, theme, updateProfile, setEditProfileOpen } = useAppStore();
     const buttonBg = 'bg-[#006a4e] hover:bg-[#00523c]'; 
@@ -48,7 +50,9 @@ const EditProfileModal: React.FC = () => {
                 </div>
                 <div className="p-6 flex flex-col gap-4">
                     <div className={`flex items-center gap-4 p-4 rounded-lg ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}>
-                        <img src={avatar} className="w-16 h-16 rounded-full object-cover" alt="avatar" />
+                        <div className="w-16 h-16 rounded-full overflow-hidden">
+                           <OptimizedImage src={avatar} className="w-full h-full" alt="avatar" />
+                        </div>
                         <div>
                             <div className="font-semibold text-lg">{currentUser.username}</div>
                             <label className="text-[#006a4e] text-sm font-bold cursor-pointer hover:underline">

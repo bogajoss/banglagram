@@ -11,6 +11,8 @@ interface UserListModalProps {
   glassModal: string;
 }
 
+import OptimizedImage from '../OptimizedImage';
+
 const UserListModal: React.FC<UserListModalProps> = ({ title, users, onClose, theme, onUserClick, glassModal }) => {
     return (
         <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
@@ -23,7 +25,9 @@ const UserListModal: React.FC<UserListModalProps> = ({ title, users, onClose, th
                    {users.map((user, idx) => (
                       <div key={idx} className={`flex items-center justify-between p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-black/5'} cursor-pointer`} onClick={() => onUserClick(user)}>
                          <div className="flex items-center gap-3">
-                            <img src={user.avatar} className="w-12 h-12 rounded-full object-cover" alt={user.username} />
+                            <div className="w-12 h-12 rounded-full overflow-hidden">
+                               <OptimizedImage src={user.avatar} className="w-full h-full" alt={user.username} />
+                            </div>
                             <div className="flex flex-col">
                                <span className="text-sm font-semibold">{user.username}</span>
                                <span className="text-xs opacity-70">{user.name || user.username}</span>

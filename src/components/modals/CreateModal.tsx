@@ -3,6 +3,8 @@ import { ArrowLeft, X, Upload, MapPin } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { motion } from 'framer-motion';
 
+import OptimizedImage from '../OptimizedImage';
+
 const CreateModal: React.FC = () => {
    const { theme, setCreateModalOpen, createPost } = useAppStore();
    const buttonBg = 'bg-[#006a4e] hover:bg-[#00523c]'; 
@@ -66,7 +68,7 @@ const CreateModal: React.FC = () => {
                 {/* Image Section */}
                 <div className={`flex-1 flex items-center justify-center bg-black relative ${preview ? 'md:border-r border-zinc-800' : ''}`}>
                     {preview ? (
-                        <img src={preview} className="max-h-full max-w-full object-contain" alt="preview" />
+                        <OptimizedImage src={preview} className="max-h-full max-w-full" alt="preview" />
                     ) : (
                         <div className="flex flex-col items-center gap-4">
                            <Upload size={64} strokeWidth={1} className={theme === 'dark' ? 'text-white' : 'text-black'} />
@@ -83,7 +85,9 @@ const CreateModal: React.FC = () => {
                 {preview && (
                     <div className={`w-full md:w-[350px] flex flex-col ${theme === 'dark' ? 'bg-zinc-900' : 'bg-white'}`}>
                         <div className="p-4 flex items-center gap-3">
-                            <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=frostfoe" className="w-8 h-8 rounded-full" alt="user" />
+                            <div className="w-8 h-8 rounded-full overflow-hidden">
+                               <OptimizedImage src="https://api.dicebear.com/9.x/avataaars/svg?seed=frostfoe" className="w-full h-full" alt="user" />
+                            </div>
                             <span className="font-semibold text-sm">frostfoe</span>
                         </div>
                         <textarea 

@@ -7,6 +7,8 @@ import type { Post, User, Comment } from '../types';
 
 import { motion, AnimatePresence } from 'framer-motion';
 
+import OptimizedImage from './OptimizedImage';
+
 interface PostItemProps {
   post: Post;
   isSaved: boolean;
@@ -57,7 +59,7 @@ const PostItem: React.FC<PostItemProps> = ({ post, isSaved, onToggleSave, onUser
       <div className="flex items-center justify-between mb-3 px-3 md:px-0">
         <div className="flex items-center gap-2 cursor-pointer group" onClick={() => onUserClick(post.user)}>
           <div className={`w-8 h-8 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-zinc-800' : 'bg-gray-200'} group-hover:scale-105 transition-transform`}>
-            <img src={post.user.avatar} className="w-full h-full object-cover" alt={post.user.username} />
+            <OptimizedImage src={post.user.avatar} className="w-full h-full" alt={post.user.username} />
           </div>
           <div className="flex items-center gap-1 text-sm font-semibold">
             <span className="group-hover:opacity-70 transition-opacity">{post.user.username}</span>
@@ -73,7 +75,7 @@ const PostItem: React.FC<PostItemProps> = ({ post, isSaved, onToggleSave, onUser
       </div>
 
       <div className={`w-full ${theme === 'dark' ? 'bg-zinc-900' : 'bg-gray-100'} md:rounded-[4px] md:border ${borderClass} overflow-hidden mb-3 aspect-square md:aspect-auto relative cursor-pointer`} onDoubleClick={handleDoubleClick}>
-         <img src={post.content.src || post.content.poster} className="w-full h-full object-cover" alt="Post content" />
+         <OptimizedImage src={post.content.src || post.content.poster} className="w-full h-full" alt="Post content" />
          <AnimatePresence>
            {showHeart && (
              <motion.div 

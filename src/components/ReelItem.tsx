@@ -14,6 +14,8 @@ interface ReelItemProps {
 
 import { motion, AnimatePresence } from 'framer-motion';
 
+import OptimizedImage from './OptimizedImage';
+
 const ReelItem: React.FC<ReelItemProps> = ({ reel, showToast, theme, onUserClick, glassModal }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
@@ -59,7 +61,7 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel, showToast, theme, onUserClick
         className="relative h-full md:h-[95vh] w-full md:w-[400px] bg-zinc-900 md:rounded-lg overflow-hidden border-zinc-800 md:border group shadow-2xl"
         onDoubleClick={handleDoubleClick}
       >
-        <img src={reel.src} className="w-full h-full object-cover" onClick={() => setIsMuted(!isMuted)} alt="reel" />
+        <OptimizedImage src={reel.src} className="w-full h-full" onClick={() => setIsMuted(!isMuted)} alt="reel" />
         
         {/* Play/Mute Status */}
         <div className="absolute top-4 right-4 bg-black/50 p-2 rounded-full pointer-events-none transition-opacity">
@@ -81,7 +83,9 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel, showToast, theme, onUserClick
 
         <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent pt-20 pb-20 md:pb-4">
           <div className="flex items-center gap-3 mb-3" onClick={() => onUserClick(reel.user)}>
-            <img src={reel.user.avatar} className="w-8 h-8 rounded-full border border-white/50 object-cover cursor-pointer" alt="reel user" />
+            <div className="w-8 h-8 rounded-full border border-white/50 overflow-hidden cursor-pointer">
+               <OptimizedImage src={reel.user.avatar} className="w-full h-full" alt="reel user" />
+            </div>
             <span className="font-semibold text-sm shadow-black drop-shadow-md text-white cursor-pointer hover:opacity-70 transition-opacity">{reel.user.username}</span>
             <motion.button 
               whileHover={{ scale: 1.05 }}
@@ -125,7 +129,7 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel, showToast, theme, onUserClick
             className="w-6 h-6 border-2 border-white rounded-md overflow-hidden mt-2 cursor-pointer" 
             onClick={() => onUserClick(reel.user)}
           >
-             <img src={reel.user.avatar} className="w-full h-full object-cover" alt="user thumb" />
+             <OptimizedImage src={reel.user.avatar} className="w-full h-full" alt="user thumb" />
           </motion.div>
         </div>
       </div>

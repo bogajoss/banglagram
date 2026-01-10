@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, Heart, Send } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import OptimizedImage from './OptimizedImage';
 
 const StoryViewer: React.FC = () => {
   const { stories, viewingStory, setViewingStory, showToast } = useAppStore();
@@ -82,22 +83,30 @@ const StoryViewer: React.FC = () => {
 
         {/* User Info */}
         <div className="absolute top-8 left-4 flex items-center gap-3 z-20 text-white">
-            <img src={currentStory.img} className="w-8 h-8 rounded-full border border-white" alt={currentStory.username} />
+            <div className="w-8 h-8 rounded-full border border-white overflow-hidden">
+               <OptimizedImage src={currentStory.img} className="w-full h-full" alt={currentStory.username} />
+            </div>
             <span className="font-semibold text-sm">{currentStory.username}</span>
             <span className="text-white/70 text-xs">12h</span>
         </div>
 
         {/* Story Image */}
         <div className="flex-1 relative flex items-center justify-center bg-gray-900">
-           <motion.img 
-             key={currentStory.id}
-             initial={{ opacity: 0, x: 20 }}
-             animate={{ opacity: 1, x: 0 }}
-             exit={{ opacity: 0, x: -20 }}
-             src={currentStory.img} 
-             className="w-full h-full object-cover" 
-             alt="story" 
-           />
+           <AnimatePresence mode="wait">
+             <motion.div
+               key={currentStory.id}
+               initial={{ opacity: 0, x: 20 }}
+               animate={{ opacity: 1, x: 0 }}
+               exit={{ opacity: 0, x: -20 }}
+               className="w-full h-full"
+             >
+               <OptimizedImage 
+                 src={currentStory.img} 
+                 className="w-full h-full" 
+                 alt="story" 
+               />
+             </motion.div>
+           </AnimatePresence>
            
            {/* Tap Areas */}
            <div className="absolute inset-y-0 left-0 w-1/3 z-10" onClick={handlePrev}></div>

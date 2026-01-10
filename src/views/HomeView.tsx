@@ -7,6 +7,8 @@ import { initialData } from '../data/mockData';
 import type { User, Post, Story } from '../types';
 import { motion } from 'framer-motion';
 
+import OptimizedImage from '../components/OptimizedImage';
+
 const HomeView: React.FC = () => {
   const { 
     currentUser, 
@@ -76,7 +78,7 @@ const HomeView: React.FC = () => {
             >
               <div className="w-[66px] h-[66px] rounded-full p-[2px] bg-gradient-to-tr from-[#006a4e] to-[#004d39] group-hover:scale-105 transition-transform duration-200">
                 <div className={`w-full h-full rounded-full p-[2px] ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
-                  <img src={story.img} className="w-full h-full rounded-full object-cover" alt={story.username} />
+                  <OptimizedImage src={story.img} className="w-full h-full rounded-full" alt={story.username} />
                 </div>
               </div>
               <span className={`text-xs truncate w-full text-center ${theme === 'dark' ? 'text-[#f5f5f5]' : 'text-black'}`}>{story.username}</span>
@@ -105,7 +107,7 @@ const HomeView: React.FC = () => {
           className="flex items-center justify-between mb-6 mt-2"
          >
             <div className="flex items-center gap-3">
-               <img src={currentUser.avatar} className="w-11 h-11 rounded-full object-cover" alt="user" />
+               <OptimizedImage src={currentUser.avatar} className="w-11 h-11 rounded-full" alt="user" />
                <div className="text-sm">
                  <div className="font-semibold">{currentUser.username}</div>
                  <div className={textSecondary}>{currentUser.name}</div>
@@ -132,7 +134,7 @@ const HomeView: React.FC = () => {
                  onClick={() => handleUserClick(u as User)}
                >
                   <div className="flex items-center gap-3">
-                     <img src={u.avatar} className="w-8 h-8 rounded-full object-cover" alt={u.username} />
+                     <OptimizedImage src={u.avatar} className="w-8 h-8 rounded-full" alt={u.username} />
                      <div className="flex flex-col">
                        <span className="text-xs font-semibold">{u.username}</span>
                        <span className={`text-[10px] ${textSecondary}`}>Suggested for you</span>

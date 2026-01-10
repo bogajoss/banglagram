@@ -6,6 +6,8 @@ import type { Post } from '../types';
 
 import { motion } from 'framer-motion';
 
+import OptimizedImage from '../components/OptimizedImage';
+
 const ExploreView: React.FC = () => {
    const { theme, setViewingPost } = useAppStore();
    
@@ -59,8 +61,12 @@ const ExploreView: React.FC = () => {
                   className="relative aspect-square group cursor-pointer overflow-hidden" 
                   onClick={() => setViewingPost(post as Post)}
                >
-                  <img src={post.content.src} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" alt="explore" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200">
+                  <OptimizedImage 
+                    src={post.content.src} 
+                    className="w-full h-full transition-transform duration-300 group-hover:scale-110" 
+                    alt="explore" 
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200 z-20">
                      <div className="flex items-center gap-1"><Heart fill="white" size={16} /> {post.likes}</div>
                      <div className="flex items-center gap-1"><CommentIcon fill="white" size={16} className="-scale-x-100" /> {post.comments}</div>
                   </div>

@@ -61,21 +61,24 @@ export interface ChatMessage {
 }
 
 export interface Reel {
-  id: number;
+  id: string; // Changed from number to string (uuid)
   user: User;
   src: string;
-  likes: string;
-  comments: string;
+  likes: number; // Changed to number
+  comments: number; // Changed to number
   caption: string;
   audio: string;
+  hasLiked?: boolean;
 }
 
 export interface Notification {
   id: number;
-  type: "follow" | "system";
+  type: "follow" | "system" | "like" | "comment";
   user?: User;
   text: string;
   time: string;
   isFollowing?: boolean;
   icon?: string;
+  postId?: string;
+  reelId?: string;
 }

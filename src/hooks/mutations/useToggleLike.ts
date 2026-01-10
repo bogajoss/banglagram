@@ -1,72 +1,103 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabaseClient";
 import { FEED_QUERY_KEY } from "../queries/useGetFeed";
-import type { Post } from "../../types";
+import { REELS_QUERY_KEY } from "../queries/useGetReels";
+import type { Post, Reel } from "../../types";
 
 interface ToggleLikeVariables {
-  postId: string;
+  targetId: string;
+  type: 'post' | 'reel';
   userId: string;
-  hasLiked: boolean; // Current state
+  hasLiked: boolean;
 }
 
 export const useToggleLike = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ postId, userId, hasLiked }: ToggleLikeVariables) => {
+    mutationFn: async ({ targetId, type, userId, hasLiked }: ToggleLikeVariables) => {
+      const matchCriteria = type === 'post' 
+        ? { user_id: userId, post_id: targetId }
+        : { user_id: userId, reel_id: targetId };
+
       if (hasLiked) {
         // Unlike
         const { error } = await supabase
           .from("likes")
           .delete()
-          .match({ user_id: userId, post_id: postId });
+          .match(matchCriteria);
         if (error) throw error;
       } else {
         // Like
         const { error } = await (supabase
           .from("likes") as any)
-          .insert({ user_id: userId, post_id: postId });
+          .insert(matchCriteria);
         if (error) throw error;
       }
     },
-    onMutate: async ({ postId, hasLiked }) => {
+    onMutate: async ({ targetId, type, hasLiked }) => {
+      const queryKey = type === 'post' ? FEED_QUERY_KEY : REELS_QUERY_KEY;
+      
       // Cancel refetches
-      await queryClient.cancelQueries({ queryKey: FEED_QUERY_KEY });
+      await queryClient.cancelQueries({ queryKey });
 
       // Snapshot previous value
-      const previousFeed = queryClient.getQueryData(FEED_QUERY_KEY);
+      const previousData = queryClient.getQueryData(queryKey);
 
       // Optimistic update
-      queryClient.setQueryData(FEED_QUERY_KEY, (old: { pages: Post[][] } | undefined) => {
+      queryClient.setQueryData(queryKey, (old: unknown) => {
         if (!old) return old;
-        return {
-          ...old,
-          pages: old.pages.map((page) =>
-             page.map((post) => {
-                if (post.id === postId) {
-                    const currentLikes = typeof post.likes === 'string' ? parseInt(post.likes) : post.likes;
+        
+        // Handle Infinite Query (Feed)
+        if (type === 'post' && typeof old === 'object' && old !== null && 'pages' in old) {
+             const pagesOld = old as { pages: Post[][] };
+             return {
+                ...pagesOld,
+                pages: pagesOld.pages.map((page: Post[]) =>
+                    page.map((post) => {
+                        if (post.id === targetId) {
+                            const currentLikes = Number(post.likes);
+                            return {
+                                ...post,
+                                hasLiked: !hasLiked,
+                                likes: hasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1
+                            };
+                        }
+                        return post;
+                    })
+                )
+            };
+        }
+        
+        // Handle Array Query (Reels)
+        if (type === 'reel' && Array.isArray(old)) {
+            return old.map((reel: Reel) => {
+                if (reel.id === targetId) {
+                    const currentLikes = Number(reel.likes);
                     return {
-                        ...post,
+                        ...reel,
                         hasLiked: !hasLiked,
                         likes: hasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1
-                    }
+                    };
                 }
-                return post;
-             })
-          )
-        };
+                return reel;
+            });
+        }
+
+        return old;
       });
 
-      return { previousFeed };
+      return { previousData, queryKey };
     },
-    onError: (err, _variables, context: { previousFeed?: unknown } | undefined) => {
-        if (context?.previousFeed) {
-            queryClient.setQueryData(FEED_QUERY_KEY, context.previousFeed);
+    onError: (err, _variables, context: { previousData?: unknown; queryKey: string[] } | undefined) => {
+        if (context?.previousData) {
+            queryClient.setQueryData(context.queryKey, context.previousData);
         }
         console.error(err);
     },
-    onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: FEED_QUERY_KEY });
+    onSettled: (_, __, { type }) => {
+        const queryKey = type === 'post' ? FEED_QUERY_KEY : REELS_QUERY_KEY;
+        queryClient.invalidateQueries({ queryKey });
     }
   });
 };

@@ -29,7 +29,7 @@ async function runSqlFile(filePath: string) {
   let inDollarBlock = false;
 
   const lines = sqlContent.split('\n');
-  for (let line of lines) {
+  for (const line of lines) {
     if (line.includes('$$')) {
       // Toggle dollar block
       inDollarBlock = !inDollarBlock;
@@ -94,10 +94,12 @@ async function main() {
   const schemaPath = path.resolve(process.cwd(), 'supabase_schema.sql');
   const storagePath = path.resolve(process.cwd(), 'storage_setup.sql');
   const triggersPath = path.resolve(process.cwd(), 'notifications_triggers.sql');
+  const reelsUpdatePath = path.resolve(process.cwd(), 'update_schema_reels.sql');
 
   if (!(await runSqlFile(schemaPath))) process.exit(1);
   if (!(await runSqlFile(storagePath))) process.exit(1);
   if (!(await runSqlFile(triggersPath))) process.exit(1);
+  if (!(await runSqlFile(reelsUpdatePath))) process.exit(1);
   
   console.log('All migrations completed.');
 }

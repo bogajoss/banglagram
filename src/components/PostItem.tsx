@@ -47,7 +47,7 @@ const PostItem: React.FC<PostItemProps> = ({
 
   const handleLike = () => {
     if (!user) return;
-    toggleLike({ postId: String(post.id), userId: user.id, hasLiked: liked });
+    toggleLike({ targetId: String(post.id), type: 'post', userId: user.id, hasLiked: liked });
   };
 
   const handleDoubleClick = () => {

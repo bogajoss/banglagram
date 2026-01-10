@@ -71,7 +71,7 @@ BEGIN
 END
 $$;
 
--- 5. MESSAGES (Private)
+-- 5. MESSAGES
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view images in messages they are part of.' AND tablename = 'objects' AND schemaname = 'storage') THEN

@@ -26,8 +26,8 @@ export const useGetReels = () => {
           avatar: reel.profiles?.avatar_url || "",
         },
         src: reel.video_url,
-        likes: "0", // Placeholder if we don't have likes table for reels yet
-        comments: "0",
+        likes: 0, 
+        comments: 0,
         caption: reel.caption || "",
         audio: reel.audio_track_name || "Original Audio",
       })) as Reel[];

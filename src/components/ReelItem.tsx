@@ -11,6 +11,8 @@ import {
 import MoreOptionsModal from "./modals/MoreOptionsModal";
 import ShareModal from "./modals/ShareModal";
 import type { Reel, User } from "../types";
+import { useToggleLike } from "../hooks/mutations/useToggleLike";
+import { useAuth } from "../hooks/useAuth";
 
 interface ReelItemProps {
   reel: Reel;
@@ -31,12 +33,21 @@ const ReelItem: React.FC<ReelItemProps> = ({
   onUserClick,
   glassModal,
 }) => {
-  const [isLiked, setIsLiked] = useState(false);
+  const { user } = useAuth();
+  const { mutate: toggleLike } = useToggleLike();
+
   const [showHeart, setShowHeart] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const videoRef = useRef<HTMLDivElement>(null);
+
+  const isLiked = reel.hasLiked || false;
+
+  const handleLike = () => {
+    if (!user) return;
+    toggleLike({ targetId: reel.id, type: 'reel', userId: user.id, hasLiked: isLiked });
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -54,7 +65,7 @@ const ReelItem: React.FC<ReelItemProps> = ({
   }, []);
 
   const handleDoubleClick = () => {
-    if (!isLiked) setIsLiked(true);
+    handleLike();
     setShowHeart(true);
     setTimeout(() => setShowHeart(false), 1000);
   };
@@ -89,12 +100,24 @@ const ReelItem: React.FC<ReelItemProps> = ({
         className="relative h-full md:h-[95vh] w-full md:w-[400px] bg-zinc-900 md:rounded-lg overflow-hidden border-zinc-800 md:border group shadow-2xl"
         onDoubleClick={handleDoubleClick}
       >
-        <OptimizedImage
-          src={reel.src}
-          className="w-full h-full"
-          onClick={() => setIsMuted(!isMuted)}
-          alt="reel"
-        />
+        {/* Render Video instead of Image for Reels if src is video */}
+        {reel.src ? (
+             <video 
+                src={reel.src} 
+                className="w-full h-full object-cover"
+                loop
+                muted={isMuted}
+                autoPlay
+                onClick={() => setIsMuted(!isMuted)}
+             />
+        ) : (
+            <OptimizedImage
+            src={reel.src}
+            className="w-full h-full"
+            onClick={() => setIsMuted(!isMuted)}
+            alt="reel"
+            />
+        )}
 
         {/* Play/Mute Status */}
         <div className="absolute top-4 right-4 bg-black/50 p-2 rounded-full pointer-events-none transition-opacity">
@@ -167,11 +190,11 @@ const ReelItem: React.FC<ReelItemProps> = ({
                 size={28}
                 strokeWidth={1.5}
                 className={`cursor-pointer transition-colors ${isLiked ? "fill-[#f42a41] text-[#f42a41]" : ""}`}
-                onClick={() => setIsLiked(!isLiked)}
+                onClick={handleLike}
               />
             </motion.div>
             <span className="text-xs font-semibold drop-shadow-md">
-              {isLiked ? "1" : reel.likes}
+              {reel.likes}
             </span>
           </div>
           <div className="flex flex-col items-center gap-1">

@@ -4,7 +4,7 @@ import { initialData } from '../data/mockData';
 import UserListModal from '../components/modals/UserListModal';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
-import { User, Post, Message, Reel } from '../types';
+import type { User, Post, Message, Reel } from '../types';
 
 const ProfileView: React.FC = () => {
   const { 

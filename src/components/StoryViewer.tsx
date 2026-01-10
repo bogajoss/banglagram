@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, Heart, Send } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
+import { motion } from 'framer-motion';
 
 const StoryViewer: React.FC = () => {
   const { stories, viewingStory, setViewingStory, showToast } = useAppStore();
@@ -52,7 +53,12 @@ const StoryViewer: React.FC = () => {
   const onClose = () => setViewingStory(null);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex items-center justify-center">
+    <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="fixed inset-0 z-[200] bg-black flex items-center justify-center"
+    >
       {/* Close Button */}
       <button className="absolute top-4 right-4 z-50 text-white" onClick={onClose}>
         <X size={32} />
@@ -64,11 +70,11 @@ const StoryViewer: React.FC = () => {
         <div className="absolute top-4 left-0 right-0 flex gap-1 px-2 z-20">
           {stories.map((_, idx) => (
             <div key={idx} className="h-1 bg-white/30 flex-1 rounded-full overflow-hidden">
-              <div 
-                className={`h-full bg-white transition-all duration-100 ease-linear ${
-                  idx < currentIndex ? 'w-full' : idx === currentIndex ? '' : 'w-0'
-                }`}
-                style={{ width: idx === currentIndex ? `${progress}%` : undefined }}
+              <motion.div 
+                className="h-full bg-white origin-left"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: idx < currentIndex ? 1 : idx === currentIndex ? progress / 100 : 0 }}
+                transition={{ type: 'tween', ease: 'linear' }}
               />
             </div>
           ))}
@@ -83,7 +89,15 @@ const StoryViewer: React.FC = () => {
 
         {/* Story Image */}
         <div className="flex-1 relative flex items-center justify-center bg-gray-900">
-           <img src={currentStory.img} className="w-full h-full object-cover" alt="story" />
+           <motion.img 
+             key={currentStory.id}
+             initial={{ opacity: 0, x: 20 }}
+             animate={{ opacity: 1, x: 0 }}
+             exit={{ opacity: 0, x: -20 }}
+             src={currentStory.img} 
+             className="w-full h-full object-cover" 
+             alt="story" 
+           />
            
            {/* Tap Areas */}
            <div className="absolute inset-y-0 left-0 w-1/3 z-10" onClick={handlePrev}></div>
@@ -107,7 +121,7 @@ const StoryViewer: React.FC = () => {
       <button className="hidden md:block absolute right-4 text-white/50 hover:text-white" onClick={handleNext} disabled={currentIndex === stories.length - 1}>
         <ChevronRight size={48} />
       </button>
-    </div>
+    </motion.div>
   );
 }
 

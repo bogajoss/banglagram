@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronDown, Edit, Plus, Search, ChevronLeft, Phone, Video, Info, Camera, Smile, Image as ImageIcon, Heart, MessageCircle } from 'lucide-react';
 import { initialData } from '../data/mockData';
 import { useAppStore } from '../store/useAppStore';
-import { User, Message, ChatMessage } from '../types';
+import type { User, Message, ChatMessage } from '../types';
 
 const MessagesView: React.FC = () => {
   const { currentUser, theme, showToast } = useAppStore();

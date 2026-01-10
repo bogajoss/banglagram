@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import Layout from './components/layout/Layout';
 import HomeView from './views/HomeView';
 import ProfileView from './views/ProfileView';
@@ -12,6 +13,7 @@ import EditProfileModal from './components/modals/EditProfileModal';
 import StoryViewer from './components/StoryViewer';
 import PostDetailsModal from './components/modals/PostDetailsModal';
 import { useAppStore } from './store/useAppStore';
+import PageWrapper from './components/PageWrapper';
 
 export default function App() {
   const { 
@@ -24,6 +26,7 @@ export default function App() {
   } = useAppStore();
 
   const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     // Simulate loading
@@ -47,22 +50,32 @@ export default function App() {
         </div>
       )}
 
-      {/* Modals with Glassmorphism */}
-      {isCreateModalOpen && <CreateModal />}
-      {isEditProfileOpen && <EditProfileModal />}
-      {viewingStory !== null && <StoryViewer />}
-      {viewingPost !== null && <PostDetailsModal key={viewingPost.id} />}
+      {/* Modals with AnimatePresence */}
+      <AnimatePresence>
+        {isCreateModalOpen && <CreateModal />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isEditProfileOpen && <EditProfileModal />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {viewingStory !== null && <StoryViewer />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {viewingPost !== null && <PostDetailsModal key={viewingPost.id} />}
+      </AnimatePresence>
 
-      <Routes>
-        <Route element={<Layout />}>
-            <Route path="/" element={<HomeView />} />
-            <Route path="/explore" element={<ExploreView />} />
-            <Route path="/reels" element={<ReelsView />} />
-            <Route path="/messages" element={<MessagesView />} />
-            <Route path="/notifications" element={<NotificationsView />} />
-            <Route path="/profile/:username" element={<ProfileView />} />
-        </Route>
-      </Routes>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route element={<Layout />}>
+              <Route path="/" element={<PageWrapper><HomeView /></PageWrapper>} />
+              <Route path="/explore" element={<PageWrapper><ExploreView /></PageWrapper>} />
+              <Route path="/reels" element={<PageWrapper><ReelsView /></PageWrapper>} />
+              <Route path="/messages" element={<PageWrapper><MessagesView /></PageWrapper>} />
+              <Route path="/notifications" element={<PageWrapper><NotificationsView /></PageWrapper>} />
+              <Route path="/profile/:username" element={<PageWrapper><ProfileView /></PageWrapper>} />
+          </Route>
+        </Routes>
+      </AnimatePresence>
     </>
   );
 }

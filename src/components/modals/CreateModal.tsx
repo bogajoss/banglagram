@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, X, Upload, MapPin } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
+import { motion } from 'framer-motion';
 
 const CreateModal: React.FC = () => {
    const { theme, setCreateModalOpen, createPost } = useAppStore();
@@ -24,15 +25,27 @@ const CreateModal: React.FC = () => {
 
    const handleShare = () => {
       if(!preview) return;
-      createPost({ image: preview, caption }); // Location not in store yet, ignoring or adding later
+      createPost({ image: preview, caption });
       setCreateModalOpen(false);
    }
 
    const onClose = () => setCreateModalOpen(false);
 
    return (
-      <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
-         <div className={`w-full max-w-4xl h-[70vh] md:h-[80vh] rounded-xl overflow-hidden shadow-2xl flex flex-col ${glassModal} ${theme === 'dark' ? 'text-white' : 'text-black'}`} onClick={e => e.stopPropagation()}>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4" 
+        onClick={onClose}
+      >
+         <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className={`w-full max-w-4xl h-[70vh] md:h-[80vh] rounded-xl overflow-hidden shadow-2xl flex flex-col ${glassModal} ${theme === 'dark' ? 'text-white' : 'text-black'}`} 
+            onClick={e => e.stopPropagation()}
+         >
             {/* Header */}
             <div className={`p-3 border-b text-center font-bold relative flex items-center justify-between ${theme === 'dark' ? 'border-zinc-800' : 'border-zinc-200'}`}>
                <div className="w-10">
@@ -66,7 +79,7 @@ const CreateModal: React.FC = () => {
                     )}
                 </div>
 
-                {/* Caption Section (Visible only when preview exists) */}
+                {/* Caption Section */}
                 {preview && (
                     <div className={`w-full md:w-[350px] flex flex-col ${theme === 'dark' ? 'bg-zinc-900' : 'bg-white'}`}>
                         <div className="p-4 flex items-center gap-3">
@@ -95,8 +108,8 @@ const CreateModal: React.FC = () => {
                     </div>
                 )}
             </div>
-         </div>
-      </div>
+         </motion.div>
+      </motion.div>
    )
 }
 

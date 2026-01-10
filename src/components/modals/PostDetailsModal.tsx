@@ -2,15 +2,14 @@ import React, { useState } from 'react';
 import { X, Heart, MessageCircle as CommentIcon, Send, Bookmark, Smile, MoreHorizontal } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { useNavigate } from 'react-router-dom';
-import { User, Comment } from '../../types';
+import type { User, Comment } from '../../types';
+import { motion } from 'framer-motion';
 
 const PostDetailsModal: React.FC = () => {
   const { viewingPost, theme, showToast, savedPostIds, toggleSave, setViewingPost } = useAppStore();
   const navigate = useNavigate();
 
   const [newComment, setNewComment] = useState("");
-  // Now we initialize directly from viewingPost and don't need useEffect/useMemo
-  // Because we added key={viewingPost.id} in App.tsx, this component will remount when post changes.
   const [localComments, setLocalComments] = useState<Comment[]>(viewingPost?.commentList || []);
   const [liked, setLiked] = useState(false);
 
@@ -36,8 +35,17 @@ const PostDetailsModal: React.FC = () => {
   const glassModal = theme === 'dark' ? 'bg-[#121212]/90 backdrop-blur-2xl border border-white/10' : 'bg-white/90 backdrop-blur-2xl border border-black/10';
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-8 animate-fade-in" onClick={onClose}>
-       <div 
+    <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-8" 
+        onClick={onClose}
+    >
+       <motion.div 
+         initial={{ scale: 0.95, opacity: 0 }}
+         animate={{ scale: 1, opacity: 1 }}
+         exit={{ scale: 0.95, opacity: 0 }}
          className={`w-full max-w-5xl max-h-[90vh] rounded-lg overflow-hidden flex flex-col md:flex-row shadow-2xl ${glassModal} ${theme === 'dark' ? 'text-white' : 'text-black'}`} 
          onClick={e => e.stopPropagation()}
        >
@@ -66,7 +74,7 @@ const PostDetailsModal: React.FC = () => {
                    </div>
                 </div>
                 {localComments.map((c, i) => (
-                   <div key={i} className="flex gap-3 animate-fade-in-up">
+                   <div key={i} className="flex gap-3">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#006a4e] to-teal-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                          {c.user[0].toUpperCase()}
                       </div>
@@ -109,9 +117,9 @@ const PostDetailsModal: React.FC = () => {
                 </form>
              </div>
           </div>
-       </div>
+       </motion.div>
        <button className="absolute top-4 right-4 text-white md:hidden p-2 bg-black/50 rounded-full" onClick={onClose}><X size={24} /></button>
-    </div>
+    </motion.div>
   );
 }
 

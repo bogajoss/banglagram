@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Search, Copy, PlusSquare } from 'lucide-react';
 import { initialData } from '../../data/mockData';
-import { User } from '../../types';
+import type { User } from '../../types';
 
 interface ShareModalProps {
   onClose: () => void;

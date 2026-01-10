@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
+import { motion } from 'framer-motion';
 
 const EditProfileModal: React.FC = () => {
     const { currentUser, theme, updateProfile, setEditProfileOpen } = useAppStore();
@@ -22,13 +23,25 @@ const EditProfileModal: React.FC = () => {
     const onClose = () => setEditProfileOpen(false);
 
     const handleSave = () => {
-        updateProfile(name, bio, avatar);
+        updateProfile(name, bio || '', avatar);
         onClose();
     }
 
     return (
-        <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
-            <div className={`w-full max-w-md rounded-xl overflow-hidden shadow-2xl ${glassModal} ${theme === 'dark' ? 'text-white' : 'text-black'}`} onClick={e => e.stopPropagation()}>
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4" 
+            onClick={onClose}
+        >
+            <motion.div 
+                initial={{ y: 50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 50, opacity: 0 }}
+                className={`w-full max-w-md rounded-xl overflow-hidden shadow-2xl ${glassModal} ${theme === 'dark' ? 'text-white' : 'text-black'}`} 
+                onClick={e => e.stopPropagation()}
+            >
                 <div className={`p-4 border-b font-bold flex justify-between ${theme === 'dark' ? 'border-zinc-800' : 'border-zinc-200'}`}>
                    <span>এডিট প্রোফাইল</span>
                    <X className="cursor-pointer" onClick={onClose} />
@@ -58,8 +71,8 @@ const EditProfileModal: React.FC = () => {
                         সেভ করুন
                     </button>
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     )
 }
 

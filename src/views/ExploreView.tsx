@@ -2,7 +2,9 @@ import React, { useMemo } from 'react';
 import { Search, Heart, MessageCircle as CommentIcon } from 'lucide-react';
 import { initialData } from '../data/mockData';
 import { useAppStore } from '../store/useAppStore';
-import { Post } from '../types';
+import type { Post } from '../types';
+
+import { motion } from 'framer-motion';
 
 const ExploreView: React.FC = () => {
    const { theme, setViewingPost } = useAppStore();
@@ -10,13 +12,28 @@ const ExploreView: React.FC = () => {
    const posts = useMemo(() => initialData.explore.map((src, i) => ({
       id: `explore-${i}`,
       content: { src, type: 'image' as const },
-      likes: (i * 123 + 456) % 5000, // Deterministic "random"
-      comments: (i * 7 + 89) % 100, // Deterministic "random"
+      likes: (i * 123 + 456) % 5000, 
+      comments: (i * 7 + 89) % 100, 
       user: { username: 'explore_user', avatar: `https://api.dicebear.com/9.x/avataaars/svg?seed=${i}`, name: 'Explore User' },
       caption: 'Explore content',
       time: '1d',
       commentList: []
    })), []);
+
+   const containerVariants = {
+     hidden: { opacity: 0 },
+     visible: {
+       opacity: 1,
+       transition: {
+         staggerChildren: 0.05
+       }
+     }
+   };
+
+   const itemVariants = {
+     hidden: { opacity: 0, scale: 0.9 },
+     visible: { opacity: 1, scale: 1 }
+   };
 
    return (
       <div className="w-full max-w-[935px] py-4 px-2">
@@ -28,17 +45,28 @@ const ExploreView: React.FC = () => {
              </div>
          </div>
          
-         <div className="grid grid-cols-3 gap-1 md:gap-4 pb-14">
+         <motion.div 
+           variants={containerVariants}
+           initial="hidden"
+           animate="visible"
+           className="grid grid-cols-3 gap-1 md:gap-4 pb-14"
+         >
             {posts.map((post) => (
-               <div key={post.id} className="relative aspect-square group cursor-pointer overflow-hidden" onClick={() => setViewingPost(post as Post)}>
+               <motion.div 
+                  key={post.id} 
+                  variants={itemVariants}
+                  whileHover={{ scale: 0.98 }}
+                  className="relative aspect-square group cursor-pointer overflow-hidden" 
+                  onClick={() => setViewingPost(post as Post)}
+               >
                   <img src={post.content.src} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" alt="explore" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200">
                      <div className="flex items-center gap-1"><Heart fill="white" size={16} /> {post.likes}</div>
                      <div className="flex items-center gap-1"><CommentIcon fill="white" size={16} className="-scale-x-100" /> {post.comments}</div>
                   </div>
-               </div>
+               </motion.div>
             ))}
-         </div>
+         </motion.div>
       </div>
    )
 }

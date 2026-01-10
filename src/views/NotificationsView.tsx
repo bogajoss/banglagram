@@ -2,7 +2,7 @@ import React from 'react';
 import { initialData } from '../data/mockData';
 import { useAppStore } from '../store/useAppStore';
 import { useNavigate } from 'react-router-dom';
-import { Notification, User } from '../types';
+import type { Notification, User } from '../types';
 
 const NotificationsView: React.FC = () => {
   const { theme, followedUsers, toggleFollow } = useAppStore();

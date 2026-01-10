@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { initialData } from '../data/mockData';
-import { User, Post, Story } from '../types';
+import type { User, Post, Story } from '../types';
 
 interface AppState {
   // State

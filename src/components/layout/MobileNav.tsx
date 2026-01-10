@@ -3,6 +3,8 @@ import { NavLink } from 'react-router-dom';
 import { Home, Search, Clapperboard, PlusSquare, MessageCircle } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
+import { motion } from 'framer-motion';
+
 const MobileNav: React.FC = () => {
   const { theme, currentUser, setCreateModalOpen } = useAppStore();
   const borderClass = theme === 'dark' ? 'border-zinc-800' : 'border-zinc-200';
@@ -20,24 +22,30 @@ const MobileNav: React.FC = () => {
         <NavLink 
           key={index} 
           to={item.path}
-          className={({ isActive }) => `p-3 ${isActive ? 'text-[#006a4e]' : ''}`}
+          className={({ isActive }) => `block ${isActive ? 'text-[#006a4e]' : ''}`}
         >
-           {item.icon}
+           <motion.div whileTap={{ scale: 0.8 }} className="p-3">
+             {item.icon}
+           </motion.div>
         </NavLink>
       ))}
 
       {/* Create Button */}
-      <div className="p-3" onClick={() => setCreateModalOpen(true)}>
+      <motion.div whileTap={{ scale: 0.8 }} className="p-3" onClick={() => setCreateModalOpen(true)}>
          <PlusSquare size={24} />
-      </div>
+      </motion.div>
 
-      <NavLink to="/messages" className={({ isActive }) => `p-3 ${isActive ? 'text-[#006a4e]' : ''}`}>
-         <MessageCircle size={24} />
+      <NavLink to="/messages" className={({ isActive }) => `block ${isActive ? 'text-[#006a4e]' : ''}`}>
+         <motion.div whileTap={{ scale: 0.8 }} className="p-3">
+            <MessageCircle size={24} />
+         </motion.div>
       </NavLink>
 
-      <NavLink to={`/profile/${currentUser.username}`} className={({ isActive }) => `p-3 ${isActive ? 'text-[#006a4e]' : ''}`}>
+      <NavLink to={`/profile/${currentUser.username}`} className={({ isActive }) => `block ${isActive ? 'text-[#006a4e]' : ''}`}>
         {({ isActive }) => (
-          <img src={currentUser.avatar} className={`w-6 h-6 rounded-full ${isActive ? 'border-2 border-[#006a4e]' : ''}`} alt="profile" />
+          <motion.div whileTap={{ scale: 0.8 }} className="p-3">
+            <img src={currentUser.avatar} className={`w-6 h-6 rounded-full ${isActive ? 'border-2 border-[#006a4e]' : ''}`} alt="profile" />
+          </motion.div>
         )}
       </NavLink>
     </div>

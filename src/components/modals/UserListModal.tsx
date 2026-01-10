@@ -1,6 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import { User } from '../../types';
+import type { User } from '../../types';
 
 interface UserListModalProps {
   title: string;

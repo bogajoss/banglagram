@@ -3,7 +3,7 @@ import ReelItem from '../components/ReelItem';
 import { initialData } from '../data/mockData';
 import { useAppStore } from '../store/useAppStore';
 import { useNavigate } from 'react-router-dom';
-import { Reel, User } from '../types';
+import type { Reel, User } from '../types';
 
 const ReelsView: React.FC = () => {
    const { theme, showToast } = useAppStore();

@@ -1,10 +1,9 @@
 import { create } from "zustand";
-import { initialData } from "../data/mockData";
 import type { User, Post, Story } from "../types";
 
 interface AppState {
   // State
-  currentUser: User;
+  currentUser: User; // We'll keep this typed but it gets overwritten by AuthContext usually
   stories: Story[];
   posts: Post[];
   savedPostIds: Set<number | string>;
@@ -33,9 +32,14 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
-  currentUser: initialData.currentUser as User,
-  stories: initialData.stories as Story[],
-  posts: initialData.posts as unknown as Post[],
+  currentUser: {
+    username: "",
+    name: "",
+    avatar: "",
+    stats: { posts: 0, followers: 0, following: 0 }
+  },
+  stories: [],
+  posts: [],
   savedPostIds: new Set(),
   followedUsers: new Set(),
   theme: "dark",
@@ -112,6 +116,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   addStory: (img) =>
     set((state) => {
+      // Optimistic update for stories - though real app would upload
       const newStory: Story = {
         id: Date.now(),
         username: state.currentUser.username,
@@ -126,6 +131,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   createPost: ({ image, caption }) =>
     set((state) => {
+      // This is now largely handled by React Query mutation, but keeping for compatibility if needed
       const newPost: Post = {
         id: Date.now(),
         user: state.currentUser,
@@ -137,7 +143,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         isVerified: false,
         commentList: [],
       };
-      get().showToast("পোস্ট শেয়ার করা হয়েছে");
+      // get().showToast("পোস্ট শেয়ার করা হয়েছে");
       return { posts: [newPost, ...state.posts] };
     }),
 }));

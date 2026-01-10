@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Heart, MessageCircle as CommentIcon, X } from "lucide-react";
-import { initialData } from "../data/mockData";
 import { useAppStore } from "../store/useAppStore";
 import type { Post, User } from "../types";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import { useGetExplorePosts } from "../hooks/queries/useGetExplorePosts";
 
 import { motion } from "framer-motion";
 
@@ -17,24 +17,7 @@ const ExploreView: React.FC = () => {
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const posts = useMemo(
-    () =>
-      initialData.explore.map((src, i) => ({
-        id: `explore-${i}`,
-        content: { src, type: "image" as const },
-        likes: (i * 123 + 456) % 5000,
-        comments: (i * 7 + 89) % 100,
-        user: {
-          username: "explore_user",
-          avatar: `https://api.dicebear.com/9.x/avataaars/svg?seed=${i}`,
-          name: "Explore User",
-        },
-        caption: "Explore content",
-        time: "1d",
-        commentList: [],
-      })),
-    [],
-  );
+  const { data: posts = [], isLoading } = useGetExplorePosts();
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
@@ -133,37 +116,43 @@ const ExploreView: React.FC = () => {
           ))}
         </div>
       ) : (
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-3 gap-1 md:gap-4 pb-14"
-        >
-          {posts.map((post) => (
+        <>
+          {isLoading ? (
+             <div className="p-10 text-center">Loading explore...</div>
+          ) : (
             <motion.div
-              key={post.id}
-              variants={itemVariants}
-              whileHover={{ scale: 0.98 }}
-              className="relative aspect-square group cursor-pointer overflow-hidden"
-              onClick={() => setViewingPost(post as Post)}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-3 gap-1 md:gap-4 pb-14"
             >
-              <OptimizedImage
-                src={post.content.src}
-                className="w-full h-full transition-transform duration-300 group-hover:scale-110"
-                alt="explore"
-              />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200 z-20">
-                <div className="flex items-center gap-1">
-                  <Heart fill="white" size={16} /> {post.likes}
-                </div>
-                <div className="flex items-center gap-1">
-                  <CommentIcon fill="white" size={16} className="-scale-x-100" />{" "}
-                  {post.comments}
-                </div>
-              </div>
+              {posts.map((post) => (
+                <motion.div
+                  key={post.id}
+                  variants={itemVariants}
+                  whileHover={{ scale: 0.98 }}
+                  className="relative aspect-square group cursor-pointer overflow-hidden"
+                  onClick={() => setViewingPost(post as Post)}
+                >
+                  <OptimizedImage
+                    src={post.content.src || post.content.poster}
+                    className="w-full h-full transition-transform duration-300 group-hover:scale-110"
+                    alt="explore"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200 z-20">
+                    <div className="flex items-center gap-1">
+                      <Heart fill="white" size={16} /> {post.likes}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <CommentIcon fill="white" size={16} className="-scale-x-100" />{" "}
+                      {post.comments}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </motion.div>
-          ))}
-        </motion.div>
+          )}
+        </>
       )}
     </div>
   );

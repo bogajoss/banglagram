@@ -59,7 +59,7 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
             .in("post_id", postIds);
           
           if (likesData) {
-            (likesData as any[]).forEach(l => likedPostIds.add(l.post_id));
+            (likesData as { post_id: string }[]).forEach(l => likedPostIds.add(l.post_id));
           }
        }
 

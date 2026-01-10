@@ -1,17 +1,23 @@
 import React from "react";
-import { initialData } from "../data/mockData";
 import { useAppStore } from "../store/useAppStore";
 import { useNavigate } from "react-router-dom";
-import type { Notification, User } from "../types";
+import type { User } from "../types";
+import { useGetNotifications } from "../hooks/queries/useGetNotifications";
+import { useGetSuggestedUsers } from "../hooks/queries/useGetSuggestedUsers";
+import { useAuth } from "../hooks/useAuth";
 
 import OptimizedImage from "../components/OptimizedImage";
 
 const NotificationsView: React.FC = () => {
   const { theme, followedUsers, toggleFollow } = useAppStore();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const textSecondary = theme === "dark" ? "text-[#a8a8a8]" : "text-zinc-500";
+
+  const { data: notifications = [], isLoading: notifLoading } = useGetNotifications(user?.id);
+  const { data: suggestedUsers = [] } = useGetSuggestedUsers(user?.id);
 
   const onUserClick = (user: User) => {
     navigate(`/profile/${user.username}`);
@@ -30,8 +36,10 @@ const NotificationsView: React.FC = () => {
         <div>
           <h2 className="text-base font-bold mb-4 px-2">আগের</h2>
           <div className="flex flex-col gap-4">
-            {(initialData.notifications as unknown as Notification[]).map(
-              (notif) => (
+            {notifLoading && <div className="p-4 text-center">Loading notifications...</div>}
+            {!notifLoading && notifications.length === 0 && <div className="p-4 text-center text-gray-500">কোনো নোটিফিকেশন নেই</div>}
+            
+            {notifications.map((notif) => (
                 <div
                   key={notif.id}
                   className="flex items-center justify-between px-2"
@@ -100,7 +108,7 @@ const NotificationsView: React.FC = () => {
             আপনার জন্য প্রস্তাবিত
           </h2>
           <div className="flex flex-col gap-4">
-            {initialData.suggestedUsers.map((user, index) => {
+            {suggestedUsers.map((user, index) => {
               const u = user as User;
               const suggested = user as { subtitle: string };
               return (

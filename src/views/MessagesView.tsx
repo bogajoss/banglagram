@@ -42,6 +42,8 @@ const MessagesView: React.FC = () => {
     if (!user) return;
 
     const fetchConversations = async () => {
+      interface ProfileJoin { id: string; username: string; full_name: string | null; avatar_url: string | null }
+      
       const { data, error } = await supabase
         .from('messages')
         .select(`
@@ -59,7 +61,6 @@ const MessagesView: React.FC = () => {
         return;
       }
 
-      interface ProfileJoin { id: string; username: string; full_name: string | null; avatar_url: string | null }
       const usersMap = new Map<string, User & { id: string }>();
       (data as { sender_id: string; receiver_id: string; sender: ProfileJoin; receiver: ProfileJoin }[]).forEach((msg) => {
         const otherUser = msg.sender_id === user.id ? msg.receiver : msg.sender;
@@ -239,7 +240,7 @@ const MessagesView: React.FC = () => {
                 </div>
               </div>
               <div className="flex-grow flex flex-col p-4 gap-4 overflow-y-auto">
-                {messages.map((msg: any, idx) => (
+                {messages.map((msg: any, idx: number) => (
                   <div
                     key={msg.id || idx}
                     className={`flex gap-2 self-start max-w-[85%] items-end ${msg.sender_id === user?.id ? "self-end justify-end" : ""}`}

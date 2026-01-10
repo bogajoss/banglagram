@@ -32,7 +32,6 @@ async function runSqlFile(filePath: string) {
   for (let line of lines) {
     if (line.includes('$$')) {
       // Toggle dollar block
-      // Note: This assumes $$ only appears as a block marker
       inDollarBlock = !inDollarBlock;
     }
 
@@ -48,16 +47,7 @@ async function runSqlFile(filePath: string) {
     statements.push(currentStatement.trim());
   }
 
-  console.log(`Testing RPC with 'CREATE TABLE test_rpc (id int)'...`);
-  const testDdl = await supabase.rpc('exec_sql', { query: 'CREATE TABLE test_rpc (id int)' });
-  if (testDdl.error) {
-    console.log('DDL Test failed:', testDdl.error.message);
-  } else {
-    console.log('DDL Test successful.');
-    await supabase.rpc('exec_sql', { query: 'DROP TABLE test_rpc' });
-  }
-
-  console.log(`Found ${statements.length} statements. Executing via RPC 'exec_sql'...`);
+  console.log(`Found ${statements.length} statements in ${path.basename(filePath)}. Executing...`);
   
   for (let i = 0; i < statements.length; i++) {
     let stmt = statements[i];
@@ -67,8 +57,6 @@ async function runSqlFile(filePath: string) {
     if (stmt.endsWith(';')) {
       stmt = stmt.slice(0, -1);
     }
-    
-    if (i === 0) console.log(`Statement 1: [${stmt}]`);
     
     const { error } = await supabase.rpc('exec_sql', { query: stmt });
 
@@ -94,14 +82,22 @@ async function runSqlFile(filePath: string) {
 }
 
 async function main() {
+  // Test RPC connection
+  console.log(`Testing RPC connection...`);
+  const testDdl = await supabase.rpc('exec_sql', { query: 'SELECT 1' });
+  if (testDdl.error) {
+    console.error('RPC Test failed. Ensure "exec_sql" function exists in Supabase:', testDdl.error.message);
+    process.exit(1);
+  }
+  console.log('RPC Test successful.');
+
   const schemaPath = path.resolve(process.cwd(), 'supabase_schema.sql');
   const storagePath = path.resolve(process.cwd(), 'storage_setup.sql');
+  const triggersPath = path.resolve(process.cwd(), 'notifications_triggers.sql');
 
-  const schemaSuccess = await runSqlFile(schemaPath);
-  if (!schemaSuccess) process.exit(1);
-
-  const storageSuccess = await runSqlFile(storagePath);
-  if (!storageSuccess) process.exit(1);
+  if (!(await runSqlFile(schemaPath))) process.exit(1);
+  if (!(await runSqlFile(storagePath))) process.exit(1);
+  if (!(await runSqlFile(triggersPath))) process.exit(1);
   
   console.log('All migrations completed.');
 }

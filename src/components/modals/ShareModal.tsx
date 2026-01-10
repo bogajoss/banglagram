@@ -1,7 +1,8 @@
 import React from "react";
 import { X, Search, Copy, PlusSquare } from "lucide-react";
-import { initialData } from "../../data/mockData";
 import type { User } from "../../types";
+import { useGetSuggestedUsers } from "../../hooks/queries/useGetSuggestedUsers";
+import { useAuth } from "../../hooks/useAuth";
 
 interface ShareModalProps {
   onClose: () => void;
@@ -18,11 +19,11 @@ const ShareModal: React.FC<ShareModalProps> = ({
   showToast,
   glassModal,
 }) => {
-  // Note: In a real app you might want to pass these users as props or fetch them
-  const users = [
-    ...initialData.messages.map((m) => m.user),
-    ...initialData.suggestedUsers,
-  ].slice(0, 8) as User[];
+  const { user: authUser } = useAuth();
+  const { data: suggestedUsers = [] } = useGetSuggestedUsers(authUser?.id);
+
+  // Use suggested users for the share list
+  const users = suggestedUsers.slice(0, 8) as User[];
 
   return (
     <div

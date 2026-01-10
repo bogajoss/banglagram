@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallbackColor?: string;
+  imgClassName?: string;
 }
 
-const OptimizedImage: React.FC<OptimizedImageProps> = ({ 
-  src, 
-  alt, 
-  className, 
+const OptimizedImage: React.FC<OptimizedImageProps> = ({
+  src,
+  alt,
+  className,
+  imgClassName,
   fallbackColor,
-  ...props 
+  ...props
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState(false);
 
-  // Default shimmer/bg color based on theme would be better, 
-  // but we'll use a neutral gray as fallback.
-  const bgColor = fallbackColor || 'bg-zinc-200 dark:bg-zinc-800';
+  const bgColor = fallbackColor || "bg-zinc-200 dark:bg-zinc-800";
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
@@ -36,9 +36,9 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       <img
         src={src}
         alt={alt}
-        className={`w-full h-full object-cover transition-opacity duration-500 ${
-          isLoaded ? 'opacity-100' : 'opacity-0'
-        }`}
+        className={`w-full h-full transition-opacity duration-500 ${
+          imgClassName || "object-cover"
+        } ${isLoaded ? "opacity-100" : "opacity-0"}`}
         onLoad={() => setIsLoaded(true)}
         onError={() => setError(true)}
         loading="lazy"

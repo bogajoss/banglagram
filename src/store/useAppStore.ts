@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { initialData } from '../data/mockData';
-import type { User, Post, Story } from '../types';
+import { create } from "zustand";
+import { initialData } from "../data/mockData";
+import type { User, Post, Story } from "../types";
 
 interface AppState {
   // State
@@ -9,7 +9,7 @@ interface AppState {
   posts: Post[];
   savedPostIds: Set<number | string>;
   followedUsers: Set<string>;
-  theme: 'dark' | 'light';
+  theme: "dark" | "light";
   toastMessage: string | null;
   isCreateModalOpen: boolean;
   isEditProfileOpen: boolean;
@@ -37,7 +37,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   posts: initialData.posts as unknown as Post[],
   savedPostIds: new Set(),
   followedUsers: new Set(),
-  theme: 'dark',
+  theme: "dark",
   toastMessage: null,
   isCreateModalOpen: false,
   isEditProfileOpen: false,
@@ -45,7 +45,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   viewingPost: null,
 
   toggleTheme: () =>
-    set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
+    set((state) => ({ theme: state.theme === "dark" ? "light" : "dark" })),
 
   setToastMessage: (msg) => set({ toastMessage: msg }),
 
@@ -66,10 +66,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       const newSaved = new Set(state.savedPostIds);
       if (newSaved.has(postId)) {
         newSaved.delete(postId);
-        get().showToast('সেভ থেকে সরানো হয়েছে');
+        get().showToast("সেভ থেকে সরানো হয়েছে");
       } else {
         newSaved.add(postId);
-        get().showToast('সেভ করা হয়েছে');
+        get().showToast("সেভ করা হয়েছে");
       }
       return { savedPostIds: newSaved };
     }),
@@ -77,7 +77,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   toggleFollow: (username) =>
     set((state) => {
       const newFollowed = new Set(state.followedUsers);
-      const newStats = { ...state.currentUser.stats } as { posts: number, followers: number, following: number };
+      const newStats = { ...state.currentUser.stats } as {
+        posts: number;
+        followers: number;
+        following: number;
+      };
 
       if (newFollowed.has(username)) {
         newFollowed.delete(username);
@@ -97,7 +101,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   updateProfile: (name, bio, avatar) =>
     set((state) => {
-      get().showToast('প্রোফাইল আপডেট করা হয়েছে');
+      get().showToast("প্রোফাইল আপডেট করা হয়েছে");
       return {
         currentUser: { ...state.currentUser, name, bio, avatar },
       };
@@ -111,7 +115,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         img,
         isUser: true,
       };
-      get().showToast('স্টোরি যোগ করা হয়েছে');
+      get().showToast("স্টোরি যোগ করা হয়েছে");
       return {
         stories: [newStory, ...state.stories.filter((s) => !s.isUser)],
       };
@@ -122,15 +126,15 @@ export const useAppStore = create<AppState>((set, get) => ({
       const newPost: Post = {
         id: Date.now(),
         user: state.currentUser,
-        content: { type: 'image', src: image },
-        likes: '0',
+        content: { type: "image", src: image },
+        likes: "0",
         caption,
         comments: 0,
-        time: 'এইমাত্র',
+        time: "এইমাত্র",
         isVerified: false,
         commentList: [],
       };
-      get().showToast('পোস্ট শেয়ার করা হয়েছে');
+      get().showToast("পোস্ট শেয়ার করা হয়েছে");
       return { posts: [newPost, ...state.posts] };
     }),
 }));

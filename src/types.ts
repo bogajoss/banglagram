@@ -19,7 +19,7 @@ export interface Post {
   id: number | string;
   user: User;
   content: {
-    type: 'image' | 'video';
+    type: "image" | "video";
     src?: string;
     poster?: string;
   };
@@ -48,9 +48,9 @@ export interface Message {
 }
 
 export interface ChatMessage {
-  type: 'date' | 'incoming' | 'outgoing';
+  type: "date" | "incoming" | "outgoing";
   text?: string;
-  contentType?: 'image' | 'profile' | 'post' | 'text';
+  contentType?: "image" | "profile" | "post" | "text";
   src?: string;
   timestamp?: string;
   username?: string;
@@ -71,7 +71,7 @@ export interface Reel {
 
 export interface Notification {
   id: number;
-  type: 'follow' | 'system';
+  type: "follow" | "system";
   user?: User;
   text: string;
   time: string;

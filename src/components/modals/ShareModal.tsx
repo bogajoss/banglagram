@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Search, Copy, PlusSquare } from 'lucide-react';
 import { initialData } from '../../data/mockData';
+import { User } from '../../types';
 
 interface ShareModalProps {
   onClose: () => void;
@@ -11,7 +12,7 @@ interface ShareModalProps {
 
 const ShareModal: React.FC<ShareModalProps> = ({ onClose, theme, showToast, glassModal }) => {
     // Note: In a real app you might want to pass these users as props or fetch them
-    const users = [...initialData.messages.map(m => m.user), ...initialData.suggestedUsers].slice(0, 8); 
+    const users = [...initialData.messages.map(m => m.user), ...initialData.suggestedUsers].slice(0, 8) as User[]; 
 
     return (
         <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
@@ -33,7 +34,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, theme, showToast, glas
                             <img src={user.avatar} className="w-10 h-10 rounded-full object-cover" alt={user.username} />
                             <div className="flex flex-col">
                                <span className="text-sm font-semibold">{user.username}</span>
-                               <span className="text-xs opacity-70">{(user as any).name || user.username}</span>
+                               <span className="text-xs opacity-70">{user.name || user.username}</span>
                             </div>
                          </div>
                          <button 

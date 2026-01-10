@@ -1,25 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, Heart, Send } from 'lucide-react';
+import { useAppStore } from '../store/useAppStore';
 
-interface Story {
-  id: number;
-  username: string;
-  img: string;
-  isUser?: boolean;
-}
+const StoryViewer: React.FC = () => {
+  const { stories, viewingStory, setViewingStory, showToast } = useAppStore();
 
-interface StoryViewerProps {
-  stories: Story[];
-  initialStoryIndex: number;
-  onClose: () => void;
-  showToast: (msg: string) => void;
-}
-
-const StoryViewer: React.FC<StoryViewerProps> = ({ stories, initialStoryIndex, onClose, showToast }) => {
-  const [currentIndex, setCurrentIndex] = useState(initialStoryIndex);
+  const initialStoryIndex = stories.findIndex(s => s.id === viewingStory);
+  
+  const [currentIndex, setCurrentIndex] = useState(initialStoryIndex !== -1 ? initialStoryIndex : 0);
   const [progress, setProgress] = useState(0);
 
+  const handleNext = useCallback(() => {
+    if (currentIndex < stories.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+      setProgress(0);
+    } else {
+      setViewingStory(null);
+    }
+  }, [currentIndex, stories.length, setViewingStory]);
+
+  const handlePrev = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+      setProgress(0);
+    }
+  }, [currentIndex]);
+
   useEffect(() => {
+    if (viewingStory === null) return;
+
     const timer = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -31,25 +40,16 @@ const StoryViewer: React.FC<StoryViewerProps> = ({ stories, initialStoryIndex, o
     }, 50);
 
     return () => clearInterval(timer);
-  }, [currentIndex]);
+  }, [currentIndex, viewingStory, handleNext]);
 
-  const handleNext = () => {
-    if (currentIndex < stories.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-      setProgress(0);
-    } else {
-      onClose();
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-      setProgress(0);
-    }
-  };
+  // If story not found (shouldn't happen), close
+  if (viewingStory === null || initialStoryIndex === -1) {
+      return null;
+  }
 
   const currentStory = stories[currentIndex];
+
+  const onClose = () => setViewingStory(null);
 
   return (
     <div className="fixed inset-0 z-[200] bg-black flex items-center justify-center">

@@ -2,12 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Heart, MessageCircle as CommentIcon, Send, MoreHorizontal, Volume2, VolumeX, Music2 } from 'lucide-react';
 import MoreOptionsModal from './modals/MoreOptionsModal';
 import ShareModal from './modals/ShareModal';
+import { Reel, User } from '../types';
 
 interface ReelItemProps {
-  reel: any;
+  reel: Reel;
   showToast: (msg: string) => void;
   theme: string;
-  onUserClick: (user: any) => void;
+  onUserClick: (user: User) => void;
   glassModal: string;
 }
 

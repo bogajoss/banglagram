@@ -2,22 +2,24 @@ import React, { useState } from 'react';
 import { Heart, MessageCircle as CommentIcon, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 import MoreOptionsModal from './modals/MoreOptionsModal';
 import ShareModal from './modals/ShareModal';
+import { useAppStore } from '../store/useAppStore';
+import { Post, User, Comment } from '../types';
 
 interface PostItemProps {
-  post: any;
-  theme: string;
-  showToast: (msg: string) => void;
-  onPostClick: (post: any) => void;
+  post: Post;
   isSaved: boolean;
   onToggleSave: () => void;
-  onUserClick: (user: any) => void;
+  onUserClick: (user: User) => void;
+  onPostClick: (post: Post) => void;
 }
 
-const PostItem: React.FC<PostItemProps> = ({ post, theme, showToast, onPostClick, isSaved, onToggleSave, onUserClick }) => {
+const PostItem: React.FC<PostItemProps> = ({ post, isSaved, onToggleSave, onUserClick, onPostClick }) => {
+  const { theme, showToast } = useAppStore();
+  
   const [liked, setLiked] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
   const [commentsOpen] = useState(false);
-  const [comments, setComments] = useState<any[]>(post.commentList || []);
+  const [comments, setComments] = useState<Comment[]>(post.commentList || []);
   const [newComment, setNewComment] = useState("");
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -79,7 +81,7 @@ const PostItem: React.FC<PostItemProps> = ({ post, theme, showToast, onPostClick
       </div>
 
       <div className="text-sm px-3 md:px-0">
-        <div className="font-semibold mb-1">{liked ? parseInt(post.likes) + 1 : post.likes} লাইক</div>
+        <div className="font-semibold mb-1">{liked ? parseInt(post.likes as string) + 1 : post.likes} লাইক</div>
         <div className="mb-1">
           <span className="font-semibold mr-2" onClick={() => onUserClick(post.user)} style={{cursor: 'pointer'}}>{post.user.username}</span>
           <span>{post.caption}</span>

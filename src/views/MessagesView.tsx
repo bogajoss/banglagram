@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, Edit, Plus, Search, ChevronLeft, Phone, Video, Info, Camera, Smile, Image as ImageIcon, Heart, MessageCircle } from 'lucide-react';
 import { initialData } from '../data/mockData';
+import { useAppStore } from '../store/useAppStore';
+import { User, Message, ChatMessage } from '../types';
 
-interface MessagesViewProps {
-  currentUser: any;
-  theme: string;
-  buttonBg: string;
-  showToast: (msg: string) => void;
-}
+const MessagesView: React.FC = () => {
+  const { currentUser, theme, showToast } = useAppStore();
+  const buttonBg = 'bg-[#006a4e] hover:bg-[#00523c]'; 
 
-const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, theme, buttonBg, showToast }) => {
-  const [selectedUser, setSelectedUser] = useState<any>(initialData.messages[0].user); 
+  const [selectedUser, setSelectedUser] = useState<User | null>((initialData.messages[0] as unknown as Message).user); 
   const borderClass = theme === 'dark' ? 'border-zinc-800' : 'border-zinc-200';
   const bgHover = theme === 'dark' ? 'hover:bg-zinc-900' : 'hover:bg-gray-100';
   
@@ -20,14 +18,14 @@ const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, theme, buttonB
      return () => window.removeEventListener('popstate', handlePopState);
   }, [selectedUser]);
 
-  const handleSelectUser = (user: any) => {
+  const handleSelectUser = (user: User) => {
      setSelectedUser(user);
      if (window.innerWidth < 768) {
         window.history.pushState({chat: true}, "");
      }
   }
 
-  const activeConversation = initialData.messages.find(m => m.user.username === selectedUser?.username)?.chatHistory || [];
+  const activeConversation: ChatMessage[] = (initialData.messages as unknown as Message[]).find(m => m.user.username === selectedUser?.username)?.chatHistory || [];
 
   return (
     <div className="w-full max-w-[935px] flex h-full md:h-screen md:pt-4 md:pb-4 md:px-4 flex-col md:flex-row">
@@ -55,7 +53,7 @@ const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, theme, buttonB
               </div>
 
               {/* Mock Notes from initialData (using existing message users for demo) */}
-              {initialData.messages.slice(0,3).map((msg, idx) => (
+              {(initialData.messages as unknown as Message[]).slice(0,3).map((msg, idx) => (
                  <div key={idx} className="flex flex-col items-center gap-1 cursor-pointer min-w-[70px]">
                     <div className="relative">
                        <img src={msg.user.avatar} className={`w-14 h-14 rounded-full object-cover border ${borderClass}`} alt="note user" />
@@ -72,7 +70,7 @@ const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, theme, buttonB
              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${theme === 'dark' ? 'bg-[#262626]' : 'bg-gray-100'}`}><Search size={16} className="text-[#8e8e8e]" /><input type="text" placeholder="অনুসন্ধান" className="bg-transparent border-none outline-none text-sm w-full placeholder-[#8e8e8e]" /></div>
           </div>
           <div className="flex-grow overflow-y-auto">
-            {initialData.messages.map((msg) => (
+            {(initialData.messages as unknown as Message[]).map((msg) => (
               <div key={msg.id} onClick={() => handleSelectUser(msg.user)} className={`flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors ${bgHover} ${selectedUser?.username === msg.user.username ? (theme === 'dark' ? 'bg-zinc-900' : 'bg-gray-100') : ''}`}>
                 <div className="relative flex-shrink-0"><img src={msg.user.avatar} className="w-14 h-14 rounded-full object-cover" alt={msg.user.username} /></div>
                 <div className="flex-grow min-w-0">
@@ -96,7 +94,7 @@ const MessagesView: React.FC<MessagesViewProps> = ({ currentUser, theme, buttonB
                 <div className="flex items-center gap-4"><Phone size={24} className="cursor-pointer" /><Video size={24} className="cursor-pointer" /><Info size={24} className="cursor-pointer" /></div>
               </div>
               <div className="flex-grow flex flex-col p-4 gap-4 overflow-y-auto">
-                 {activeConversation.map((msg: any, idx: number) => (
+                 {activeConversation.map((msg, idx) => (
                     <div key={idx} className={`flex gap-2 self-start max-w-[85%] items-end ${msg.type === 'date' ? 'w-full justify-center !max-w-full' : ''}`}>
                        {msg.type === 'date' ? <span className="text-xs text-gray-500 my-2">{msg.text}</span> : (
                          <>

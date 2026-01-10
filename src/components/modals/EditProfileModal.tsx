@@ -1,19 +1,15 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { useAppStore } from '../../store/useAppStore';
 
-interface EditProfileModalProps {
-  user: any;
-  onClose: () => void;
-  onSave: (name: string, bio: string, avatar: string) => void;
-  theme: string;
-  buttonBg: string;
-  glassModal: string;
-}
+const EditProfileModal: React.FC = () => {
+    const { currentUser, theme, updateProfile, setEditProfileOpen } = useAppStore();
+    const buttonBg = 'bg-[#006a4e] hover:bg-[#00523c]'; 
+    const glassModal = theme === 'dark' ? 'bg-[#121212]/90 backdrop-blur-2xl border border-white/10' : 'bg-white/90 backdrop-blur-2xl border border-black/10';
 
-const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClose, onSave, theme, buttonBg, glassModal }) => {
-    const [name, setName] = useState(user.name);
-    const [bio, setBio] = useState(user.bio);
-    const [avatar, setAvatar] = useState(user.avatar);
+    const [name, setName] = useState(currentUser.name);
+    const [bio, setBio] = useState(currentUser.bio);
+    const [avatar, setAvatar] = useState(currentUser.avatar);
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if(e.target.files && e.target.files[0]){
@@ -21,6 +17,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClose, onSa
             reader.onload = (ev) => setAvatar(ev.target?.result as string);
             reader.readAsDataURL(e.target.files[0]);
         }
+    }
+
+    const onClose = () => setEditProfileOpen(false);
+
+    const handleSave = () => {
+        updateProfile(name, bio, avatar);
+        onClose();
     }
 
     return (
@@ -34,7 +37,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClose, onSa
                     <div className={`flex items-center gap-4 p-4 rounded-lg ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}>
                         <img src={avatar} className="w-16 h-16 rounded-full object-cover" alt="avatar" />
                         <div>
-                            <div className="font-semibold text-lg">{user.username}</div>
+                            <div className="font-semibold text-lg">{currentUser.username}</div>
                             <label className="text-[#006a4e] text-sm font-bold cursor-pointer hover:underline">
                                 প্রোফাইল ছবি পরিবর্তন করুন
                                 <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
@@ -51,7 +54,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClose, onSa
                         <textarea value={bio} onChange={e => setBio(e.target.value)} className={`w-full p-2 rounded border bg-transparent h-24 resize-none ${theme === 'dark' ? 'border-zinc-700' : 'border-zinc-300'}`} />
                     </div>
 
-                    <button onClick={() => onSave(name, bio, avatar)} className={`w-full py-2 rounded-lg text-white font-bold ${buttonBg} mt-2`}>
+                    <button onClick={handleSave} className={`w-full py-2 rounded-lg text-white font-bold ${buttonBg} mt-2`}>
                         সেভ করুন
                     </button>
                 </div>

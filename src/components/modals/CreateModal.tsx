@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import { ArrowLeft, X, Upload, MapPin } from 'lucide-react';
+import { useAppStore } from '../../store/useAppStore';
 
-interface CreateModalProps {
-  onClose: () => void;
-  theme: string;
-  buttonBg: string;
-  showToast: (msg: string) => void;
-  onCreate: (data: { image: string; caption: string; location: string }) => void;
-  glassModal: string;
-}
+const CreateModal: React.FC = () => {
+   const { theme, setCreateModalOpen, createPost } = useAppStore();
+   const buttonBg = 'bg-[#006a4e] hover:bg-[#00523c]'; 
+   const glassModal = theme === 'dark' ? 'bg-[#121212]/90 backdrop-blur-2xl border border-white/10' : 'bg-white/90 backdrop-blur-2xl border border-black/10';
 
-const CreateModal: React.FC<CreateModalProps> = ({ onClose, theme, buttonBg, onCreate, glassModal }) => {
    const [, setFile] = useState<File | null>(null);
    const [preview, setPreview] = useState<string | null>(null);
    const [caption, setCaption] = useState("");
@@ -28,8 +24,11 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, theme, buttonBg, onC
 
    const handleShare = () => {
       if(!preview) return;
-      onCreate({ image: preview, caption, location });
+      createPost({ image: preview, caption }); // Location not in store yet, ignoring or adding later
+      setCreateModalOpen(false);
    }
+
+   const onClose = () => setCreateModalOpen(false);
 
    return (
       <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>

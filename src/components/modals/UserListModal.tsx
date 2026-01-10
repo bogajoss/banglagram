@@ -1,12 +1,13 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import { User } from '../../types';
 
 interface UserListModalProps {
   title: string;
-  users: any[];
+  users: User[];
   onClose: () => void;
   theme: string;
-  onUserClick: (user: any) => void;
+  onUserClick: (user: User) => void;
   glassModal: string;
 }
 

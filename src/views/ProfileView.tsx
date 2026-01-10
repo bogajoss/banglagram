@@ -1,70 +1,97 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronDown, PlusSquare, Menu, Plus, Settings, Grid, Bookmark, UserCheck, Camera, Heart, MessageCircle as CommentIcon, AtSign } from 'lucide-react';
 import { initialData } from '../data/mockData';
 import UserListModal from '../components/modals/UserListModal';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAppStore } from '../store/useAppStore';
+import { User, Post, Message, Reel } from '../types';
 
-interface ProfileViewProps {
-  user: any;
-  currentUser: any;
-  posts: any[];
-  savedPosts: any[];
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  theme: string;
-  buttonBg: string;
-  showToast: (msg: string) => void;
-  onPostClick: (post: any) => void;
-  onEditProfile: () => void;
-  onStoryUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onFollow: (username: string) => void;
-  isFollowing: boolean;
-  onUserClick: (user: any) => void;
-  onCreateClick: () => void;
-}
+const ProfileView: React.FC = () => {
+  const { 
+    currentUser, 
+    posts, 
+    savedPostIds, 
+    theme, 
+    setViewingPost, 
+    setEditProfileOpen, 
+    addStory, 
+    toggleFollow, 
+    followedUsers,
+    setCreateModalOpen
+  } = useAppStore();
 
-const ProfileView: React.FC<ProfileViewProps> = ({ 
-  user, 
-  currentUser, 
-  posts, 
-  savedPosts, 
-  activeTab, 
-  setActiveTab, 
-  theme, 
-  buttonBg, 
-  showToast, 
-  onPostClick, 
-  onEditProfile, 
-  onStoryUpload, 
-  onFollow, 
-  isFollowing, 
-  onUserClick 
-}) => {
+  const { username } = useParams();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('posts');
+  const [listModalType, setListModalType] = useState<'followers' | 'following' | null>(null);
+
+  // Determine which user profile to show
+  const user = useMemo((): User => {
+    if (!username || username === currentUser.username) {
+        return currentUser;
+    }
+    
+    const suggested = initialData.suggestedUsers.find(u => u.username === username);
+    if (suggested) return suggested as User;
+
+    const messageUser = (initialData.messages as unknown as Message[]).find(m => m.user.username === username)?.user;
+    if (messageUser) return messageUser;
+
+    const reelUser = (initialData.reels as unknown as Reel[]).find(r => r.user.username === username)?.user;
+    if (reelUser) return reelUser;
+                    
+    return {
+        username: username,
+        name: username,
+        avatar: `https://api.dicebear.com/9.x/avataaars/svg?seed=${username}`,
+        bio: 'This user is generated for the demo.',
+        stats: { posts: 12, followers: 450, following: 300 }
+    };
+  }, [username, currentUser]);
+
   const borderClass = theme === 'dark' ? 'border-zinc-800' : 'border-zinc-200';
   const textSecondary = theme === 'dark' ? 'text-[#a8a8a8]' : 'text-zinc-500';
   const isMe = user.username === currentUser.username;
-  const [listModalType, setListModalType] = useState<'followers' | 'following' | null>(null);
-  
+  const userIsFollowing = followedUsers.has(user.username);
+  const buttonBg = 'bg-[#006a4e] hover:bg-[#00523c]'; 
+
   // Fake posts for other users if they don't have real ones in DB
-  const userPosts = isMe ? posts : initialData.explore.slice(0, 9).map((src, i) => ({
+  const userPosts = useMemo((): Post[] => isMe ? posts : initialData.explore.slice(0, 9).map((src, i) => ({
       id: `u-p-${i}`,
-      content: { src, type: 'image' },
-      likes: Math.floor(Math.random() * 500),
-      comments: Math.floor(Math.random() * 50),
+      content: { src, type: 'image' as const },
+      likes: (i * 45 + 10) % 500,
+      comments: (i * 3 + 5) % 50,
       user: user,
       caption: 'Awesome day!',
       time: '3d',
       commentList: []
-  }));
+  })), [isMe, posts, user]);
 
-  const displayPosts = activeTab === 'saved' ? savedPosts : userPosts;
+  const savedPostsList = useMemo(() => posts.filter(p => savedPostIds.has(p.id)), [posts, savedPostIds]);
+  const displayPosts = activeTab === 'saved' ? savedPostsList : userPosts;
 
   const handleOpenList = (type: 'followers' | 'following') => setListModalType(type);
   const handleCloseList = () => setListModalType(null);
 
   // Generate fake users list for demo
   const getUsersList = () => {
-    return initialData.suggestedUsers; // Just reusing for demo
+    return initialData.suggestedUsers as User[];
   };
+
+  const onUserClick = (u: User) => {
+      navigate(`/profile/${u.username}`);
+  }
+
+  const handleStoryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if(e.target.files && e.target.files[0]){
+         const file = e.target.files[0];
+         const reader = new FileReader();
+         reader.onload = (ev) => {
+             addStory(ev.target?.result as string);
+         }
+         reader.readAsDataURL(file);
+     }
+  }
 
   return (
     <div className="w-full max-w-[935px] px-0 md:px-5 py-0 md:py-[30px]">
@@ -81,11 +108,11 @@ const ProfileView: React.FC<ProfileViewProps> = ({
 
       <div className={`md:hidden sticky top-0 z-10 border-b ${borderClass} px-4 h-[44px] flex items-center justify-between ${theme === 'dark' ? 'bg-black/90 backdrop-blur-md' : 'bg-white/90 backdrop-blur-md'}`}>
          <div className="flex items-center gap-1 font-bold text-lg">
-           {!isMe && <ChevronLeft size={24} onClick={() => onUserClick(currentUser)} className="cursor-pointer mr-2" />}
+           {!isMe && <ChevronLeft size={24} onClick={() => navigate(-1)} className="cursor-pointer mr-2" />}
            {user.username} 
            {isMe && <ChevronDown size={16} />}
          </div>
-         <div className="flex gap-6"><PlusSquare size={24} onClick={() => isMe && showToast('পোস্ট তৈরি করুন')} /><Menu size={24} /></div>
+         <div className="flex gap-6"><PlusSquare size={24} onClick={() => { if(isMe) { setCreateModalOpen(true); } }} /><Menu size={24} /></div>
       </div>
       <header className="flex flex-col md:flex-row gap-6 md:gap-12 mb-4 md:mb-10 items-start md:items-stretch px-4 md:px-0 pt-4 md:pt-0">
         <div className="flex flex-row md:flex-col items-center gap-8 md:gap-0 w-full md:w-auto">
@@ -96,14 +123,14 @@ const ProfileView: React.FC<ProfileViewProps> = ({
               {isMe && (
                   <label className="absolute bottom-0 right-10 md:right-16 bg-[#0095f6] rounded-full p-1 border-2 border-black cursor-pointer">
                      <Plus size={16} className="text-white" />
-                     <input type="file" className="hidden" accept="image/*" onChange={onStoryUpload} />
+                     <input type="file" className="hidden" accept="image/*" onChange={handleStoryUpload} />
                   </label>
               )}
            </div>
            <div className="flex md:hidden justify-around flex-grow text-center">
-              <div className="flex flex-col"><span className="font-semibold text-lg">{isMe ? user.stats.posts : userPosts.length}</span><span className={`text-sm ${textSecondary}`}>পোস্ট</span></div>
-              <div className="flex flex-col cursor-pointer" onClick={() => handleOpenList('followers')}><span className="font-semibold text-lg">{isMe ? user.stats.followers : '256'}</span><span className={`text-sm ${textSecondary}`}>ফলোয়ার</span></div>
-              <div className="flex flex-col cursor-pointer" onClick={() => handleOpenList('following')}><span className="font-semibold text-lg">{isMe ? user.stats.following : '124'}</span><span className={`text-sm ${textSecondary}`}>ফলোইং</span></div>
+              <div className="flex flex-col"><span className="font-semibold text-lg">{isMe ? user.stats?.posts : userPosts.length}</span><span className={`text-sm ${textSecondary}`}>পোস্ট</span></div>
+              <div className="flex flex-col cursor-pointer" onClick={() => handleOpenList('followers')}><span className="font-semibold text-lg">{isMe ? user.stats?.followers : '256'}</span><span className={`text-sm ${textSecondary}`}>ফলোয়ার</span></div>
+              <div className="flex flex-col cursor-pointer" onClick={() => handleOpenList('following')}><span className="font-semibold text-lg">{isMe ? user.stats?.following : '124'}</span><span className={`text-sm ${textSecondary}`}>ফলোইং</span></div>
            </div>
         </div>
         <div className="flex-grow flex flex-col gap-4 w-full">
@@ -112,16 +139,16 @@ const ProfileView: React.FC<ProfileViewProps> = ({
             <div className="flex gap-2 w-full md:w-auto">
               {isMe ? (
                   <>
-                    <button onClick={onEditProfile} className={`${theme === 'dark' ? 'bg-[#363636] hover:bg-[#262626]' : 'bg-gray-200 hover:bg-gray-300'} text-sm font-semibold px-4 py-[7px] rounded-lg transition-colors flex-grow md:flex-grow-0 text-center`}>এডিট প্রোফাইল</button>
+                    <button onClick={() => setEditProfileOpen(true)} className={`${theme === 'dark' ? 'bg-[#363636] hover:bg-[#262626]' : 'bg-gray-200 hover:bg-gray-300'} text-sm font-semibold px-4 py-[7px] rounded-lg transition-colors flex-grow md:flex-grow-0 text-center`}>এডিট প্রোফাইল</button>
                     <button className={`${theme === 'dark' ? 'bg-[#363636] hover:bg-[#262626]' : 'bg-gray-200 hover:bg-gray-300'} text-sm font-semibold px-4 py-[7px] rounded-lg transition-colors flex-grow md:flex-grow-0 text-center`}>আর্কাইভ দেখুন</button>
                   </>
               ) : (
                   <>
                     <button 
-                        onClick={() => onFollow(user.username)}
-                        className={`${isFollowing ? (theme === 'dark' ? 'bg-[#363636] hover:bg-[#262626]' : 'bg-gray-200') : buttonBg} ${isFollowing ? '' : 'text-white'} text-sm font-semibold px-6 py-[7px] rounded-lg transition-colors flex-grow md:flex-grow-0 text-center`}
+                        onClick={() => toggleFollow(user.username)}
+                        className={`${userIsFollowing ? (theme === 'dark' ? 'bg-[#363636] hover:bg-[#262626]' : 'bg-gray-200') : buttonBg} ${userIsFollowing ? '' : 'text-white'} text-sm font-semibold px-6 py-[7px] rounded-lg transition-colors flex-grow md:flex-grow-0 text-center`}
                     >
-                        {isFollowing ? 'ফলো করছেন' : 'ফলো'}
+                        {userIsFollowing ? 'ফলো করছেন' : 'ফলো'}
                     </button>
                     <button className={`${theme === 'dark' ? 'bg-[#363636] hover:bg-[#262626]' : 'bg-gray-200 hover:bg-gray-300'} text-sm font-semibold px-4 py-[7px] rounded-lg transition-colors flex-grow md:flex-grow-0 text-center`}>মেসেজ</button>
                   </>
@@ -130,9 +157,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({
             {isMe && <button className={`hidden md:block ${theme === 'dark' ? 'text-white' : 'text-black'}`}><Settings size={24} /></button>}
           </div>
           <div className="hidden md:flex gap-10 text-base">
-            <span><span className="font-semibold">{isMe ? user.stats.posts : userPosts.length}</span> পোস্ট</span>
-            <span className="cursor-pointer" onClick={() => handleOpenList('followers')}><span className="font-semibold">{isMe ? user.stats.followers : '256'}</span> ফলোয়ার</span>
-            <span className="cursor-pointer" onClick={() => handleOpenList('following')}><span className="font-semibold">{isMe ? user.stats.following : '124'}</span> ফলোইং</span>
+            <span><span className="font-semibold">{isMe ? user.stats?.posts : userPosts.length}</span> পোস্ট</span>
+            <span className="cursor-pointer" onClick={() => handleOpenList('followers')}><span className="font-semibold">{isMe ? user.stats?.followers : '256'}</span> ফলোয়ার</span>
+            <span className="cursor-pointer" onClick={() => handleOpenList('following')}><span className="font-semibold">{isMe ? user.stats?.following : '124'}</span> ফলোইং</span>
           </div>
           <div className="text-sm px-1 md:px-0">
             <div className="font-semibold">{user.name}</div>
@@ -170,7 +197,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                <div 
                  key={post.id} 
                  className="relative aspect-square group cursor-pointer"
-                 onClick={() => onPostClick(post)}
+                 onClick={() => setViewingPost(post)}
                >
                   <img src={post.content.src || post.content.poster} className="w-full h-full object-cover" alt="post grid" />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white font-bold">

@@ -1,29 +1,39 @@
 import React, { useState } from 'react';
 import { X, Heart, MessageCircle as CommentIcon, Send, Bookmark, Smile, MoreHorizontal } from 'lucide-react';
+import { useAppStore } from '../../store/useAppStore';
+import { useNavigate } from 'react-router-dom';
+import { User, Comment } from '../../types';
 
-interface PostDetailsModalProps {
-  post: any;
-  onClose: () => void;
-  theme: string;
-  showToast: (msg: string) => void;
-  isSaved: boolean;
-  onToggleSave: () => void;
-  onUserClick: (user: any) => void;
-  glassModal: string;
-}
+const PostDetailsModal: React.FC = () => {
+  const { viewingPost, theme, showToast, savedPostIds, toggleSave, setViewingPost } = useAppStore();
+  const navigate = useNavigate();
 
-const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ post, onClose, theme, showToast, isSaved, onToggleSave, onUserClick, glassModal }) => {
   const [newComment, setNewComment] = useState("");
-  const [comments, setComments] = useState<any[]>(post.commentList || []);
+  // Now we initialize directly from viewingPost and don't need useEffect/useMemo
+  // Because we added key={viewingPost.id} in App.tsx, this component will remount when post changes.
+  const [localComments, setLocalComments] = useState<Comment[]>(viewingPost?.commentList || []);
   const [liked, setLiked] = useState(false);
+
+  if (!viewingPost) return null;
+  const post = viewingPost;
+  const isSaved = savedPostIds.has(post.id);
 
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (newComment.trim()) {
-      setComments([...comments, { user: 'আপনি', text: newComment }]);
+      setLocalComments([...localComments, { user: 'আপনি', text: newComment }]);
       setNewComment("");
     }
   };
+
+  const onClose = () => setViewingPost(null);
+
+  const onUserClick = (user: User) => {
+      onClose();
+      navigate(`/profile/${user.username}`);
+  }
+
+  const glassModal = theme === 'dark' ? 'bg-[#121212]/90 backdrop-blur-2xl border border-white/10' : 'bg-white/90 backdrop-blur-2xl border border-black/10';
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-8 animate-fade-in" onClick={onClose}>
@@ -39,7 +49,7 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ post, onClose, them
           {/* Details Section */}
           <div className="w-full md:w-[400px] flex flex-col h-full md:h-[90vh]">
              <div className={`p-4 border-b ${theme === 'dark' ? 'border-zinc-800' : 'border-zinc-200'} flex items-center justify-between`}>
-                <div className="flex items-center gap-3" onClick={() => { onUserClick(post.user); onClose(); }}>
+                <div className="flex items-center gap-3" onClick={() => onUserClick(post.user)}>
                    <img src={post.user.avatar} className="w-8 h-8 rounded-full border border-zinc-700 cursor-pointer" alt={post.user.username} />
                    <span className="font-semibold text-sm hover:opacity-70 cursor-pointer">{post.user.username}</span>
                 </div>
@@ -48,14 +58,14 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ post, onClose, them
 
              <div className="flex-grow overflow-y-auto p-4 space-y-4">
                 <div className="flex gap-3">
-                   <img src={post.user.avatar} className="w-8 h-8 rounded-full flex-shrink-0 cursor-pointer" alt="user" onClick={() => { onUserClick(post.user); onClose(); }} />
+                   <img src={post.user.avatar} className="w-8 h-8 rounded-full flex-shrink-0 cursor-pointer" alt="user" onClick={() => onUserClick(post.user)} />
                    <div className="text-sm">
-                      <span className="font-semibold mr-2 cursor-pointer" onClick={() => { onUserClick(post.user); onClose(); }}>{post.user.username}</span>
+                      <span className="font-semibold mr-2 cursor-pointer" onClick={() => onUserClick(post.user)}>{post.user.username}</span>
                       <span>{post.caption}</span>
                       <div className="text-xs text-zinc-500 mt-1">{post.time}</div>
                    </div>
                 </div>
-                {comments.map((c, i) => (
+                {localComments.map((c, i) => (
                    <div key={i} className="flex gap-3 animate-fade-in-up">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#006a4e] to-teal-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                          {c.user[0].toUpperCase()}
@@ -75,7 +85,7 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ post, onClose, them
                       <CommentIcon size={24} className="-scale-x-100 cursor-pointer hover:opacity-70" />
                       <Send size={24} className="cursor-pointer hover:opacity-70" onClick={() => showToast('শেয়ার করা হয়েছে')} />
                    </div>
-                   <Bookmark size={24} className={`cursor-pointer hover:opacity-70 ${isSaved ? 'fill-current' : ''}`} onClick={onToggleSave} />
+                   <Bookmark size={24} className={`cursor-pointer hover:opacity-70 ${isSaved ? 'fill-current' : ''}`} onClick={() => toggleSave(post.id)} />
                 </div>
                 <div className="font-semibold text-sm mb-2">{liked ? 'Like count hidden' : post.likes + ' লাইক'}</div>
                 <div className="text-xs text-zinc-500 uppercase mb-3">{post.time} আগে</div>

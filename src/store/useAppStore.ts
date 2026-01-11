@@ -1,5 +1,7 @@
 import { create } from "zustand";
+import dayjs from "dayjs";
 import type { User, Post, Story, Reel } from "../types";
+import { toast } from "sonner";
 
 interface AppState {
   // State
@@ -41,6 +43,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set, get) => ({
   currentUser: {
+    id: "",
     username: "",
     name: "",
     avatar: "",
@@ -74,10 +77,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setToastMessage: (msg) => set({ toastMessage: msg }),
 
   showToast: (msg) => {
-    set({ toastMessage: msg });
-    setTimeout(() => {
-      set({ toastMessage: null });
-    }, 3000);
+    toast(msg);
   },
 
   setCreateModalOpen: (open) => set({ isCreateModalOpen: open }),
@@ -155,7 +155,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((state) => {
       // This is now largely handled by React Query mutation, but keeping for compatibility if needed
       const newPost: Post = {
-        id: String(Date.now()),
+        id: String(dayjs().valueOf()),
         user: state.currentUser,
         content: { type: "image", src: image, poster: image },
         likes: 0,

@@ -29,6 +29,7 @@ import ArchiveModal from "../components/modals/ArchiveModal";
 
 import OptimizedImage from "../components/OptimizedImage";
 import VerifiedBadge from "../components/VerifiedBadge";
+import { Button } from "@/components/ui/button";
 
 const ProfileView: React.FC = () => {
   const {
@@ -80,7 +81,7 @@ const ProfileView: React.FC = () => {
 
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const textSecondary = theme === "dark" ? "text-[#a8a8a8]" : "text-zinc-500";
-  const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
+
 
   const displayPosts =
     activeTab === "saved"
@@ -255,47 +256,53 @@ const ProfileView: React.FC = () => {
             <div className="flex gap-2 w-full md:w-auto">
               {isMe ? (
                 <>
-                  <button
+                  <Button
+                    variant="secondary"
                     onClick={() => setEditProfileOpen(true)}
-                    className={`${theme === "dark" ? "bg-[#363636] hover:bg-[#262626]" : "bg-gray-200 hover:bg-gray-300"} text-sm font-semibold px-4 py-[7px] rounded-lg transition-colors flex-grow md:flex-grow-0 text-center`}
+                    className="text-sm font-semibold h-8"
                   >
                     এডিট প্রোফাইল
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="secondary"
                     onClick={() => setIsArchiveOpen(true)}
-                    className={`${theme === "dark" ? "bg-[#363636] hover:bg-[#262626]" : "bg-gray-200 hover:bg-gray-300"} text-sm font-semibold px-4 py-[7px] rounded-lg transition-colors flex-grow md:flex-grow-0 text-center`}
+                    className="text-sm font-semibold h-8"
                   >
                     আর্কাইভ দেখুন
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
-                  <button
+                  <Button
                     onClick={handleFollow}
-                    className={`${userIsFollowing ? (theme === "dark" ? "bg-[#363636] hover:bg-[#262626]" : "bg-gray-200") : buttonBg} ${userIsFollowing ? "" : "text-white"} text-sm font-semibold px-6 py-[7px] rounded-lg transition-colors flex-grow md:flex-grow-0 text-center`}
+                    className={`${userIsFollowing ? "bg-secondary text-secondary-foreground hover:bg-secondary/80" : "bg-[#006a4e] text-white hover:bg-[#00523c]"} text-sm font-semibold h-8`}
+                    variant={userIsFollowing ? "secondary" : "default"}
                   >
                     {userIsFollowing ? "ফলো করছেন" : "ফলো"}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="secondary"
                     onClick={() =>
                       navigate(`/messages/${profileUser.username}`, {
                         state: { user: profileUser },
                       })
                     }
-                    className={`${theme === "dark" ? "bg-[#363636] hover:bg-[#262626]" : "bg-gray-200 hover:bg-gray-300"} text-sm font-semibold px-4 py-[7px] rounded-lg transition-colors flex-grow md:flex-grow-0 text-center`}
+                    className="text-sm font-semibold h-8"
                   >
                     মেসেজ
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
             {isMe && (
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setIsSettingsOpen(true)}
-                className={`hidden md:block ${theme === "dark" ? "text-white" : "text-black"}`}
+                className={`hidden md:flex ${theme === "dark" ? "text-white" : "text-black"}`}
               >
                 <Settings size={24} />
-              </button>
+              </Button>
             )}
           </div>
           <div className="hidden md:flex gap-10 text-base">
@@ -429,11 +436,11 @@ const ProfileView: React.FC = () => {
               <p className={`text-sm ${textSecondary} mb-4`}>
                 আপনি যখন ফটো শেয়ার করবেন, তখন সেগুলো এখানে দেখা যাবে।
               </p>
-              <button
-                className={`${buttonBg} text-white font-semibold text-sm px-4 py-2 rounded`}
+              <Button
+                className="bg-[#006a4e] text-white hover:bg-[#00523c] font-semibold text-sm h-9"
               >
                 প্রথম ফটো শেয়ার করুন
-              </button>
+              </Button>
             </>
           )}
         </div>

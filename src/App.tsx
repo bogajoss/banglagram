@@ -1,4 +1,5 @@
 import { useEffect, Suspense, lazy } from "react";
+import dayjs from "dayjs";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import Layout from "./components/layout/Layout";
@@ -12,6 +13,7 @@ const ReelsView = lazy(() => import("./views/ReelsView"));
 const NotificationsView = lazy(() => import("./views/NotificationsView"));
 const ExploreView = lazy(() => import("./views/ExploreView"));
 const AuthView = lazy(() => import("./views/AuthView"));
+const PostView = lazy(() => import("./views/PostView"));
 
 import CreateModal from "./components/modals/CreateModal";
 import EditProfileModal from "./components/modals/EditProfileModal";
@@ -25,11 +27,12 @@ import {
   useGetNotifications,
   NOTIFICATIONS_QUERY_KEY,
 } from "./hooks/queries/useGetNotifications";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function App() {
   const {
     theme,
-    toastMessage,
+
     isCreateModalOpen,
     isEditProfileOpen,
     viewingStory,
@@ -47,8 +50,10 @@ export default function App() {
 
   // Define public routes that don't require authentication
   const isPublicRoute =
-    location.pathname.startsWith("/reels/") &&
-    location.pathname.split("/").length === 3;
+    (location.pathname.startsWith("/reels/") &&
+      location.pathname.split("/").length === 3) ||
+    (location.pathname.startsWith("/post/") &&
+      location.pathname.split("/").length === 3);
 
   // Realtime Notifications Subscription
   useEffect(() => {
@@ -79,9 +84,9 @@ export default function App() {
 
   useEffect(() => {
     const lastRead = localStorage.getItem("lastNotificationReadTime");
-    const lastReadDate = lastRead ? new Date(lastRead) : new Date(0);
+    const lastReadDate = lastRead ? dayjs(lastRead) : dayjs(0);
     const unread = notifications.filter(
-      (n) => n.created_at && new Date(n.created_at) > lastReadDate,
+      (n) => n.created_at && dayjs(n.created_at).isAfter(lastReadDate),
     );
     setUnreadNotificationsCount(unread.length);
   }, [notifications, setUnreadNotificationsCount]);
@@ -90,6 +95,7 @@ export default function App() {
     if (profile && user) {
       // Map Supabase profile to App User type
       const appUser: AppUser = {
+        id: user.id,
         username: profile.username,
         name: profile.full_name || user.email || "User",
         avatar:
@@ -144,11 +150,7 @@ export default function App() {
 
   return (
     <>
-      {toastMessage && (
-        <div className="fixed bottom-16 md:bottom-8 left-1/2 transform -translate-x-1/2 z-[110] bg-[#333] text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg animate-fade-in-up whitespace-nowrap">
-          {toastMessage}
-        </div>
-      )}
+      <Toaster />
 
       {/* Modals with AnimatePresence */}
       <AnimatePresence>{isCreateModalOpen && <CreateModal />}</AnimatePresence>
@@ -189,6 +191,14 @@ export default function App() {
                 element={
                   <PageWrapper>
                     <ExploreView />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/post/:id"
+                element={
+                  <PageWrapper>
+                    <PostView />
                   </PageWrapper>
                 }
               />

@@ -4,19 +4,35 @@ import { useAppStore } from "../store/useAppStore";
 import { motion, AnimatePresence } from "framer-motion";
 import OptimizedImage from "./OptimizedImage";
 import VerifiedBadge from "./VerifiedBadge";
+import { useGetStories } from "../hooks/queries/useGetStories";
+import { useAuth } from "../hooks/useAuth";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/bn";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 import { useNavigate } from "react-router-dom";
 
+dayjs.extend(relativeTime);
+dayjs.locale("bn");
+
 const StoryViewer: React.FC = () => {
-  const { stories, viewingStory, setViewingStory, showToast } = useAppStore();
+  const { viewingStory, setViewingStory, showToast } = useAppStore();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  const { data: stories = [] } = useGetStories(user?.id);
 
   const initialStoryIndex = stories.findIndex((s) => s.id === viewingStory);
 
-  const [currentIndex, setCurrentIndex] = useState(
-    initialStoryIndex !== -1 ? initialStoryIndex : 0,
-  );
+  const [currentIndex, setCurrentIndex] = useState(-1);
   const [progress, setProgress] = useState(0);
+
+  // Sync currentIndex with initialStoryIndex when data loads
+  if (initialStoryIndex !== -1 && currentIndex === -1) {
+    setCurrentIndex(initialStoryIndex);
+  }
 
   const handleNext = useCallback(() => {
     if (currentIndex < stories.length - 1) {
@@ -35,7 +51,7 @@ const StoryViewer: React.FC = () => {
   }, [currentIndex]);
 
   useEffect(() => {
-    if (viewingStory === null) return;
+    if (viewingStory === null || currentIndex === -1) return;
 
     const timer = setInterval(() => {
       setProgress((prev) => {
@@ -43,19 +59,19 @@ const StoryViewer: React.FC = () => {
           handleNext();
           return 0;
         }
-        return prev + 1; // Approx 5 seconds total
+        return prev + 1;
       });
-    }, 50);
+    }, 50); // Approx 5 seconds total
 
     return () => clearInterval(timer);
   }, [currentIndex, viewingStory, handleNext]);
 
-  // If story not found (shouldn't happen), close
-  if (viewingStory === null || initialStoryIndex === -1) {
+  if (viewingStory === null || currentIndex === -1 || stories.length === 0) {
     return null;
   }
 
   const currentStory = stories[currentIndex];
+  if (!currentStory) return null;
 
   const onClose = () => setViewingStory(null);
 
@@ -67,12 +83,14 @@ const StoryViewer: React.FC = () => {
       className="fixed inset-0 z-[200] bg-black flex items-center justify-center"
     >
       {/* Close Button */}
-      <button
-        className="absolute top-4 right-4 z-50 text-white"
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-4 right-4 z-50 text-white hover:bg-white/10 hover:text-white"
         onClick={onClose}
       >
         <X size={32} />
-      </button>
+      </Button>
 
       {/* Main Container */}
       <div className="relative w-full md:w-[400px] h-full md:h-[90vh] bg-black md:rounded-lg overflow-hidden flex flex-col">
@@ -111,7 +129,7 @@ const StoryViewer: React.FC = () => {
             }}
           >
             <OptimizedImage
-              src={currentStory.img}
+              src={currentStory.userAvatar || currentStory.img}
               className="w-full h-full"
               alt={currentStory.username}
             />
@@ -129,7 +147,11 @@ const StoryViewer: React.FC = () => {
             </span>
             {currentStory.isVerified && <VerifiedBadge />}
           </div>
-          <span className="text-white/70 text-xs">12h</span>
+          <span className="text-white/70 text-xs">
+            {currentStory.createdAt
+              ? dayjs(currentStory.createdAt).fromNow(true)
+              : ""}
+          </span>
         </div>
 
         {/* Story Image */}
@@ -164,10 +186,10 @@ const StoryViewer: React.FC = () => {
         {/* Footer */}
         <div className="absolute bottom-0 w-full p-4 flex items-center gap-4 z-20 bg-gradient-to-t from-black/50 to-transparent">
           <div className="flex-1 relative">
-            <input
+            <Input
               type="text"
               placeholder={`Reply to ${currentStory.username}...`}
-              className="w-full bg-transparent border border-white/50 rounded-full py-3 px-4 text-white text-sm placeholder-white/70 outline-none focus:border-white"
+              className="w-full bg-transparent border-white/50 rounded-full py-6 px-4 text-white text-sm placeholder:text-white/70 focus-visible:ring-0 focus-visible:border-white"
             />
           </div>
           <Heart

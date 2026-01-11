@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef, memo } from "react";
+import ReactPlayer from "react-player";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Player = ReactPlayer as any;
 import {
   Heart,
   MessageCircle as CommentIcon,
@@ -43,7 +46,8 @@ const ReelItem: React.FC<ReelItemProps> = memo(
     const [isOptionsOpen, setIsOptionsOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const videoRef = useRef<HTMLDivElement>(null);
-    const videoTagRef = useRef<HTMLVideoElement>(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const videoTagRef = useRef<any>(null);
     const shareUrl = `${window.location.origin}/reels/${reel.id}`;
 
     const isLiked = reel.hasLiked || false;
@@ -84,10 +88,10 @@ const ReelItem: React.FC<ReelItemProps> = memo(
     const togglePlay = () => {
       if (videoTagRef.current) {
         if (isPlaying) {
-          videoTagRef.current.pause();
+          // videoTagRef.current.pause(); // ReactPlayer is declarative
           setIsPlaying(false);
         } else {
-          videoTagRef.current.play();
+          // videoTagRef.current.play(); // ReactPlayer is declarative
           setIsPlaying(true);
         }
       }
@@ -97,11 +101,11 @@ const ReelItem: React.FC<ReelItemProps> = memo(
       const observer = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting) {
-            videoTagRef.current?.play().catch(() => {});
+            // videoTagRef.current?.play().catch(() => {});
             setIsPlaying(true);
             setIsMuted(false);
           } else {
-            videoTagRef.current?.pause();
+            // videoTagRef.current?.pause();
             setIsPlaying(false);
             setIsMuted(true);
           }
@@ -152,16 +156,20 @@ const ReelItem: React.FC<ReelItemProps> = memo(
         >
           {/* Render Video instead of Image for Reels if src is video */}
           {reel.src ? (
-            <video
-              ref={videoTagRef}
-              src={reel.src}
-              poster={reel.poster}
-              preload="metadata"
-              className="w-full h-full object-cover"
-              loop
-              muted={isMuted}
-              onClick={togglePlay}
-            />
+            <div className="w-full h-full cursor-pointer" onClick={togglePlay}>
+              <Player
+                ref={videoTagRef}
+                url={reel.src}
+                width="100%"
+                height="100%"
+                playing={isPlaying}
+                muted={isMuted}
+                loop={true}
+                playsinline={true}
+                style={{ objectFit: "cover" }}
+                className="react-player pointer-events-none"
+              />
+            </div>
           ) : (
             <OptimizedImage
               src={reel.src}

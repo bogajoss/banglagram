@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { supabase } from "../../lib/supabaseClient";
 import { MESSAGES_QUERY_KEY } from "../queries/useGetMessages";
 import type { Database } from "../../database.types";
@@ -43,13 +44,13 @@ export const useSendMessage = () => {
         queryClient.setQueryData<DbMessage[]>(queryKey, [
           ...previousMessages,
           {
-            id: "optimistic-" + Date.now(),
+            id: "optimistic-" + dayjs().valueOf(),
             sender_id: newMsg.senderId,
             receiver_id: newMsg.receiverId,
             content: newMsg.content,
             media_url: null,
             is_read: false,
-            created_at: new Date().toISOString(),
+            created_at: dayjs().toISOString(),
           },
         ]);
       }

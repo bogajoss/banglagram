@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Blurhash } from "react-blurhash";
 
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallbackColor?: string;
@@ -7,6 +8,7 @@ interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> 
   width?: number;
   height?: number;
   quality?: number;
+  blurHash?: string;
 }
 
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
@@ -18,6 +20,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   width: customWidth,
   height: customHeight,
   quality = 75,
+  blurHash,
   ...props
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -56,8 +59,19 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           <motion.div
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className={`absolute inset-0 z-10 ${bgColor} animate-pulse`}
-          />
+            className={`absolute inset-0 z-10 ${bgColor} ${!blurHash ? "animate-pulse" : ""}`}
+          >
+            {blurHash && (
+              <Blurhash
+                hash={blurHash}
+                width="100%"
+                height="100%"
+                resolutionX={32}
+                resolutionY={32}
+                punch={1}
+              />
+            )}
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -65,9 +79,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       <img
         src={optimizedSrc}
         alt={alt}
-        className={`w-full h-full transition-opacity duration-500 ${
-          imgClassName || "object-cover"
-        } ${isLoaded ? "opacity-100" : "opacity-0"}`}
+        className={`w-full h-full transition-opacity duration-500 ${imgClassName || "object-cover"
+          } ${isLoaded ? "opacity-100" : "opacity-0"}`}
         onLoad={() => setIsLoaded(true)}
         onError={() => setError(true)}
         loading="lazy"
@@ -75,12 +88,14 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       />
 
       {/* Error State */}
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-zinc-400 text-xs">
-          Load failed
-        </div>
-      )}
-    </div>
+      {
+        error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-zinc-400 text-xs">
+            Load failed
+          </div>
+        )
+      }
+    </div >
   );
 };
 

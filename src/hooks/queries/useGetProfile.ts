@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { supabase } from "../../lib/supabaseClient";
 import type { User, Post } from "../../types";
 import type { Database } from "../../database.types";
@@ -99,6 +100,7 @@ export const useGetProfile = (
         return {
           id: post.id,
           user: {
+            id: profile.id,
             username: profile.username,
             name: profile.full_name || profile.username,
             avatar: profile.avatar_url || "",
@@ -108,7 +110,7 @@ export const useGetProfile = (
           likes: likes[0]?.count || 0,
           caption: post.caption || "",
           comments: comments[0]?.count || 0,
-          time: new Date(post.created_at).toLocaleDateString(),
+          time: dayjs(post.created_at).fromNow(),
           isVerified: profile.is_verified || false,
           hasLiked: likedPostIds.has(post.id),
         };

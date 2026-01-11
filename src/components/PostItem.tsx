@@ -5,6 +5,7 @@ import {
   Send,
   Bookmark,
   MoreHorizontal,
+  Loader2,
 } from "lucide-react";
 import MoreOptionsModal from "./modals/MoreOptionsModal";
 import ShareModal from "./modals/ShareModal";
@@ -13,11 +14,19 @@ import type { Post, User } from "../types";
 import { useToggleLike } from "../hooks/mutations/useToggleLike";
 import { useCreateComment } from "../hooks/mutations/useCreateComment";
 import { useAuth } from "../hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 import { motion, AnimatePresence } from "framer-motion";
 
 import OptimizedImage from "./OptimizedImage";
 import VerifiedBadge from "./VerifiedBadge";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/bn";
+
+dayjs.extend(relativeTime);
+dayjs.locale("bn");
 
 interface PostItemProps {
   post: Post;
@@ -44,7 +53,10 @@ const PostItem: React.FC<PostItemProps> = memo(
     const shareUrl = `${window.location.origin}/post/${post.id}`;
 
     const handleLike = () => {
-      if (!user) return;
+      if (!user) {
+        showToast("লাইক করতে লগ ইন করুন");
+        return;
+      }
       toggleLike({
         targetId: String(post.id),
         type: "post",
@@ -137,7 +149,7 @@ const PostItem: React.FC<PostItemProps> = memo(
               <span
                 className={`${theme === "dark" ? "text-zinc-500" : "text-zinc-400"} font-normal`}
               >
-                • {post.time}
+                • {post.createdAt ? dayjs(post.createdAt).fromNow(true) : post.time}
               </span>
             </div>
           </div>
@@ -227,23 +239,27 @@ const PostItem: React.FC<PostItemProps> = memo(
           >
             সব {post.comments} কমেন্ট দেখুন
           </div>
+          <div className="text-[10px] text-zinc-500 uppercase mt-1">
+            {post.createdAt ? dayjs(post.createdAt).fromNow() : post.time}
+          </div>
 
-          <form onSubmit={handleAddComment} className="flex gap-2 mt-2">
-            <input
+          <form onSubmit={handleAddComment} className="flex gap-2 mt-2 items-center">
+            <Input
               type="text"
               placeholder="কমেন্ট যোগ করুন..."
-              className={`bg-transparent text-sm w-full outline-none ${theme === "dark" ? "text-white" : "text-black"}`}
+              className={`bg-transparent text-sm w-full border-none focus-visible:ring-0 p-0 h-auto ${theme === "dark" ? "text-white" : "text-black"}`}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               disabled={isCommenting}
             />
-            <button
+            <Button
               type="submit"
-              className="text-[#006a4e] text-sm font-semibold disabled:opacity-50 hover:text-[#004d39]"
+              variant="ghost"
+              className="text-[#006a4e] font-bold hover:text-[#004d39] hover:bg-transparent p-0 h-auto"
               disabled={!newComment || isCommenting}
             >
-              পোস্ট
-            </button>
+              {isCommenting ? <Loader2 className="h-4 w-4 animate-spin" /> : "পোস্ট"}
+            </Button>
           </form>
         </div>
       </motion.div>

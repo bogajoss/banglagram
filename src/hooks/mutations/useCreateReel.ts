@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { supabase } from "../../lib/supabaseClient";
 import { REELS_QUERY_KEY } from "../queries/useGetReels";
 
@@ -16,7 +17,7 @@ export const useCreateReel = () => {
     mutationFn: async ({ file, caption, userId }: CreateReelVariables) => {
       // 1. Upload
       const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      const fileName = `${userId}/${dayjs().valueOf()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
         .from("reels")
         .upload(fileName, file, {

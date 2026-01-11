@@ -3,6 +3,8 @@ import { X, Bell, Lock, Shield, LogOut } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { useAuth } from "../../hooks/useAuth";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -42,41 +44,48 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
         className={`w-full max-w-sm rounded-xl overflow-hidden shadow-2xl ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div
-          className={`p-4 border-b font-bold flex justify-between items-center ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
-        >
-          <span>সেটিংস</span>
-          <X className="cursor-pointer" onClick={onClose} />
-        </div>
         <div className="flex flex-col">
-          <button
+          <div
+            className={`p-4 border-b font-bold flex justify-between items-center ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
+          >
+            <span>সেটিংস</span>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
+          <Button
+            variant="ghost"
             onClick={() => handleOptionClick("নোটিফিকেশন")}
-            className={`flex items-center gap-3 p-4 w-full text-left hover:bg-white/5 transition-colors border-b ${theme === "dark" ? "border-zinc-800" : "border-zinc-100"}`}
+            className="flex items-center justify-start gap-3 p-4 h-auto w-full rounded-none border-b border-border"
           >
             <Bell size={20} />
             <span>নোটিফিকেশন এবং সাউন্ড</span>
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => handleOptionClick("প্রাইভেন্সি")}
-            className={`flex items-center gap-3 p-4 w-full text-left hover:bg-white/5 transition-colors border-b ${theme === "dark" ? "border-zinc-800" : "border-zinc-100"}`}
+            className="flex items-center justify-start gap-3 p-4 h-auto w-full rounded-none border-b border-border"
           >
             <Lock size={20} />
             <span>প্রাইভেন্সি এবং সিকিউরিটি</span>
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => handleOptionClick("অ্যাকাউন্ট")}
-            className={`flex items-center gap-3 p-4 w-full text-left hover:bg-white/5 transition-colors border-b ${theme === "dark" ? "border-zinc-800" : "border-zinc-100"}`}
+            className="flex items-center justify-start gap-3 p-4 h-auto w-full rounded-none border-b border-border"
           >
             <Shield size={20} />
             <span>অ্যাকাউন্ট সেন্টার</span>
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onClick={handleLogout}
-            className="flex items-center gap-3 p-4 w-full text-left hover:bg-red-500/10 text-red-500 transition-colors font-semibold"
+            className="flex items-center justify-start gap-3 p-4 h-auto w-full rounded-none text-red-500 hover:text-red-600 hover:bg-red-500/10"
           >
             <LogOut size={20} />
             <span>লগ আউট</span>
-          </button>
+          </Button>
         </div>
       </motion.div>
     </motion.div>

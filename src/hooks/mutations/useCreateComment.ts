@@ -3,6 +3,7 @@ import {
   useQueryClient,
   type InfiniteData,
 } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { supabase } from "../../lib/supabaseClient";
 import { FEED_QUERY_KEY } from "../queries/useGetFeed";
 import { REELS_QUERY_KEY } from "../queries/useGetReels";
@@ -59,8 +60,8 @@ export const useCreateComment = () => {
       const previousFeed = queryClient.getQueryData(feedKey);
 
       const optimisticComment: Comment = {
-        id: `temp-${Date.now()}`,
-        created_at: new Date().toISOString(),
+        id: `temp-${dayjs().valueOf()}`,
+        created_at: dayjs().toISOString(),
         text,
         user_id: userId,
         post_id: type === "post" ? targetId : undefined,

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { supabase } from "../../lib/supabaseClient";
 import type { Post } from "../../types";
 
@@ -68,7 +69,7 @@ export const useGetSavedPosts = (userId: string | undefined) => {
               likes: p.likes?.[0]?.count || 0,
               caption: p.caption || "",
               comments: p.comments?.[0]?.count || 0,
-              time: new Date(p.created_at).toLocaleDateString(),
+              time: dayjs(p.created_at).fromNow(),
               hasLiked: false, // We don't check liked status here for now, can be improved.
               hasSaved: true, // Obviously true
               isVerified: p.user?.is_verified || false,

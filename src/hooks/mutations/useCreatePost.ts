@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { supabase } from "../../lib/supabaseClient";
 import { FEED_QUERY_KEY } from "../queries/useGetFeed";
 import { PROFILE_QUERY_KEY } from "../queries/useGetProfile";
@@ -23,7 +24,7 @@ export const useCreatePost = () => {
     }: CreatePostVariables) => {
       // 1. Upload
       const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      const fileName = `${userId}/${dayjs().valueOf()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
         .from("posts")
         .upload(fileName, file, {

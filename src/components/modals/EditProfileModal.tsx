@@ -6,12 +6,17 @@ import { useUpdateProfile } from "../../hooks/mutations/useUpdateProfile";
 import { useAuth } from "../../hooks/useAuth";
 
 import OptimizedImage from "../OptimizedImage";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 
 const EditProfileModal: React.FC = () => {
   const { currentUser, theme, setEditProfileOpen } = useAppStore();
   const { user } = useAuth();
   const { mutate: updateProfileMutation, isPending } = useUpdateProfile();
-  const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
+
   const glassModal =
     theme === "dark"
       ? "bg-[#121212]/90 backdrop-blur-2xl border border-white/10"
@@ -64,10 +69,12 @@ const EditProfileModal: React.FC = () => {
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className={`p-4 border-b font-bold flex justify-between ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
+          className={`p-4 border-b font-bold flex justify-between items-center ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
         >
           <span>এডিট প্রোফাইল</span>
-          <X className="cursor-pointer" onClick={onClose} />
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
         </div>
         <div className="p-6 flex flex-col gap-4">
           <div
@@ -96,31 +103,33 @@ const EditProfileModal: React.FC = () => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold mb-1">নাম</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={`w-full p-2 rounded border bg-transparent ${theme === "dark" ? "border-zinc-700" : "border-zinc-300"}`}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1">বায়ো</label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              className={`w-full p-2 rounded border bg-transparent h-24 resize-none ${theme === "dark" ? "border-zinc-700" : "border-zinc-300"}`}
-            />
-          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>নাম</Label>
+              <Input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="bg-transparent"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>বায়ো</Label>
+              <Textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                className="bg-transparent h-24 resize-none"
+              />
+            </div>
 
-          <button
-            onClick={handleSave}
-            disabled={isPending}
-            className={`w-full py-2 rounded-lg text-white font-bold ${buttonBg} mt-2 disabled:opacity-50`}
-          >
-            {isPending ? "সেভ হচ্ছে..." : "সেভ করুন"}
-          </button>
+            <Button
+              onClick={handleSave}
+              disabled={isPending}
+              className="w-full bg-[#006a4e] hover:bg-[#00523c] text-white font-bold"
+            >
+              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "সেভ করুন"}
+            </Button>
+          </div>
         </div>
       </motion.div>
     </motion.div>

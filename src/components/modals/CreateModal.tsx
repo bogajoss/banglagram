@@ -1,17 +1,25 @@
 import React, { useState } from "react";
-import { ArrowLeft, X, MapPin, Video, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, X, MapPin, Loader2 } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { motion } from "framer-motion";
 import { useAuth } from "../../hooks/useAuth";
 import { useCreatePost } from "../../hooks/mutations/useCreatePost";
 import { useCreateReel } from "../../hooks/mutations/useCreateReel";
+import { useCreateStory } from "../../hooks/mutations/useCreateStory";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 import OptimizedImage from "../OptimizedImage";
+import FileUploader from "../FileUploader";
+import ImageCropper from "../ImageCropper";
+import { getCroppedImg } from "../../lib/cropImage";
+import type { Area } from "react-easy-crop";
 
 const CreateModal: React.FC = () => {
   const { theme, setCreateModalOpen, showToast } = useAppStore();
   const { user, profile } = useAuth();
-  const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
+
   const glassModal =
     theme === "dark"
       ? "bg-[#121212]/90 backdrop-blur-2xl border border-white/10"
@@ -22,29 +30,55 @@ const CreateModal: React.FC = () => {
   const [caption, setCaption] = useState("");
   const [location, setLocation] = useState("");
   const [isVideo, setIsVideo] = useState(false);
+  const [createType, setCreateType] = useState<"post" | "reel" | "story" | null>(
+    null,
+  );
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [isCropping, setIsCropping] = useState(false);
 
   const { mutate: createPost, isPending: isPostPending } = useCreatePost();
   const { mutate: createReel, isPending: isReelPending } = useCreateReel();
+  const { mutate: createStory, isPending: isStoryPending } = useCreateStory();
 
-  const isPending = isPostPending || isReelPending;
+  const isPending = isPostPending || isReelPending || isStoryPending;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
+  const onFileSelect = (selected: File) => {
     if (selected) {
       setFile(selected);
       const isVid = selected.type.startsWith("video/");
       setIsVideo(isVid);
       setPreview(URL.createObjectURL(selected));
+      // Default type based on file
+      if (isVid) {
+        setCreateType("reel");
+        setIsCropping(false);
+      } else {
+        setCreateType("post");
+        setIsCropping(true); // Start cropping for images
+      }
     }
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (!file || !user || !profile) return;
 
-    if (isVideo) {
+    let fileToUpload = file;
+
+    if (createType === "post" && !isVideo && croppedAreaPixels && preview) {
+      try {
+        const croppedBlob = await getCroppedImg(preview, croppedAreaPixels);
+        if (croppedBlob) {
+          fileToUpload = new File([croppedBlob], file.name, { type: "image/jpeg" });
+        }
+      } catch (e) {
+        console.error("Crop failed", e);
+      }
+    }
+
+    if (createType === "reel") {
       createReel(
         {
-          file,
+          file: fileToUpload,
           caption,
           userId: user.id,
           username: profile.username,
@@ -57,10 +91,24 @@ const CreateModal: React.FC = () => {
           onError: () => showToast("রিল শেয়ার করতে সমস্যা হয়েছে"),
         },
       );
+    } else if (createType === "story") {
+      createStory(
+        {
+          file: fileToUpload,
+          userId: user.id,
+        },
+        {
+          onSuccess: () => {
+            showToast("স্টোরি শেয়ার করা হয়েছে");
+            setCreateModalOpen(false);
+          },
+          onError: () => showToast("স্টোরি শেয়ার করতে সমস্যা হয়েছে"),
+        },
+      );
     } else {
       createPost(
         {
-          file,
+          file: fileToUpload,
           caption,
           location,
           userId: user.id,
@@ -100,29 +148,42 @@ const CreateModal: React.FC = () => {
         >
           <div className="w-10">
             {preview && (
-              <ArrowLeft
-                className="cursor-pointer"
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => {
                   setPreview(null);
                   setFile(null);
+                  setCreateType(null);
                 }}
-              />
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
             )}
           </div>
           <span>
-            {preview ? (isVideo ? "নতুন রিল" : "নতুন পোস্ট") : "তৈরি করুন"}
+            {preview
+              ? createType === "reel"
+                ? "নতুন রিল"
+                : createType === "story"
+                  ? "নতুন স্টোরি"
+                  : "নতুন পোস্ট"
+              : "তৈরি করুন"}
           </span>
           <div className="w-10 flex justify-end">
             {preview ? (
-              <button
+              <Button
+                variant="ghost"
                 onClick={handleShare}
                 disabled={isPending}
-                className="text-[#0095f6] text-sm font-bold hover:text-white disabled:opacity-50"
+                className="text-[#0095f6] hover:text-[#0095f6] hover:bg-transparent p-0 h-auto font-bold"
               >
-                {isPending ? "শেয়ার হচ্ছে..." : "শেয়ার"}
-              </button>
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "শেয়ার"}
+              </Button>
             ) : (
-              <X className="cursor-pointer" onClick={onClose} />
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X className="h-5 w-5" />
+              </Button>
             )}
           </div>
         </div>
@@ -141,86 +202,108 @@ const CreateModal: React.FC = () => {
                   className="max-h-full max-w-full"
                 />
               ) : (
-                <OptimizedImage
-                  src={preview}
-                  className="max-h-full max-w-full"
-                  imgClassName="object-contain"
-                  alt="preview"
-                />
+                <div className="w-full h-full flex items-center justify-center">
+                  {!isVideo && isCropping ? (
+                    <ImageCropper
+                      imageSrc={preview}
+                      onCropComplete={setCroppedAreaPixels}
+                    // Optional: pass aspect ratio based on user choice if we add that feature
+                    />
+                  ) : (
+                    <OptimizedImage
+                      src={preview}
+                      className="max-h-full max-w-full"
+                      imgClassName="object-contain"
+                      alt="preview"
+                    />
+                  )}
+                </div>
               )
             ) : (
-              <div className="flex flex-col items-center gap-4">
-                <div className="flex gap-4 mb-2">
-                  <ImageIcon
-                    size={40}
-                    className={theme === "dark" ? "text-white" : "text-black"}
-                  />
-                  <Video
-                    size={40}
-                    className={theme === "dark" ? "text-white" : "text-black"}
-                  />
-                </div>
-                <p className="text-xl font-light">
-                  ফটো বা ভিডিও এখানে টেনে আনুন
-                </p>
-                <label
-                  className={`${buttonBg} text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer`}
-                >
-                  কম্পিউটার থেকে নির্বাচন করুন
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*,video/*"
-                    onChange={handleFileChange}
-                  />
-                </label>
+              <div className="w-full h-full p-6">
+                <FileUploader onFileSelect={onFileSelect} />
               </div>
             )}
           </div>
 
-          {/* Caption Section */}
+          {/* Type & Detail Section */}
           {preview && (
             <div
               className={`w-full md:w-[350px] flex flex-col ${theme === "dark" ? "bg-zinc-900" : "bg-white"}`}
             >
+              {/* Type Selector */}
+              <div
+                className={`p-4 border-b flex gap-2 ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
+              >
+                {!isVideo && (
+                  <Button
+                    variant={createType === "post" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCreateType("post")}
+                    className={`flex-1 text-xs font-bold ${createType === "post" ? "bg-[#006a4e] hover:bg-[#00523c]" : "bg-transparent"}`}
+                  >
+                    পোস্ট
+                  </Button>
+                )}
+                <Button
+                  variant={createType === (isVideo ? "reel" : "story") ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCreateType(isVideo ? "reel" : "story")}
+                  className={`flex-1 text-xs font-bold ${createType === (isVideo ? "reel" : "story") ? "bg-[#006a4e] hover:bg-[#00523c]" : "bg-transparent"}`}
+                >
+                  {isVideo ? "রিল" : "স্টোরি"}
+                </Button>
+              </div>
+
               <div className="p-4 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full overflow-hidden">
                   <OptimizedImage
-                    src={
-                      user?.user_metadata?.avatar_url ||
-                      "https://api.dicebear.com/9.x/avataaars/svg?seed=default"
-                    }
+                    src={profile?.avatar_url || ""}
                     className="w-full h-full"
                     alt="user"
                   />
                 </div>
                 <span className="font-semibold text-sm">
-                  {user?.user_metadata?.username}
+                  {profile?.username}
                 </span>
               </div>
-              <textarea
-                className={`flex-grow p-4 bg-transparent outline-none resize-none text-sm ${theme === "dark" ? "placeholder-gray-500" : "placeholder-gray-400"}`}
-                placeholder="ক্যাপশন লিখুন..."
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-              />
-              {!isVideo && (
-                <div
-                  className={`p-4 border-t ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-400">
-                      লোকেশন যোগ করুন
-                    </span>
-                    <MapPin size={16} className="text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="লোকেশন"
-                    className="w-full bg-transparent outline-none text-sm py-1"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
+
+              {createType !== "story" && (
+                <>
+                  <Textarea
+                    className="flex-grow p-4 bg-transparent outline-none resize-none text-sm border-none focus-visible:ring-0"
+                    placeholder="ক্যাপশন লিখুন..."
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
                   />
+                  {!isVideo && (
+                    <div
+                      className={`p-4 border-t ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-400">
+                          লোকেশন যোগ করুন
+                        </span>
+                        <MapPin size={16} className="text-gray-400" />
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder="লোকেশন"
+                        className="w-full bg-transparent outline-none text-sm py-1 border-none focus-visible:ring-0 h-auto p-0"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+
+              {createType === "story" && (
+                <div className="flex-grow flex items-center justify-center p-8 text-center">
+                  <p className="text-sm text-zinc-500">
+                    স্টোরি ২৪ ঘন্টার জন্য দৃশ্যমান থাকবে। স্টোরিতে কোনো ক্যাপশন
+                    বা লোকেশন যোগ করা যায় না।
+                  </p>
                 </div>
               )}
             </div>

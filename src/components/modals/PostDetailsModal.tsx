@@ -8,6 +8,7 @@ import {
   Bookmark,
   Smile,
   MoreHorizontal,
+  Loader2,
 } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { useNavigate } from "react-router-dom";
@@ -17,9 +18,18 @@ import { useToggleLike } from "../../hooks/mutations/useToggleLike";
 import { useCreateComment } from "../../hooks/mutations/useCreateComment";
 import { useGetComments } from "../../hooks/queries/useGetComments";
 import { useAuth } from "../../hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import OptimizedImage from "../OptimizedImage";
 import VerifiedBadge from "../VerifiedBadge";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/bn";
+
+dayjs.extend(relativeTime);
+dayjs.locale("bn");
 
 const PostDetailsModal: React.FC = () => {
   const {
@@ -179,10 +189,9 @@ const PostDetailsModal: React.FC = () => {
             </div>
 
             {/* Desktop Options Icon */}
-            <MoreHorizontal
-              size={20}
-              className="hidden md:block cursor-pointer hover:opacity-70"
-            />
+            <Button variant="ghost" size="icon" className="hidden md:flex">
+              <MoreHorizontal size={20} />
+            </Button>
 
             {/* Mobile Close Button */}
             <div
@@ -193,121 +202,108 @@ const PostDetailsModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex-grow overflow-y-auto p-4 space-y-4">
-            <div className="flex gap-3">
-              <div
-                className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden cursor-pointer"
-                onClick={() => onUserClick(activeItem.user)}
-              >
-                <OptimizedImage
-                  src={activeItem.user.avatar}
-                  className="w-full h-full"
-                  alt="user"
-                />
-              </div>
-              <div className="text-sm">
-                <div className="flex items-center">
-                  <span
-                    className="font-semibold mr-2 cursor-pointer"
-                    onClick={() => onUserClick(activeItem.user)}
-                  >
-                    {activeItem.user.username}
-                  </span>
-                  {activeItem.user.isVerified && <VerifiedBadge />}
+          <ScrollArea className="flex-grow p-4">
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <div
+                  className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden cursor-pointer"
+                  onClick={() => onUserClick(activeItem.user)}
+                >
+                  <OptimizedImage
+                    src={activeItem.user.avatar}
+                    className="w-full h-full"
+                    alt="user"
+                  />
                 </div>
-                <span>{activeItem.caption}</span>
-                <div className="text-xs text-zinc-500 mt-1">
-                  {(activeItem as any).time}
-                </div>
-              </div>
-            </div>
-
-            {loadingComments ? (
-              <div className="text-center py-4 text-zinc-500 text-sm">
-                लोड হচ্ছে...
-              </div>
-            ) : comments && comments.length > 0 ? (
-              comments.map((c: any) => {
-                // Simple time ago helper
-                const timeAgo = (dateStr: string) => {
-                  try {
-                    const diff =
-                      (new Date().getTime() - new Date(dateStr).getTime()) /
-                      1000;
-                    if (diff < 60) return "এখনই";
-                    if (diff < 3600) return `${Math.floor(diff / 60)}মি`;
-                    if (diff < 86400) return `${Math.floor(diff / 3600)}ঘ`;
-                    return `${Math.floor(diff / 86400)}দিন`;
-                  } catch {
-                    return "";
-                  }
-                };
-
-                return (
-                  <div
-                    key={c.id}
-                    className="flex gap-3 justify-between items-start group"
-                  >
-                    <div className="flex gap-3">
-                      <div
-                        className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
-                        onClick={() =>
-                          onUserClick({
-                            username: c.user.username,
-                            name: c.user.username,
-                            avatar: c.user.avatar_url,
-                          } as User)
-                        }
-                      >
-                        <OptimizedImage
-                          src={c.user.avatar_url}
-                          className="w-full h-full"
-                          alt={c.user.username}
-                        />
-                      </div>
-                      <div className="flex flex-col">
-                        <div className="text-sm leading-tight">
-                          <div className="flex items-center">
-                            <span
-                              className="font-semibold mr-2 cursor-pointer hover:opacity-70"
-                              onClick={() =>
-                                onUserClick({
-                                  username: c.user.username,
-                                  name: c.user.username,
-                                  avatar: c.user.avatar_url,
-                                } as User)
-                              }
-                            >
-                              {c.user.username}
-                            </span>
-                            {c.user.isVerified && <VerifiedBadge />}
-                          </div>
-                          <span>{c.text}</span>
-                        </div>
-                        <div className="flex items-center gap-4 text-xs text-zinc-500 font-semibold mt-1.5">
-                          <span>{timeAgo(c.created_at)}</span>
-                          <span className="cursor-pointer hover:text-zinc-400">
-                            0 লাইক
-                          </span>
-                          <span className="cursor-pointer hover:text-zinc-400">
-                            রিপ্লাই
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <Heart
-                      size={12}
-                      className="cursor-pointer text-zinc-500 hover:opacity-50 mt-2"
-                    />
+                <div className="text-sm">
+                  <div className="flex items-center">
+                    <span
+                      className="font-semibold mr-2 cursor-pointer"
+                      onClick={() => onUserClick(activeItem.user)}
+                    >
+                      {activeItem.user.username}
+                    </span>
+                    {activeItem.user.isVerified && <VerifiedBadge />}
                   </div>
-                );
-              })
-            ) : (
-              <div className="text-center py-10 text-zinc-500 text-sm">
-                কোনো কমেন্ট নেই
+                  <span>{activeItem.caption}</span>
+                  <div className="text-xs text-zinc-500 mt-1">
+                    {(activeItem as any).createdAt ? dayjs((activeItem as any).createdAt).fromNow() : (activeItem as any).time}
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
+
+              {loadingComments ? (
+                <div className="text-center py-4 text-zinc-500 text-sm">
+                  लोड হচ্ছে...
+                </div>
+              ) : comments && comments.length > 0 ? (
+                comments.map((c: any) => {
+                  return (
+                    <div
+                      key={c.id}
+                      className="flex gap-3 justify-between items-start group"
+                    >
+                      <div className="flex gap-3">
+                        <div
+                          className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+                          onClick={() =>
+                            onUserClick({
+                              username: c.user.username,
+                              name: c.user.username,
+                              avatar: c.user.avatar_url,
+                            } as User)
+                          }
+                        >
+                          <OptimizedImage
+                            src={c.user.avatar_url}
+                            className="w-full h-full"
+                            alt={c.user.username}
+                          />
+                        </div>
+                        <div className="flex flex-col">
+                          <div className="text-sm leading-tight">
+                            <div className="flex items-center">
+                              <span
+                                className="font-semibold mr-2 cursor-pointer hover:opacity-70"
+                                onClick={() =>
+                                  onUserClick({
+                                    username: c.user.username,
+                                    name: c.user.username,
+                                    avatar: c.user.avatar_url,
+                                  } as User)
+                                }
+                              >
+                                {c.user.username}
+                              </span>
+                              {c.user.isVerified && <VerifiedBadge />}
+                            </div>
+                            <span>{c.text}</span>
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-zinc-500 font-semibold mt-1.5">
+                            <span>{dayjs(c.created_at).fromNow(true)}</span>
+                            <span className="cursor-pointer hover:text-zinc-400">
+                              0 লাইক
+                            </span>
+                            <span className="cursor-pointer hover:text-zinc-400">
+                              রিপ্লাই
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <Heart
+                        size={12}
+                        className="cursor-pointer text-zinc-500 hover:opacity-50 mt-2"
+                      />
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-10 text-zinc-500 text-sm">
+                  কোনো কমেন্ট নেই
+                </div>
+              )}
+            </div>
+          </ScrollArea>
 
           <div
             className={`p-4 border-t ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
@@ -339,7 +335,7 @@ const PostDetailsModal: React.FC = () => {
               {activeItem.likes + " লাইক"}
             </div>
             <div className="text-xs text-zinc-500 uppercase mb-3">
-              {(activeItem as any).time && (activeItem as any).time + " আগে"}
+              {(activeItem as any).createdAt ? dayjs((activeItem as any).createdAt).fromNow() : (activeItem as any).time}
             </div>
 
             {/* Quick Emojis */}
@@ -363,21 +359,22 @@ const PostDetailsModal: React.FC = () => {
                 size={24}
                 className="text-zinc-400 cursor-pointer hover:text-zinc-200"
               />
-              <input
+              <Input
                 type="text"
                 placeholder="কমেন্ট যোগ করুন..."
-                className="bg-transparent text-sm w-full outline-none"
+                className="bg-transparent text-sm w-full border-none focus-visible:ring-0 p-0 h-auto"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 disabled={isCommenting}
               />
-              <button
+              <Button
                 type="submit"
-                className="text-[#006a4e] text-sm font-semibold disabled:opacity-50 hover:text-[#004d39]"
+                variant="ghost"
+                className="text-[#006a4e] font-bold hover:text-[#004d39] hover:bg-transparent p-0 h-auto"
                 disabled={!newComment || isCommenting}
               >
-                পোস্ট
-              </button>
+                {isCommenting ? <Loader2 className="h-4 w-4 animate-spin" /> : "পোস্ট"}
+              </Button>
             </form>
           </div>
         </div>

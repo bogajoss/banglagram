@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { supabase } from "../../lib/supabaseClient";
 import { STORIES_QUERY_KEY } from "../queries/useGetStories";
 
@@ -14,7 +15,7 @@ export const useCreateStory = () => {
     mutationFn: async ({ file, userId }: CreateStoryVariables) => {
       // 1. Upload Image
       const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}-${Date.now()}.${fileExt}`;
+      const fileName = `${userId}-${dayjs().valueOf()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -30,8 +31,7 @@ export const useCreateStory = () => {
 
       // 3. Create Record
       // Expires in 24 hours
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 1);
+      const expiresAt = dayjs().add(24, 'hour');
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: dbError } = await (supabase.from("stories") as any).insert(

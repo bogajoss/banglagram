@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import dayjs from "dayjs";
 import { useAppStore } from "../store/useAppStore";
 import { useNavigate } from "react-router-dom";
 import type { User, Notification } from "../types";
@@ -30,7 +31,7 @@ const NotificationsView: React.FC = () => {
     // Reset unread count on mount
     setUnreadNotificationsCount(0);
     // Store current time as last read
-    localStorage.setItem("lastNotificationReadTime", new Date().toISOString());
+    localStorage.setItem("lastNotificationReadTime", dayjs().toISOString());
   }, [setUnreadNotificationsCount]);
 
   const onUserClick = (user: User) => {
@@ -90,7 +91,7 @@ const NotificationsView: React.FC = () => {
           likes: postData.likes[0].count,
           comments: postData.comments[0].count,
           caption: postData.caption,
-          time: new Date(postData.created_at).toLocaleDateString(),
+          time: dayjs(postData.created_at).fromNow(),
           hasLiked: count ? count > 0 : false,
           commentList: [],
         };

@@ -1,5 +1,5 @@
 export interface User {
-  id?: string;
+  id: string;
   username: string;
   name: string;
   avatar: string;
@@ -36,6 +36,7 @@ export interface Post {
   caption: string;
   comments: string | number;
   time: string;
+  createdAt?: string;
   isVerified?: boolean;
   hasLiked?: boolean;
   hasSaved?: boolean;
@@ -45,9 +46,11 @@ export interface Post {
 export interface Story {
   id: string; // UUID
   username: string;
+  userAvatar?: string;
   img: string;
   isUser?: boolean;
   isVerified?: boolean;
+  createdAt?: string;
 }
 
 export interface Message {

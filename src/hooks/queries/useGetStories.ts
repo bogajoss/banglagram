@@ -35,6 +35,7 @@ export const useGetStories = (currentUserId: string | undefined) => {
           id: string;
           user_id: string;
           media_url: string;
+          created_at: string;
           user: {
             username: string;
             avatar_url: string | null;
@@ -43,9 +44,11 @@ export const useGetStories = (currentUserId: string | undefined) => {
         }) => ({
           id: s.id,
           username: s.user?.username || "User",
+          userAvatar: s.user?.avatar_url || "",
           img: s.media_url, // Assuming media_url is image. If video, Story type might need update
           isUser: s.user_id === currentUserId,
           isVerified: s.user?.is_verified || false,
+          createdAt: s.created_at,
         }),
       );
 

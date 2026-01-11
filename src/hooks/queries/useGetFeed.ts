@@ -1,4 +1,5 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { supabase } from "../../lib/supabaseClient";
 import type { Database } from "../../database.types";
 
@@ -84,6 +85,7 @@ export const useGetFeed = (userId?: string) => {
         return {
           id: post.id,
           user: {
+            id: post.user_id,
             username: profile?.username || "Unknown",
             name: profile?.full_name || "Unknown",
             avatar: profile?.avatar_url || "",
@@ -96,7 +98,8 @@ export const useGetFeed = (userId?: string) => {
           likes: likes[0]?.count || 0,
           caption: post.caption || "",
           comments: comments[0]?.count || 0,
-          time: new Date(post.created_at).toLocaleDateString(),
+          time: dayjs(post.created_at).fromNow(),
+          createdAt: post.created_at,
           isVerified: profile?.is_verified || false,
           hasLiked: likedPostIds.has(post.id),
           hasSaved: savedPostIds.has(post.id),

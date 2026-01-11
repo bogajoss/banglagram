@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { supabase } from "../../lib/supabaseClient";
 import type { Notification } from "../../types";
 import type { Database } from "../../database.types";
@@ -19,6 +20,7 @@ export const useGetNotifications = (userId?: string) => {
           type,
           post_id,
           reel_id,
+          actor_id,
           actor:profiles!actor_id (username, avatar_url, is_verified)
         `,
         )
@@ -51,6 +53,7 @@ export const useGetNotifications = (userId?: string) => {
           created_at: n.created_at,
           type: n.type as "follow" | "like" | "comment" | "system",
           user: {
+            id: n.actor_id || "",
             username: n.actor?.username || "Unknown",
             name: n.actor?.username || "Unknown", // Fallback as full_name might not be in the join if not selected. Wait, I selected username, avatar_url.
             // In step 122 I added full_name to the select list?
@@ -61,7 +64,7 @@ export const useGetNotifications = (userId?: string) => {
             isVerified: n.actor?.is_verified || false,
           },
           text,
-          time: new Date(n.created_at).toLocaleDateString(),
+          time: dayjs(n.created_at).fromNow(),
           isFollowing: false,
           post_id: n.post_id || undefined,
           reel_id: n.reel_id || undefined,

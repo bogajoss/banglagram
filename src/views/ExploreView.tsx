@@ -6,6 +6,7 @@ import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { useGetExplorePosts } from "../hooks/queries/useGetExplorePosts";
 import { useInView } from "react-intersection-observer";
+import { Input } from "@/components/ui/input";
 
 import { motion } from "framer-motion";
 
@@ -42,13 +43,14 @@ const ExploreView: React.FC = () => {
         setIsSearching(true);
         const { data } = await supabase
           .from("profiles")
-          .select("username, full_name, avatar_url, is_verified")
+          .select("id, username, full_name, avatar_url, is_verified")
           .ilike("username", `%${searchQuery}%`)
           .limit(10);
 
         if (data) {
           const users: User[] = (
             data as {
+              id: string;
               username: string;
               full_name: string;
               avatar_url: string;
@@ -59,6 +61,7 @@ const ExploreView: React.FC = () => {
             name: p.full_name || p.username,
             avatar: p.avatar_url || "",
             isVerified: p.is_verified || false,
+            id: p.id,
           }));
           setSearchResults(users);
         }
@@ -99,12 +102,12 @@ const ExploreView: React.FC = () => {
             size={18}
             className={theme === "dark" ? "text-[#8e8e8e]" : "text-gray-500"}
           />
-          <input
+          <Input
             type="text"
             placeholder="অনুসন্ধান"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={`bg-transparent border-none outline-none text-sm w-full ${theme === "dark" ? "text-white" : "text-black"}`}
+            className={`bg-transparent border-none outline-none text-sm w-full focus-visible:ring-0 p-0 h-auto ${theme === "dark" ? "text-white" : "text-black"}`}
           />
           {searchQuery && (
             <X

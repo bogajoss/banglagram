@@ -15,9 +15,24 @@ import { useToggleSave } from "../hooks/mutations/useToggleSave";
 
 import OptimizedImage from "../components/OptimizedImage";
 
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/bn";
+
+dayjs.extend(relativeTime);
+dayjs.locale("bn");
+
 const HomeView: React.FC = () => {
-  const { currentUser, theme, showToast, setViewingStory, setViewingPost } =
-    useAppStore();
+  const {
+    currentUser,
+    theme,
+    showToast,
+    setViewingStory,
+    setViewingPost,
+    setCreateModalOpen,
+  } = useAppStore();
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -35,6 +50,9 @@ const HomeView: React.FC = () => {
   } = useGetFeed(user?.id);
 
   const { data: stories = [] } = useGetStories(user?.id);
+  const userStories = stories.filter((s) => s.isUser);
+  const otherStories = stories.filter((s) => !s.isUser);
+
   const { data: suggestedUsers = [] } = useGetSuggestedUsers(user?.id);
   const { mutate: followUser } = useFollowUser();
   const { mutate: toggleSaveMutation } = useToggleSave();
@@ -47,10 +65,17 @@ const HomeView: React.FC = () => {
 
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const textSecondary = theme === "dark" ? "text-[#a8a8a8]" : "text-zinc-500";
-  const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
 
   const handleUserClick = (user: User) => {
     navigate(`/profile/${user.username}`);
+  };
+
+  const handleYourStoryClick = () => {
+    if (userStories.length > 0) {
+      setViewingStory(userStories[0].id);
+    } else {
+      setCreateModalOpen(true);
+    }
   };
 
   const containerVariants = {
@@ -90,8 +115,8 @@ const HomeView: React.FC = () => {
       <div
         className={`md:hidden sticky top-0 z-10 border-b ${borderClass} px-4 h-[60px] flex items-center justify-between ${theme === "dark" ? "bg-black" : "bg-white"}`}
       >
-        <h1 className="text-2xl font-bold tracking-wide italic text-[#006a4e]">
-          Instagram
+        <h1 className="text-2xl font-bold tracking-tight text-[#006a4e]">
+          SysMed
         </h1>
         <div className="flex items-center gap-5">
           <motion.div whileTap={{ scale: 0.9 }}>
@@ -117,7 +142,40 @@ const HomeView: React.FC = () => {
           animate="visible"
           className="flex gap-4 mb-6 overflow-x-auto scrollbar-hide py-4 px-4 md:px-0"
         >
-          {stories.map((story: Story) => (
+          {/* Permanent Add Story Button */}
+          <motion.div
+            variants={itemVariants}
+            whileHover={{ y: -5 }}
+            className="flex flex-col items-center gap-1 cursor-pointer flex-shrink-0 w-[66px] group"
+            onClick={handleYourStoryClick}
+          >
+            <div
+              className={`w-[66px] h-[66px] rounded-full p-[2px] ${userStories.length > 0 ? "bg-gradient-to-tr from-[#006a4e] to-[#004d39]" : "border border-zinc-500"} group-hover:scale-105 transition-transform duration-200 relative`}
+            >
+              <div
+                className={`w-full h-full rounded-full p-[2px] ${theme === "dark" ? "bg-black" : "bg-white"}`}
+              >
+                <OptimizedImage
+                  src={currentUser.avatar}
+                  width={100}
+                  className="w-full h-full rounded-full"
+                  alt="Your story"
+                />
+              </div>
+              {userStories.length === 0 && (
+                <div className="absolute bottom-0 right-0 bg-[#0095f6] border-2 border-white dark:border-black rounded-full p-0.5 text-white">
+                  <Plus size={14} strokeWidth={4} />
+                </div>
+              )}
+            </div>
+            <span
+              className={`text-xs truncate w-full text-center ${theme === "dark" ? "text-[#a8a8a8]" : "text-zinc-500"}`}
+            >
+              আপনার স্টোরি
+            </span>
+          </motion.div>
+
+          {otherStories.map((story: Story) => (
             <motion.div
               key={story.id}
               variants={itemVariants}
@@ -130,7 +188,7 @@ const HomeView: React.FC = () => {
                   className={`w-full h-full rounded-full p-[2px] ${theme === "dark" ? "bg-black" : "bg-white"}`}
                 >
                   <OptimizedImage
-                    src={story.img}
+                    src={story.userAvatar || story.img}
                     width={100}
                     className="w-full h-full rounded-full"
                     alt={story.username}
@@ -195,9 +253,9 @@ const HomeView: React.FC = () => {
               <div className={textSecondary}>{currentUser.name}</div>
             </div>
           </div>
-          <button className="text-xs font-semibold text-[#006a4e] hover:text-[#004d39]">
+          <Button variant="ghost" className="text-xs font-semibold text-[#006a4e] hover:text-[#004d39] h-auto p-0">
             Switch
-          </button>
+          </Button>
         </motion.div>
 
         <div className="flex justify-between items-center mb-4">
@@ -233,8 +291,8 @@ const HomeView: React.FC = () => {
                   </span>
                 </div>
               </div>
-              <button
-                className={`${buttonBg} text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap active:scale-95`}
+              <Button
+                className="bg-[#006a4e] text-white hover:bg-[#00523c] h-8 px-4 text-sm font-semibold whitespace-nowrap"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (user && u.id) {
@@ -248,7 +306,7 @@ const HomeView: React.FC = () => {
                 }}
               >
                 ফলো
-              </button>
+              </Button>
             </motion.div>
           ))}
         </motion.div>

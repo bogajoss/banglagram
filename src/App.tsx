@@ -57,6 +57,7 @@ export default function App() {
           profile.avatar_url ||
           "https://api.dicebear.com/9.x/avataaars/svg?seed=default",
         bio: profile.bio || "",
+        isVerified: profile.is_verified || false,
         stats: {
           // These would ideally come from the DB too, simple default for now or fetch via hook
           posts: 0,

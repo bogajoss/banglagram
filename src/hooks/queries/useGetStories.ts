@@ -19,7 +19,8 @@ export const useGetStories = (currentUserId: string | undefined) => {
             *,
             user:profiles (
                 username,
-                avatar_url
+                avatar_url,
+                is_verified
             )
         `,
         )
@@ -33,12 +34,13 @@ export const useGetStories = (currentUserId: string | undefined) => {
         id: string;
         user_id: string;
         media_url: string;
-        user: { username: string; avatar_url: string | null } | null;
+        user: { username: string; avatar_url: string | null; is_verified: boolean | null } | null;
       }) => ({
         id: s.id,
         username: s.user?.username || "User",
         img: s.media_url, // Assuming media_url is image. If video, Story type might need update
         isUser: s.user_id === currentUserId,
+        isVerified: s.user?.is_verified || false,
       }));
 
       // Group by user?

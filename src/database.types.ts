@@ -17,6 +17,7 @@ export interface Database {
           avatar_url: string | null;
           bio: string | null;
           website: string | null;
+          is_verified: boolean;
           updated_at: string;
         };
         Insert: {
@@ -26,6 +27,7 @@ export interface Database {
           avatar_url?: string | null;
           bio?: string | null;
           website?: string | null;
+          is_verified?: boolean;
           updated_at?: string;
         };
         Update: {
@@ -35,6 +37,7 @@ export interface Database {
           avatar_url?: string | null;
           bio?: string | null;
           website?: string | null;
+          is_verified?: boolean;
           updated_at?: string;
         };
       };

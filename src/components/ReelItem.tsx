@@ -28,6 +28,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import OptimizedImage from "./OptimizedImage";
 import { useAppStore } from "../store/useAppStore";
+import VerifiedBadge from "./VerifiedBadge";
 
 const ReelItem: React.FC<ReelItemProps> = ({
   reel,
@@ -221,6 +222,7 @@ const ReelItem: React.FC<ReelItemProps> = ({
             <span className="font-semibold text-sm shadow-black drop-shadow-md text-white cursor-pointer hover:opacity-70 transition-opacity">
               {reel.user.username}
             </span>
+            {reel.user.isVerified && <VerifiedBadge />}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

@@ -1,6 +1,8 @@
 import React from "react";
 import { X } from "lucide-react";
 import type { User } from "../../types";
+import OptimizedImage from "../OptimizedImage";
+import VerifiedBadge from "../VerifiedBadge";
 
 interface UserListModalProps {
   title: string;
@@ -11,8 +13,6 @@ interface UserListModalProps {
   glassModal: string;
   loading?: boolean;
 }
-
-import OptimizedImage from "../OptimizedImage";
 
 const UserListModal: React.FC<UserListModalProps> = ({
   title,
@@ -62,9 +62,12 @@ const UserListModal: React.FC<UserListModalProps> = ({
                     />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold">
-                      {user.username}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm font-semibold">
+                        {user.username}
+                      </span>
+                      {user.isVerified && <VerifiedBadge />}
+                    </div>
                     <span className="text-xs opacity-70">
                       {user.name || user.username}
                     </span>

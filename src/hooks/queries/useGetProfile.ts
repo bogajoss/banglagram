@@ -99,13 +99,14 @@ export const useGetProfile = (
             username: profile.username,
             name: profile.full_name || profile.username,
             avatar: profile.avatar_url || "",
+            isVerified: profile.is_verified || false,
           },
           content: { type: "image", src: post.image_url },
           likes: likes[0]?.count || 0,
           caption: post.caption || "",
           comments: comments[0]?.count || 0,
           time: new Date(post.created_at).toLocaleDateString(),
-          isVerified: false,
+          isVerified: profile.is_verified || false,
           hasLiked: likedPostIds.has(post.id),
         };
       });
@@ -116,6 +117,7 @@ export const useGetProfile = (
         name: profile.full_name || "",
         avatar: profile.avatar_url || "",
         bio: profile.bio || "",
+        isVerified: profile.is_verified || false,
         stats: {
           posts: postsCount || 0,
           followers: followersCount || 0,

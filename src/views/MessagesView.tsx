@@ -24,6 +24,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { Database } from "../database.types";
 
 import OptimizedImage from "../components/OptimizedImage";
+import VerifiedBadge from "../components/VerifiedBadge";
 
 type DbMessage = Database["public"]["Tables"]["messages"]["Row"];
 
@@ -205,7 +206,10 @@ const MessagesView: React.FC = () => {
                   />
                 </div>
                 <div className="flex-grow min-w-0">
-                  <div className="text-sm truncate font-bold">{u.username}</div>
+                  <div className="text-sm truncate font-bold flex items-center gap-1">
+                    {u.username}
+                    {u.isVerified && <VerifiedBadge />}
+                  </div>
                   <div
                     className={`text-xs truncate ${theme === "dark" ? "text-[#a8a8a8]" : "text-gray-500"}`}
                   >
@@ -246,12 +250,13 @@ const MessagesView: React.FC = () => {
                     />
                   </div>
                   <div
-                    className="font-semibold text-base truncate max-w-[150px] cursor-pointer hover:underline"
+                    className="font-semibold text-base truncate max-w-[150px] cursor-pointer hover:underline flex items-center gap-1"
                     onClick={() =>
                       navigate(`/profile/${selectedUser.username}`)
                     }
                   >
                     {selectedUser.username}
+                    {selectedUser.isVerified && <VerifiedBadge />}
                   </div>
                 </div>
                 <div className="flex items-center gap-4">

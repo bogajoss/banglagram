@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   avatar_url text,
   bio text,
   website text,
+  is_verified boolean DEFAULT false,
   updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

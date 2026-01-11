@@ -12,6 +12,7 @@ export interface Comment {
   user: {
     username: string;
     avatar_url: string;
+    isVerified?: boolean;
   };
 }
 
@@ -34,7 +35,8 @@ export const useGetComments = (targetId: string, type: "post" | "reel") => {
           reel_id,
           profiles:user_id (
             username,
-            avatar_url
+            avatar_url,
+            is_verified
           )
         `,
         )
@@ -47,7 +49,7 @@ export const useGetComments = (targetId: string, type: "post" | "reel") => {
 
       type CommentWithProfile =
         Database["public"]["Tables"]["comments"]["Row"] & {
-          profiles: { username: string; avatar_url: string | null } | null;
+          profiles: { username: string; avatar_url: string | null; is_verified: boolean | null } | null;
         };
 
       const comments = data as unknown as CommentWithProfile[];
@@ -64,6 +66,7 @@ export const useGetComments = (targetId: string, type: "post" | "reel") => {
           avatar_url:
             comment.profiles?.avatar_url ||
             "https://api.dicebear.com/9.x/avataaars/svg?seed=guest",
+          isVerified: comment.profiles?.is_verified || false,
         },
       })) as Comment[];
     },

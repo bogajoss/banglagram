@@ -29,7 +29,7 @@ export const useGetSuggestedUsers = (currentUserId?: string) => {
 
       let query = supabase
         .from("profiles")
-        .select("id, username, full_name, avatar_url")
+        .select("id, username, full_name, avatar_url, is_verified")
         .limit(20);
 
       if (excludeIds.length > 0 && excludeIds.length < 50) {
@@ -52,6 +52,7 @@ export const useGetSuggestedUsers = (currentUserId?: string) => {
         name: p.full_name || p.username,
         avatar: p.avatar_url || "",
         subtitle: "Suggested for you",
+        isVerified: p.is_verified || false,
         isFollowing: false,
       })) as (User & { subtitle: string })[];
     },

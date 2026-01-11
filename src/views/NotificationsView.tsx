@@ -9,6 +9,7 @@ import { useAuth } from "../hooks/useAuth";
 
 import { supabase } from "../lib/supabaseClient";
 import OptimizedImage from "../components/OptimizedImage";
+import VerifiedBadge from "../components/VerifiedBadge";
 
 const NotificationsView: React.FC = () => {
   const { theme, followedUsers, toggleFollow, setUnreadNotificationsCount } =
@@ -201,12 +202,15 @@ const NotificationsView: React.FC = () => {
                   )}
                   <div className="text-sm">
                     {notif.user && (
-                      <span
-                        className={`font-semibold cursor-pointer ${theme === "dark" ? "hover:text-zinc-300" : "hover:text-zinc-600"}`}
-                        onClick={() => handleNotificationClick(notif)}
-                      >
-                        {notif.user.username}
-                      </span>
+                      <div className="inline-flex items-center">
+                        <span
+                          className={`font-semibold cursor-pointer ${theme === "dark" ? "hover:text-zinc-300" : "hover:text-zinc-600"}`}
+                          onClick={() => handleNotificationClick(notif)}
+                        >
+                          {notif.user.username}
+                        </span>
+                        {notif.user.isVerified && <VerifiedBadge />}
+                      </div>
                     )}
                     <span
                       className="ml-1 cursor-pointer hover:opacity-80"
@@ -259,11 +263,14 @@ const NotificationsView: React.FC = () => {
                       />
                     </div>
                     <div className="flex flex-col text-sm overflow-hidden">
-                      <span
-                        className={`font-semibold cursor-pointer truncate ${theme === "dark" ? "hover:text-zinc-300" : "hover:text-zinc-600"}`}
-                      >
-                        {u.username}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={`font-semibold cursor-pointer truncate ${theme === "dark" ? "hover:text-zinc-300" : "hover:text-zinc-600"}`}
+                        >
+                          {u.username}
+                        </span>
+                        {u.isVerified && <VerifiedBadge />}
+                      </div>
                       <span className={`${textSecondary} truncate`}>
                         {u.name}
                       </span>

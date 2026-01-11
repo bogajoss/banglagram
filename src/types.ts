@@ -4,6 +4,7 @@ export interface User {
   name: string;
   avatar: string;
   bio?: string;
+  isVerified?: boolean;
   stats?: {
     posts: number;
     followers: number;
@@ -46,6 +47,7 @@ export interface Story {
   username: string;
   img: string;
   isUser?: boolean;
+  isVerified?: boolean;
 }
 
 export interface Message {

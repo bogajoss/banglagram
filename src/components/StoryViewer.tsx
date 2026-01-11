@@ -3,6 +3,7 @@ import { X, ChevronLeft, ChevronRight, Heart, Send } from "lucide-react";
 import { useAppStore } from "../store/useAppStore";
 import { motion, AnimatePresence } from "framer-motion";
 import OptimizedImage from "./OptimizedImage";
+import VerifiedBadge from "./VerifiedBadge";
 
 import { useNavigate } from "react-router-dom";
 
@@ -115,16 +116,19 @@ const StoryViewer: React.FC = () => {
               alt={currentStory.username}
             />
           </div>
-          <span
-            className="font-semibold text-sm cursor-pointer hover:underline"
-            onClick={(e) => {
-              e.stopPropagation();
-              setViewingStory(null);
-              navigate(`/profile/${currentStory.username}`);
-            }}
-          >
-            {currentStory.username}
-          </span>
+          <div className="flex items-center">
+            <span
+              className="font-semibold text-sm cursor-pointer hover:underline"
+              onClick={(e) => {
+                e.stopPropagation();
+                setViewingStory(null);
+                navigate(`/profile/${currentStory.username}`);
+              }}
+            >
+              {currentStory.username}
+            </span>
+            {currentStory.isVerified && <VerifiedBadge />}
+          </div>
           <span className="text-white/70 text-xs">12h</span>
         </div>
 

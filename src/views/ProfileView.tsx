@@ -28,6 +28,7 @@ import SettingsModal from "../components/modals/SettingsModal";
 import ArchiveModal from "../components/modals/ArchiveModal";
 
 import OptimizedImage from "../components/OptimizedImage";
+import VerifiedBadge from "../components/VerifiedBadge";
 
 const ProfileView: React.FC = () => {
   const {
@@ -178,6 +179,7 @@ const ProfileView: React.FC = () => {
             />
           )}
           {profileUser.username}
+          {profileUser.isVerified && <VerifiedBadge />}
           {isMe && <ChevronDown size={16} />}
         </div>
         <div className="flex gap-6">
@@ -245,8 +247,9 @@ const ProfileView: React.FC = () => {
         </div>
         <div className="flex-grow flex flex-col gap-4 w-full">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-            <h2 className="text-xl font-normal mr-2 hidden md:block">
+            <h2 className="text-xl font-normal mr-2 hidden md:flex items-center gap-1">
               {profileUser.username}
+              {profileUser.isVerified && <VerifiedBadge />}
             </h2>
             <div className="flex gap-2 w-full md:w-auto">
               {isMe ? (

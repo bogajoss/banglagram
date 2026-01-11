@@ -20,6 +20,7 @@ export const useGetConversations = (userId: string | undefined) => {
         username: string;
         full_name: string | null;
         avatar_url: string | null;
+        is_verified: boolean | null;
       }
 
       const { data, error } = await supabase
@@ -29,8 +30,8 @@ export const useGetConversations = (userId: string | undefined) => {
                   sender_id,
                   receiver_id,
                   created_at,
-                  sender:profiles!sender_id(id, username, full_name, avatar_url),
-                  receiver:profiles!receiver_id(id, username, full_name, avatar_url)
+                  sender:profiles!sender_id(id, username, full_name, avatar_url, is_verified),
+                  receiver:profiles!receiver_id(id, username, full_name, avatar_url, is_verified)
                 `,
         )
         .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
@@ -57,6 +58,7 @@ export const useGetConversations = (userId: string | undefined) => {
             username: otherUser.username,
             name: otherUser.full_name || otherUser.username,
             avatar: otherUser.avatar_url || "",
+            isVerified: otherUser.is_verified || false,
             stats: { posts: 0, followers: 0, following: 0 },
           });
         }

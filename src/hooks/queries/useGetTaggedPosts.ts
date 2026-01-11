@@ -20,7 +20,7 @@ export const useGetTaggedPosts = (userId: string | undefined) => {
                 likes (count),
                 comments (count),
                 user:profiles (
-                    username, full_name, avatar_url
+                    username, full_name, avatar_url, is_verified
                 )
             )
         `,
@@ -47,6 +47,7 @@ export const useGetTaggedPosts = (userId: string | undefined) => {
               username: string;
               full_name: string | null;
               avatar_url: string | null;
+              is_verified: boolean | null;
             } | null;
           } | null;
         }) => {
@@ -59,6 +60,7 @@ export const useGetTaggedPosts = (userId: string | undefined) => {
               username: p.user?.username || "Unknown",
               name: p.user?.full_name || "",
               avatar: p.user?.avatar_url || "",
+              isVerified: p.user?.is_verified || false,
             },
             content: {
               type: "image",
@@ -70,6 +72,7 @@ export const useGetTaggedPosts = (userId: string | undefined) => {
             time: new Date(p.created_at).toLocaleDateString(),
             hasLiked: false,
             hasSaved: false, // Not checked here
+            isVerified: p.user?.is_verified || false,
           };
         })
         .filter(Boolean) as Post[];

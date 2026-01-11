@@ -17,7 +17,7 @@ export const useGetFeed = (userId?: string) => {
         .select(
           `
           *,
-          profiles (username, full_name, avatar_url),
+          profiles (username, full_name, avatar_url, is_verified),
           likes (count),
           comments (count)
         `,
@@ -32,6 +32,7 @@ export const useGetFeed = (userId?: string) => {
           username: string;
           full_name: string | null;
           avatar_url: string | null;
+          is_verified: boolean | null;
         } | null;
         likes: { count: number }[];
         comments: { count: number }[];
@@ -82,6 +83,7 @@ export const useGetFeed = (userId?: string) => {
             username: profile?.username || "Unknown",
             name: profile?.full_name || "Unknown",
             avatar: profile?.avatar_url || "",
+            isVerified: profile?.is_verified || false,
           },
           content: {
             type: "image" as const,
@@ -91,7 +93,7 @@ export const useGetFeed = (userId?: string) => {
           caption: post.caption || "",
           comments: comments[0]?.count || 0,
           time: new Date(post.created_at).toLocaleDateString(),
-          isVerified: false,
+          isVerified: profile?.is_verified || false,
           hasLiked: likedPostIds.has(post.id),
           hasSaved: savedPostIds.has(post.id),
         };

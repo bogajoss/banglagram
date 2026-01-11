@@ -15,7 +15,7 @@ export const useGetNotifications = (userId?: string) => {
         .select(
           `
           *,
-          actor:profiles!actor_id (username, avatar_url)
+          actor:profiles!actor_id (username, avatar_url, is_verified)
         `,
         )
         .eq("user_id", userId as string)
@@ -25,7 +25,7 @@ export const useGetNotifications = (userId?: string) => {
 
       type NotificationWithActor =
         Database["public"]["Tables"]["notifications"]["Row"] & {
-          actor: { username: string; avatar_url: string | null } | null;
+          actor: { username: string; avatar_url: string | null; is_verified: boolean | null } | null;
         };
 
       const notifications = (data || []) as unknown as NotificationWithActor[];
@@ -50,6 +50,7 @@ export const useGetNotifications = (userId?: string) => {
             // I should add full_name to the query to be safe or just use username.
             // Let's stick to what is selected: username.
             avatar: n.actor?.avatar_url || "",
+            isVerified: n.actor?.is_verified || false,
           },
           text,
           time: new Date(n.created_at).toLocaleDateString(),

@@ -14,7 +14,7 @@ export const useGetReels = (currentUserId?: string) => {
         .select(
           `
           *,
-          profiles (username, full_name, avatar_url),
+          profiles (username, full_name, avatar_url, is_verified),
           likes (count),
           comments (count)
         `,
@@ -28,6 +28,7 @@ export const useGetReels = (currentUserId?: string) => {
           username: string;
           full_name: string | null;
           avatar_url: string | null;
+          is_verified: boolean | null;
         } | null;
         likes: { count: number }[];
         comments: { count: number }[];
@@ -82,6 +83,7 @@ export const useGetReels = (currentUserId?: string) => {
           username: reel.profiles?.username || "Unknown",
           name: reel.profiles?.full_name || "Unknown",
           avatar: reel.profiles?.avatar_url || "",
+          isVerified: reel.profiles?.is_verified || false,
           isFollowing: followedUserIds.has(reel.user_id),
         },
         src: reel.video_url,

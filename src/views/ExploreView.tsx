@@ -9,6 +9,7 @@ import { useGetExplorePosts } from "../hooks/queries/useGetExplorePosts";
 import { motion } from "framer-motion";
 
 import OptimizedImage from "../components/OptimizedImage";
+import VerifiedBadge from "../components/VerifiedBadge";
 
 const ExploreView: React.FC = () => {
   const { theme, setViewingPost } = useAppStore();
@@ -25,7 +26,7 @@ const ExploreView: React.FC = () => {
         setIsSearching(true);
         const { data } = await supabase
           .from("profiles")
-          .select("username, full_name, avatar_url")
+          .select("username, full_name, avatar_url, is_verified")
           .ilike("username", `%${searchQuery}%`)
           .limit(10);
 
@@ -35,11 +36,13 @@ const ExploreView: React.FC = () => {
               username: string;
               full_name: string;
               avatar_url: string;
+              is_verified: boolean;
             }[]
           ).map((p) => ({
             username: p.username,
             name: p.full_name || p.username,
             avatar: p.avatar_url || "",
+            isVerified: p.is_verified || false,
           }));
           setSearchResults(users);
         }
@@ -117,7 +120,10 @@ const ExploreView: React.FC = () => {
                 alt={user.username}
               />
               <div className="flex flex-col">
-                <span className="font-semibold text-sm">{user.username}</span>
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold text-sm">{user.username}</span>
+                  {user.isVerified && <VerifiedBadge />}
+                </div>
                 <span className="text-xs text-gray-500">{user.name}</span>
               </div>
             </div>

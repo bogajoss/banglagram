@@ -19,6 +19,7 @@ import { useGetComments } from "../../hooks/queries/useGetComments";
 import { useAuth } from "../../hooks/useAuth";
 
 import OptimizedImage from "../OptimizedImage";
+import VerifiedBadge from "../VerifiedBadge";
 
 const PostDetailsModal: React.FC = () => {
   const {
@@ -162,9 +163,12 @@ const PostDetailsModal: React.FC = () => {
                   alt={activeItem.user.username}
                 />
               </div>
-              <span className="font-semibold text-sm hover:opacity-70 cursor-pointer">
-                {activeItem.user.username}
-              </span>
+              <div className="flex items-center">
+                <span className="font-semibold text-sm hover:opacity-70 cursor-pointer">
+                  {activeItem.user.username}
+                </span>
+                {activeItem.user.isVerified && <VerifiedBadge />}
+              </div>
             </div>
 
             {/* Desktop Options Icon */}
@@ -195,12 +199,15 @@ const PostDetailsModal: React.FC = () => {
                 />
               </div>
               <div className="text-sm">
-                <span
-                  className="font-semibold mr-2 cursor-pointer"
-                  onClick={() => onUserClick(activeItem.user)}
-                >
-                  {activeItem.user.username}
-                </span>
+                <div className="flex items-center">
+                  <span
+                    className="font-semibold mr-2 cursor-pointer"
+                    onClick={() => onUserClick(activeItem.user)}
+                  >
+                    {activeItem.user.username}
+                  </span>
+                  {activeItem.user.isVerified && <VerifiedBadge />}
+                </div>
                 <span>{activeItem.caption}</span>
                 <div className="text-xs text-zinc-500 mt-1">
                   {(activeItem as any).time}
@@ -253,18 +260,21 @@ const PostDetailsModal: React.FC = () => {
                       </div>
                       <div className="flex flex-col">
                         <div className="text-sm leading-tight">
-                          <span
-                            className="font-semibold mr-2 cursor-pointer hover:opacity-70"
-                            onClick={() =>
-                              onUserClick({
-                                username: c.user.username,
-                                name: c.user.username,
-                                avatar: c.user.avatar_url,
-                              } as User)
-                            }
-                          >
-                            {c.user.username}
-                          </span>
+                          <div className="flex items-center">
+                            <span
+                              className="font-semibold mr-2 cursor-pointer hover:opacity-70"
+                              onClick={() =>
+                                onUserClick({
+                                  username: c.user.username,
+                                  name: c.user.username,
+                                  avatar: c.user.avatar_url,
+                                } as User)
+                              }
+                            >
+                              {c.user.username}
+                            </span>
+                            {c.user.isVerified && <VerifiedBadge />}
+                          </div>
                           <span>{c.text}</span>
                         </div>
                         <div className="flex items-center gap-4 text-xs text-zinc-500 font-semibold mt-1.5">

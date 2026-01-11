@@ -12,6 +12,7 @@ import AuthView from "./views/AuthView";
 import CreateModal from "./components/modals/CreateModal";
 import EditProfileModal from "./components/modals/EditProfileModal";
 import StoryViewer from "./components/StoryViewer";
+import ReelDetailsModal from "./components/modals/ReelDetailsModal";
 import PostDetailsModal from "./components/modals/PostDetailsModal";
 import { useAppStore } from "./store/useAppStore";
 import PageWrapper from "./components/PageWrapper";
@@ -26,6 +27,7 @@ export default function App() {
     isEditProfileOpen,
     viewingStory,
     viewingPost,
+    viewingReel,
     setCurrentUser,
   } = useAppStore();
 
@@ -86,6 +88,9 @@ export default function App() {
       </AnimatePresence>
       <AnimatePresence>
         {viewingPost !== null && <PostDetailsModal key={viewingPost.id} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {viewingReel !== null && <ReelDetailsModal key={viewingReel.id} />}
       </AnimatePresence>
 
       <AnimatePresence mode="wait">

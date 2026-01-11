@@ -12,6 +12,7 @@ import MoreOptionsModal from "./modals/MoreOptionsModal";
 import ShareModal from "./modals/ShareModal";
 import type { Reel, User } from "../types";
 import { useToggleLike } from "../hooks/mutations/useToggleLike";
+import { useFollowUser } from "../hooks/mutations/useFollowUser";
 import { useAuth } from "../hooks/useAuth";
 
 interface ReelItemProps {
@@ -25,6 +26,7 @@ interface ReelItemProps {
 import { motion, AnimatePresence } from "framer-motion";
 
 import OptimizedImage from "./OptimizedImage";
+import { useAppStore } from "../store/useAppStore";
 
 const ReelItem: React.FC<ReelItemProps> = ({
   reel,
@@ -33,8 +35,10 @@ const ReelItem: React.FC<ReelItemProps> = ({
   onUserClick,
   glassModal,
 }) => {
+  const { setViewingReel } = useAppStore();
   const { user } = useAuth();
   const { mutate: toggleLike } = useToggleLike();
+  const { mutate: followUser } = useFollowUser();
 
   const [showHeart, setShowHeart] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -48,6 +52,20 @@ const ReelItem: React.FC<ReelItemProps> = ({
     if (!user) return;
     toggleLike({ targetId: reel.id, type: 'reel', userId: user.id, hasLiked: isLiked });
   };
+
+  const handleFollow = () => {
+    if (!user || !reel.userId) return;
+    followUser({
+      targetUserId: reel.userId,
+      currentUserId: user.id,
+      isFollowing: reel.user.isFollowing || false,
+      targetUsername: reel.user.username
+    }, {
+      onSuccess: () => showToast("ফলো করা হয়েছে"),
+      onError: () => showToast("ফলো করতে সমস্যা হয়েছে")
+    });
+  };
+
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -102,21 +120,21 @@ const ReelItem: React.FC<ReelItemProps> = ({
       >
         {/* Render Video instead of Image for Reels if src is video */}
         {reel.src ? (
-             <video 
-                src={reel.src} 
-                className="w-full h-full object-cover"
-                loop
-                muted={isMuted}
-                autoPlay
-                onClick={() => setIsMuted(!isMuted)}
-             />
+          <video
+            src={reel.src}
+            className="w-full h-full object-cover"
+            loop
+            muted={isMuted}
+            autoPlay
+            onClick={() => setIsMuted(!isMuted)}
+          />
         ) : (
-            <OptimizedImage
+          <OptimizedImage
             src={reel.src}
             className="w-full h-full"
             onClick={() => setIsMuted(!isMuted)}
             alt="reel"
-            />
+          />
         )}
 
         {/* Play/Mute Status */}
@@ -162,13 +180,13 @@ const ReelItem: React.FC<ReelItemProps> = ({
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="border border-white/30 rounded-lg px-3 py-1 text-xs font-semibold backdrop-blur-sm text-white hover:bg-white/10 transition-colors"
+              className={`border border-white/30 rounded-lg px-3 py-1 text-xs font-semibold backdrop-blur-sm transition-colors ${reel.user.isFollowing ? "bg-white/20 text-white" : "text-white hover:bg-white/10"}`}
               onClick={(e) => {
                 e.stopPropagation();
-                showToast("ফলো করা হচ্ছে");
+                handleFollow();
               }}
             >
-              ফলো
+              {reel.user.isFollowing ? "ফলো করছেন" : "ফলো"}
             </motion.button>
           </div>
           <div className="text-sm mb-3 line-clamp-2 drop-shadow-md text-white">
@@ -203,6 +221,7 @@ const ReelItem: React.FC<ReelItemProps> = ({
                 size={28}
                 strokeWidth={1.5}
                 className="-scale-x-100 drop-shadow-lg cursor-pointer hover:opacity-80"
+                onClick={() => setViewingReel(reel)}
               />
             </motion.div>
             <span className="text-xs font-semibold drop-shadow-md">

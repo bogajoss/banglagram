@@ -1,4 +1,5 @@
 export interface User {
+  id?: string;
   username: string;
   name: string;
   avatar: string;
@@ -8,6 +9,7 @@ export interface User {
     followers: number;
     following: number;
   };
+  isFollowing?: boolean;
 }
 
 export interface Comment {
@@ -69,6 +71,7 @@ export interface Reel {
   caption: string;
   audio: string;
   hasLiked?: boolean;
+  userId?: string;
 }
 
 export interface Notification {

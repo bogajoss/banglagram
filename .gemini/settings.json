@@ -1,0 +1,9 @@
+{
+  "ui": {
+    "useFullWidth": false,
+    "hideWindowTitle": true
+  },
+  "general": {
+    "vimMode": true
+  }
+}

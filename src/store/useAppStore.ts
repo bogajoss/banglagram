@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { User, Post, Story } from "../types";
+import type { User, Post, Story, Reel } from "../types";
 
 interface AppState {
   // State
@@ -14,6 +14,7 @@ interface AppState {
   isEditProfileOpen: boolean;
   viewingStory: number | null;
   viewingPost: Post | null;
+  viewingReel: Reel | null;
 
   // Actions
   toggleTheme: () => void;
@@ -23,6 +24,7 @@ interface AppState {
   setEditProfileOpen: (open: boolean) => void;
   setViewingStory: (id: number | null) => void;
   setViewingPost: (post: Post | null) => void;
+  setViewingReel: (reel: Reel | null) => void;
   toggleSave: (postId: number | string) => void;
   toggleFollow: (username: string) => void;
   updateProfile: (name: string, bio: string, avatar: string) => void;
@@ -48,6 +50,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   isEditProfileOpen: false,
   viewingStory: null,
   viewingPost: null,
+  viewingReel: null,
 
   toggleTheme: () =>
     set((state) => ({ theme: state.theme === "dark" ? "light" : "dark" })),
@@ -65,6 +68,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setEditProfileOpen: (open) => set({ isEditProfileOpen: open }),
   setViewingStory: (id) => set({ viewingStory: id }),
   setViewingPost: (post) => set({ viewingPost: post }),
+  setViewingReel: (reel) => set({ viewingReel: reel }),
 
   toggleSave: (postId) =>
     set((state) => {

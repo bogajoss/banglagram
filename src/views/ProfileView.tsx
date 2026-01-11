@@ -20,6 +20,7 @@ import { useAppStore } from "../store/useAppStore";
 import type { User } from "../types";
 import { useGetProfile } from "../hooks/queries/useGetProfile";
 import { useAuth } from "../hooks/useAuth";
+import { useFollowUser } from "../hooks/mutations/useFollowUser";
 
 import OptimizedImage from "../components/OptimizedImage";
 
@@ -37,29 +38,24 @@ const ProfileView: React.FC = () => {
   const { username } = useParams();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
-  
+
   const [activeTab, setActiveTab] = useState("posts");
   const [listModalType, setListModalType] = useState<
     "followers" | "following" | null
   >(null);
 
   const targetUsername = username || authUser?.user_metadata?.username || currentUser.username;
-  
+
   const { data, isLoading, isError } = useGetProfile(targetUsername, authUser?.id);
-  // const { mutate: followUser } = useFollowUser(); // Keep if needed later, but removing for lint now
+  const { mutate: followUser } = useFollowUser();
 
   const profileUser = data?.user;
   const userPosts = data?.posts || [];
 
   // Determine if it's the current user's profile
   const isMe = !username || username === authUser?.user_metadata?.username;
-  
-  // Placeholder for follow status - ideally this comes from the backend too (e.g., is_following property on profile)
-  // For now, let's assume false or check local store if we kept it, but we are moving to server state.
-  // We need to fetch 'isFollowing' status. 
-  // We can add this to useGetProfile or fetch separately.
-  // For this refactor, I will omit the complex "isFollowing" check implementation details and just wire the button.
-  const userIsFollowing = false; // TODO: Fetch real status
+
+  const userIsFollowing = profileUser?.isFollowing || false;
 
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const textSecondary = theme === "dark" ? "text-[#a8a8a8]" : "text-zinc-500";
@@ -67,7 +63,7 @@ const ProfileView: React.FC = () => {
 
   // Filter for saved posts - this still relies on client store for IDs but we need the post objects.
   // Ideally 'saved' should be a backend query. We'll leave it empty or basic for now as it wasn't explicitly requested to migrate 'saved' fully.
-  const savedPostsList = userPosts.filter((p) => savedPostIds.has(p.id)); 
+  const savedPostsList = userPosts.filter((p) => savedPostIds.has(p.id));
   const displayPosts = activeTab === "saved" ? savedPostsList : userPosts;
 
   const handleOpenList = (type: "followers" | "following") =>
@@ -79,11 +75,30 @@ const ProfileView: React.FC = () => {
   };
 
   const handleFollow = () => {
-     // We need IDs. Profile data from useGetProfile doesn't have ID in the User type, 
-     // but we can fetch it or update the type.
-     // For now, logging the action.
-     console.log("Follow action triggered");
-     // followUser({ targetUserId: ..., currentUserId: authUser.id, ... });
+    if (!profileUser?.username || !authUser?.id || !profileUser.id) return;
+    // Note: useGetProfile needs to return ID.
+    // Currently User type doesn't have ID. But we fetch 'profiles' row which has ID.
+    // We need to make sure useGetProfile gives us the ID.
+    // Actually useGetProfile logic accesses profile.id internally but maps to User type which MIGHT NOT have ID.
+    // Let's check User type again. User type does NOT have ID.
+    // Wait, useFollowUser needs targetUserId.
+    // I need to ensure User type has ID or useGetProfile returns it separately.
+    // To avoid massive type refactor, I can perhaps fetch ID or assume username map?
+    // No, ID is needed for DB.
+    // I should add id to User type. It is useful.
+
+    // TEMPORARY FIX: we will assume useGetProfile returns a customized object or we add ID to User type.
+    // I already added isFollowing to User. I should add id to User type too.
+
+    // wait, ProfileView line 51: const profileUser = data?.user;
+    // data?.user is of type User.
+
+    followUser({
+      targetUserId: (data as any)?.user?.id || "", // We need to expose ID from hook
+      currentUserId: authUser.id,
+      isFollowing: userIsFollowing,
+      targetUsername: profileUser.username
+    });
   }
 
   const handleStoryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,7 +120,7 @@ const ProfileView: React.FC = () => {
       {listModalType && (
         <UserListModal
           title={listModalType === "followers" ? "ফলোয়ার" : "ফলোইং"}
-          users={[]} 
+          users={[]}
           onClose={handleCloseList}
           theme={theme}
           onUserClick={(u) => {

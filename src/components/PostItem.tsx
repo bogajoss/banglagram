@@ -9,8 +9,9 @@ import {
 import MoreOptionsModal from "./modals/MoreOptionsModal";
 import ShareModal from "./modals/ShareModal";
 import { useAppStore } from "../store/useAppStore";
-import type { Post, User, Comment } from "../types";
+import type { Post, User } from "../types";
 import { useToggleLike } from "../hooks/mutations/useToggleLike";
+import { useCreateComment } from "../hooks/mutations/useCreateComment";
 import { useAuth } from "../hooks/useAuth";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,10 +36,9 @@ const PostItem: React.FC<PostItemProps> = ({
   const { theme, showToast } = useAppStore();
   const { user } = useAuth();
   const { mutate: toggleLike } = useToggleLike();
+  const { mutate: createComment, isPending: isCommenting } = useCreateComment();
 
   const [showHeart, setShowHeart] = useState(false);
-  const [commentsOpen] = useState(false);
-  const [comments, setComments] = useState<Comment[]>(post.commentList || []);
   const [newComment, setNewComment] = useState("");
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -58,10 +58,20 @@ const PostItem: React.FC<PostItemProps> = ({
 
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newComment.trim()) {
-      setComments([...comments, { user: "আপনি", text: newComment }]);
-      setNewComment("");
-    }
+    if (!newComment.trim() || !user) return;
+
+    createComment({
+        targetId: String(post.id),
+        type: 'post',
+        text: newComment,
+        userId: user.id
+    }, {
+        onSuccess: () => {
+            showToast("কমেন্ট যোগ করা হয়েছে");
+            setNewComment("");
+        },
+        onError: () => showToast("কমেন্ট যোগ করতে সমস্যা হয়েছে")
+    });
   };
 
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
@@ -225,16 +235,6 @@ const PostItem: React.FC<PostItemProps> = ({
           সব {post.comments} কমেন্ট দেখুন
         </div>
 
-        {commentsOpen && (
-          <div className="mt-2 space-y-2">
-            {comments.map((c, i) => (
-              <div key={i} className="text-sm">
-                <span className="font-semibold mr-2">{c.user}</span>
-                {c.text}
-              </div>
-            ))}
-          </div>
-        )}
         <form onSubmit={handleAddComment} className="flex gap-2 mt-2">
           <input
             type="text"
@@ -242,11 +242,12 @@ const PostItem: React.FC<PostItemProps> = ({
             className={`bg-transparent text-sm w-full outline-none ${theme === "dark" ? "text-white" : "text-black"}`}
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
+            disabled={isCommenting}
           />
           <button
             type="submit"
             className="text-[#006a4e] text-sm font-semibold disabled:opacity-50 hover:text-[#004d39]"
-            disabled={!newComment}
+            disabled={!newComment || isCommenting}
           >
             পোস্ট
           </button>

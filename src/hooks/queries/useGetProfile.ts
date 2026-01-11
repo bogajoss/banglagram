@@ -48,33 +48,43 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
         .eq("user_id", profile.id)
         .order("created_at", { ascending: false });
 
-       // Check likes for these posts if currentUserId is provided
-       const likedPostIds = new Set<string>();
-       if (currentUserId && postsData && (postsData as any[]).length > 0) {
-          const postIds = (postsData as any[]).map(p => p.id as string);
-          const { data: likesData } = await supabase
-            .from("likes")
-            .select("post_id")
-            .eq("user_id", currentUserId)
-            .in("post_id", postIds);
-          
-          if (likesData) {
-            (likesData as { post_id: string }[]).forEach(l => likedPostIds.add(l.post_id));
-          }
-       }
+      // Check likes for these posts if currentUserId is provided
+      const likedPostIds = new Set<string>();
+      if (currentUserId && postsData && (postsData as any[]).length > 0) {
+        const postIds = (postsData as any[]).map(p => p.id as string);
+        const { data: likesData } = await supabase
+          .from("likes")
+          .select("post_id")
+          .eq("user_id", currentUserId)
+          .in("post_id", postIds);
+
+        if (likesData) {
+          (likesData as { post_id: string }[]).forEach(l => likedPostIds.add(l.post_id));
+        }
+      }
+
+      // 4. Check Following Status
+      let isFollowing = false;
+      if (currentUserId && currentUserId !== profile.id) {
+        const { count } = await supabase
+          .from("follows")
+          .select("*", { count: "exact", head: true })
+          .match({ follower_id: currentUserId, following_id: profile.id });
+        isFollowing = !!count && count > 0;
+      }
 
       const formattedPosts: Post[] = ((postsData as any[]) || []).map((post) => {
         const likes = post.likes as { count: number }[];
         const comments = post.comments as { count: number }[];
-        
+
         return {
           id: post.id,
           user: {
-              username: profile.username,
-              name: profile.full_name || profile.username,
-              avatar: profile.avatar_url || ""
+            username: profile.username,
+            name: profile.full_name || profile.username,
+            avatar: profile.avatar_url || ""
           },
-          content: { type: "image" as const, src: post.image_url },
+          content: { type: "image", src: post.image_url },
           likes: likes[0]?.count || 0,
           caption: post.caption || "",
           comments: comments[0]?.count || 0,
@@ -85,6 +95,7 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
       });
 
       const user: User = {
+        id: profile.id,
         username: profile.username,
         name: profile.full_name || "",
         avatar: profile.avatar_url || "",
@@ -94,6 +105,7 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
           followers: followersCount || 0,
           following: followingCount || 0,
         },
+        isFollowing,
       };
 
       return { user, posts: formattedPosts };

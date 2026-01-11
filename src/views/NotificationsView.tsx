@@ -6,6 +6,7 @@ import { useGetNotifications } from "../hooks/queries/useGetNotifications";
 import { useGetSuggestedUsers } from "../hooks/queries/useGetSuggestedUsers";
 import { useAuth } from "../hooks/useAuth";
 
+import { supabase } from "../lib/supabaseClient";
 import OptimizedImage from "../components/OptimizedImage";
 
 const NotificationsView: React.FC = () => {
@@ -19,9 +20,103 @@ const NotificationsView: React.FC = () => {
   const { data: notifications = [], isLoading: notifLoading } = useGetNotifications(user?.id);
   const { data: suggestedUsers = [] } = useGetSuggestedUsers(user?.id);
 
+  const { setViewingPost, setViewingReel } = useAppStore();
+
   const onUserClick = (user: User) => {
     navigate(`/profile/${user.username}`);
   };
+
+  const handleNotificationClick = async (notif: any) => {
+    if (notif.type === 'follow') {
+      if (notif.user) onUserClick(notif.user);
+      return;
+    }
+
+    try {
+      if (notif.post_id) {
+        const { data, error } = await supabase
+          .from('posts')
+          .select(`
+                    *,
+                    user:profiles(*),
+                    likes(count),
+                    comments(count)
+                `)
+          .eq('id', notif.post_id)
+          .single();
+
+        if (error || !data) throw error;
+        const postData = data as any;
+
+        // Fetch if current user liked it
+        const { count } = await supabase
+          .from('likes')
+          .select('*', { count: 'exact', head: true })
+          .eq('post_id', notif.post_id)
+          .eq('user_id', user?.id || "");
+
+        const post = {
+          id: postData.id,
+          user: {
+            username: postData.user.username,
+            name: postData.user.full_name,
+            avatar: postData.user.avatar_url
+          },
+          content: {
+            type: 'image', // Assuming image for posts
+            src: postData.image_url,
+            poster: postData.image_url
+          },
+          likes: postData.likes[0].count,
+          comments: postData.comments[0].count,
+          caption: postData.caption,
+          time: new Date(postData.created_at).toLocaleDateString(),
+          hasLiked: count ? count > 0 : false,
+          commentList: []
+        };
+        setViewingPost(post as any);
+      } else if (notif.reel_id) {
+        const { data, error } = await supabase
+          .from('reels')
+          .select(`
+                    *,
+                    user:profiles(*),
+                    likes(count),
+                    comments(count)
+                `)
+          .eq('id', notif.reel_id)
+          .single();
+
+        if (error || !data) throw error;
+        const reelData = data as any;
+
+        const { count } = await supabase
+          .from('likes')
+          .select('*', { count: 'exact', head: true })
+          .eq('reel_id', notif.reel_id)
+          .eq('user_id', user?.id || "");
+
+        const reel = {
+          id: reelData.id,
+          src: reelData.video_url,
+          user: {
+            username: reelData.user.username,
+            name: reelData.user.full_name,
+            avatar: reelData.user.avatar_url
+          },
+          likes: reelData.likes[0].count,
+          comments: reelData.comments[0].count,
+          caption: reelData.caption,
+          audio: reelData.audio_track_name,
+          hasLiked: count ? count > 0 : false,
+        };
+        setViewingReel(reel as any);
+      }
+    } catch (err) {
+      console.error("Failed to load content", err);
+    }
+  };
+
 
   return (
     <div className="w-full max-w-[600px] flex flex-col gap-6">
@@ -38,68 +133,70 @@ const NotificationsView: React.FC = () => {
           <div className="flex flex-col gap-4">
             {notifLoading && <div className="p-4 text-center">Loading notifications...</div>}
             {!notifLoading && notifications.length === 0 && <div className="p-4 text-center text-gray-500">কোনো নোটিফিকেশন নেই</div>}
-            
+
             {notifications.map((notif) => (
-                <div
-                  key={notif.id}
-                  className="flex items-center justify-between px-2"
-                >
-                  <div className="flex items-center gap-3">
-                    {notif.type === "follow" && notif.user && (
-                      <div
-                        className="relative flex-shrink-0"
-                        onClick={() => onUserClick(notif.user!)}
-                      >
-                        <div className="w-11 h-11 rounded-full overflow-hidden">
-                          <OptimizedImage
-                            src={notif.user.avatar}
-                            className="w-full h-full"
-                            alt="user"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    {notif.type === "system" && (
-                      <div
-                        className={`w-11 h-11 rounded-full border ${borderClass} flex items-center justify-center flex-shrink-0 overflow-hidden`}
-                      >
+              <div
+                key={notif.id}
+                className="flex items-center justify-between px-2"
+              >
+                <div className="flex items-center gap-3">
+                  {notif.type !== "system" && notif.user && (
+                    <div
+                      className="relative flex-shrink-0 cursor-pointer"
+                      onClick={() => onUserClick(notif.user!)}
+                    >
+                      <div className="w-11 h-11 rounded-full overflow-hidden">
                         <OptimizedImage
-                          src="https://www.instagram.com/static/images/activity/meta-logo-pano-manual-padding-notif@2x.png/c2173431433e.png"
-                          className="w-6 h-6 object-contain"
-                          alt="Meta"
+                          src={notif.user.avatar}
+                          className="w-full h-full"
+                          alt="user"
                         />
                       </div>
-                    )}
-                    <div className="text-sm">
-                      {notif.user && (
-                        <span
-                          className={`font-semibold cursor-pointer ${theme === "dark" ? "hover:text-zinc-300" : "hover:text-zinc-600"}`}
-                          onClick={() => onUserClick(notif.user!)}
-                        >
-                          {notif.user.username}
-                        </span>
-                      )}
-                      <span className="ml-1">{notif.text}</span>
-                      <span className={`${textSecondary} ml-1`}>
-                        {notif.time}
-                      </span>
                     </div>
+                  )}
+                  {notif.type === "system" && (
+                    <div
+                      className={`w-11 h-11 rounded-full border ${borderClass} flex items-center justify-center flex-shrink-0 overflow-hidden`}
+                    >
+                      <OptimizedImage
+                        src="https://www.instagram.com/static/images/activity/meta-logo-pano-manual-padding-notif@2x.png/c2173431433e.png"
+                        className="w-6 h-6 object-contain"
+                        alt="Meta"
+                      />
+                    </div>
+                  )}
+                  <div className="text-sm">
+                    {notif.user && (
+                      <span
+                        className={`font-semibold cursor-pointer ${theme === "dark" ? "hover:text-zinc-300" : "hover:text-zinc-600"}`}
+                        onClick={() => handleNotificationClick(notif)}
+                      >
+                        {notif.user.username}
+                      </span>
+                    )}
+                    <span className="ml-1 cursor-pointer hover:opacity-80" onClick={() => handleNotificationClick(notif)}>
+                      {notif.text}
+                    </span>
+                    <span className={`${textSecondary} ml-1`}>
+                      {notif.time}
+                    </span>
                   </div>
-                  {notif.isFollowing ? (
-                    <button
-                      className={`${theme === "dark" ? "bg-[#363636]" : "bg-gray-200 text-black"} px-4 py-1.5 rounded-lg text-sm font-semibold`}
-                    >
-                      ফলো করছেন
-                    </button>
-                  ) : notif.type === "follow" ? (
-                    <button
-                      className={`${buttonBg} text-white px-4 py-1.5 rounded-lg text-sm font-semibold`}
-                    >
-                      ফলো
-                    </button>
-                  ) : null}
                 </div>
-              ),
+                {notif.isFollowing ? (
+                  <button
+                    className={`${theme === "dark" ? "bg-[#363636]" : "bg-gray-200 text-black"} px-4 py-1.5 rounded-lg text-sm font-semibold`}
+                  >
+                    ফলো করছেন
+                  </button>
+                ) : notif.type === "follow" ? (
+                  <button
+                    className={`${buttonBg} text-white px-4 py-1.5 rounded-lg text-sm font-semibold`}
+                  >
+                    ফলো
+                  </button>
+                ) : null}
+              </div>
+            ),
             )}
           </div>
         </div>

@@ -15,6 +15,7 @@ import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../hooks/useAuth";
 import type { User } from "../types";
 import { useGetMessages, MESSAGES_QUERY_KEY } from "../hooks/queries/useGetMessages";
+import { useGetConversations } from "../hooks/queries/useGetConversations";
 import { useSendMessage } from "../hooks/mutations/useSendMessage";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Database } from "../database.types";
@@ -29,7 +30,6 @@ const MessagesView: React.FC = () => {
   const queryClient = useQueryClient();
   const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
 
-  const [conversations, setConversations] = useState<(User & { id: string })[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -37,52 +37,12 @@ const MessagesView: React.FC = () => {
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const bgHover = theme === "dark" ? "hover:bg-zinc-900" : "hover:bg-gray-100";
 
-  // Fetch unique users (Conversations)
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchConversations = async () => {
-      interface ProfileJoin { id: string; username: string; full_name: string | null; avatar_url: string | null }
-      
-      const { data, error } = await supabase
-        .from('messages')
-        .select(`
-          sender_id,
-          receiver_id,
-          created_at,
-          sender:profiles!sender_id(id, username, full_name, avatar_url),
-          receiver:profiles!receiver_id(id, username, full_name, avatar_url)
-        `)
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching conversations', error);
-        return;
-      }
-
-      const usersMap = new Map<string, User & { id: string }>();
-      (data as { sender_id: string; receiver_id: string; sender: ProfileJoin; receiver: ProfileJoin }[]).forEach((msg) => {
-        const otherUser = msg.sender_id === user.id ? msg.receiver : msg.sender;
-        if (otherUser && !usersMap.has(otherUser.username)) {
-           usersMap.set(otherUser.username, {
-             id: otherUser.id,
-             username: otherUser.username,
-             name: otherUser.full_name || otherUser.username,
-             avatar: otherUser.avatar_url || "",
-             stats: { posts: 0, followers: 0, following: 0 }
-           });
-        }
-      });
-      setConversations(Array.from(usersMap.values()));
-    };
-
-    fetchConversations();
-  }, [user]);
+  // Fetch conversations
+  const { data: conversations = [] } = useGetConversations(user?.id);
 
   // Derive selectedUserId from selectedUser
-  const selectedUserId = selectedUser 
-    ? conversations.find(c => c.username === selectedUser.username)?.id 
+  const selectedUserId = selectedUser
+    ? conversations.find(c => c.username === selectedUser.username)?.id
     : undefined;
 
   // Use Hooks
@@ -105,10 +65,13 @@ const MessagesView: React.FC = () => {
         },
         (payload) => {
           const newMsg = payload.new as DbMessage;
-          if (newMsg.sender_id === selectedUserId) {
-             queryClient.setQueryData(MESSAGES_QUERY_KEY(selectedUserId), (old: DbMessage[] | undefined) => {
-                 return old ? [...old, newMsg] : [newMsg];
-             });
+          // Refresh conversations
+          queryClient.invalidateQueries({ queryKey: ["conversations"] });
+
+          if (selectedUser && newMsg.sender_id === selectedUserId) {
+            queryClient.setQueryData(MESSAGES_QUERY_KEY(selectedUserId), (old: DbMessage[] | undefined) => {
+              return old ? [...old, newMsg] : [newMsg];
+            });
           }
         }
       )
@@ -127,7 +90,7 @@ const MessagesView: React.FC = () => {
   };
 
   useEffect(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   // Handle mobile back button
@@ -166,7 +129,7 @@ const MessagesView: React.FC = () => {
           </div>
 
           <div className="px-5 py-4 shrink-0">
-             <div
+            <div
               className={`flex items-center gap-2 px-3 py-2 rounded-lg ${theme === "dark" ? "bg-[#262626]" : "bg-gray-100"}`}
             >
               <Search size={16} className="text-[#8e8e8e]" />
@@ -198,7 +161,7 @@ const MessagesView: React.FC = () => {
                   <div
                     className={`text-xs truncate ${theme === "dark" ? "text-[#a8a8a8]" : "text-gray-500"}`}
                   >
-                   মেসেজ...
+                    মেসেজ...
                   </div>
                 </div>
               </div>
@@ -245,15 +208,15 @@ const MessagesView: React.FC = () => {
                     key={msg.id || idx}
                     className={`flex gap-2 self-start max-w-[85%] items-end ${msg.sender_id === user?.id ? "self-end justify-end" : ""}`}
                   >
-                      <>
-                        {msg.content && (
-                          <div
-                            className={`rounded-2xl px-4 py-2 text-sm ${msg.sender_id === user?.id ? "bg-[#006a4e] text-white" : (theme === "dark" ? "bg-[#262626] text-white" : "bg-gray-200 text-black")}`}
-                          >
-                            {msg.content}
-                          </div>
-                        )}
-                      </>
+                    <>
+                      {msg.content && (
+                        <div
+                          className={`rounded-2xl px-4 py-2 text-sm ${msg.sender_id === user?.id ? "bg-[#006a4e] text-white" : (theme === "dark" ? "bg-[#262626] text-white" : "bg-gray-200 text-black")}`}
+                        >
+                          {msg.content}
+                        </div>
+                      )}
+                    </>
                   </div>
                 ))}
                 <div ref={messagesEndRef} />

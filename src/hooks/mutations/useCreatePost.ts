@@ -21,7 +21,11 @@ export const useCreatePost = () => {
       const fileName = `${userId}/${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
         .from("posts")
-        .upload(fileName, file);
+        .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: file.type
+        });
 
       if (uploadError) throw uploadError;
 

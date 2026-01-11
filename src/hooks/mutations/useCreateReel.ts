@@ -19,7 +19,11 @@ export const useCreateReel = () => {
       const fileName = `${userId}/${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
         .from("reels")
-        .upload(fileName, file);
+        .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: file.type
+        });
 
       if (uploadError) throw uploadError;
 

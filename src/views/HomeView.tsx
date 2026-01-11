@@ -10,6 +10,7 @@ import { useGetStories } from "../hooks/queries/useGetStories";
 import { useGetSuggestedUsers } from "../hooks/queries/useGetSuggestedUsers";
 import { useAuth } from "../hooks/useAuth";
 import { useInView } from "react-intersection-observer";
+import { useFollowUser } from "../hooks/mutations/useFollowUser";
 
 import OptimizedImage from "../components/OptimizedImage";
 
@@ -22,30 +23,29 @@ const HomeView: React.FC = () => {
     savedPostIds,
     setViewingStory,
     setViewingPost,
-    toggleFollow,
-    followedUsers
   } = useAppStore();
 
   const { user } = useAuth();
   const navigate = useNavigate();
   const { ref, inView } = useInView();
 
-  const { 
-      data: feedData, 
-      isLoading: feedLoading, 
-      isError: feedError, 
-      fetchNextPage, 
-      hasNextPage, 
-      isFetchingNextPage 
+  const {
+    data: feedData,
+    isLoading: feedLoading,
+    isError: feedError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
   } = useGetFeed(user?.id);
 
   const { data: stories = [] } = useGetStories();
   const { data: suggestedUsers = [] } = useGetSuggestedUsers(user?.id);
+  const { mutate: followUser } = useFollowUser();
 
   useEffect(() => {
-      if (inView && hasNextPage) {
-          fetchNextPage();
-      }
+    if (inView && hasNextPage) {
+      fetchNextPage();
+    }
   }, [inView, hasNextPage, fetchNextPage]);
 
 
@@ -73,16 +73,16 @@ const HomeView: React.FC = () => {
   };
 
   if (feedLoading) {
-      return (
-          <div className="w-full max-w-[630px] pt-10 flex flex-col items-center">
-             <div className="w-full h-96 bg-gray-200 dark:bg-gray-800 animate-pulse rounded-md mb-4"></div>
-             <div className="w-full h-96 bg-gray-200 dark:bg-gray-800 animate-pulse rounded-md"></div>
-          </div>
-      )
+    return (
+      <div className="w-full max-w-[630px] pt-10 flex flex-col items-center">
+        <div className="w-full h-96 bg-gray-200 dark:bg-gray-800 animate-pulse rounded-md mb-4"></div>
+        <div className="w-full h-96 bg-gray-200 dark:bg-gray-800 animate-pulse rounded-md"></div>
+      </div>
+    )
   }
 
   if (feedError) {
-      return <div className="p-4 text-center">Error loading feed. Please try again.</div>
+    return <div className="p-4 text-center">Error loading feed. Please try again.</div>
   }
 
   return (
@@ -147,21 +147,21 @@ const HomeView: React.FC = () => {
 
         <div className="flex flex-col gap-4 pb-20">
           {feedData?.pages.map((page, i) => (
-             <React.Fragment key={i}>
-                {page.map((post) => (
-                    <PostItem
-                    key={post.id}
-                    post={post}
-                    isSaved={savedPostIds.has(post.id)}
-                    onToggleSave={() => toggleSave(post.id)}
-                    onUserClick={handleUserClick}
-                    onPostClick={setViewingPost}
-                    />
-                ))}
-             </React.Fragment>
+            <React.Fragment key={i}>
+              {page.map((post) => (
+                <PostItem
+                  key={post.id}
+                  post={post}
+                  isSaved={savedPostIds.has(post.id)}
+                  onToggleSave={() => toggleSave(post.id)}
+                  onUserClick={handleUserClick}
+                  onPostClick={setViewingPost}
+                />
+              ))}
+            </React.Fragment>
           ))}
           <div ref={ref} className="h-10 text-center text-gray-500">
-             {isFetchingNextPage ? 'Loading more...' : hasNextPage ? 'Load more' : 'No more posts'}
+            {isFetchingNextPage ? 'Loading more...' : hasNextPage ? 'Load more' : 'No more posts'}
           </div>
         </div>
       </div>
@@ -224,10 +224,17 @@ const HomeView: React.FC = () => {
                 className={`${buttonBg} text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap active:scale-95`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleFollow(u.username);
+                  if (user && u.id) {
+                    followUser({
+                      targetUserId: u.id,
+                      currentUserId: user.id,
+                      isFollowing: false,
+                      targetUsername: u.username
+                    });
+                  }
                 }}
               >
-                {followedUsers.has(u.username) ? "ফলো করছেন" : "ফলো"}
+                ফলো
               </button>
             </motion.div>
           ))}

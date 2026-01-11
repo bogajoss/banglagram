@@ -1,13 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
 import {
   X,
   Heart,
   MessageCircle as CommentIcon,
   Send,
-  Bookmark,
-  Smile,
   MoreHorizontal,
+  Smile,
 } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { useNavigate } from "react-router-dom";
@@ -15,19 +13,17 @@ import type { User } from "../../types";
 import { motion } from "framer-motion";
 import { useToggleLike } from "../../hooks/mutations/useToggleLike";
 import { useCreateComment } from "../../hooks/mutations/useCreateComment";
-import { useGetComments } from "../../hooks/queries/useGetComments";
 import { useAuth } from "../../hooks/useAuth";
 
+import { useGetComments } from "../../hooks/queries/useGetComments";
 import OptimizedImage from "../OptimizedImage";
 
-const PostDetailsModal: React.FC = () => {
+const ReelDetailsModal: React.FC = () => {
   const {
-    viewingPost,
+    viewingReel,
     theme,
     showToast,
-    savedPostIds,
-    toggleSave,
-    setViewingPost,
+    setViewingReel,
   } = useAppStore();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -37,17 +33,19 @@ const PostDetailsModal: React.FC = () => {
 
   const [newComment, setNewComment] = useState("");
 
-  const postId = viewingPost ? String(viewingPost.id) : "";
-  const { data: comments, isLoading: loadingComments } = useGetComments(postId, 'post');
+  // We can't access reel.id yet because viewingReel might be null
+  // But we need to call hooks unconditionally.
+  // Safest is to pass a dummy ID if viewingReel is null, and rely on `enabled` in useQuery
+  const reelId = viewingReel ? String(viewingReel.id) : "";
+  const { data: comments, isLoading: loadingComments } = useGetComments(reelId, 'reel');
 
-  if (!viewingPost) return null;
-  const post = viewingPost;
-  const isSaved = savedPostIds.has(post.id);
-  const liked = post.hasLiked || false;
+  if (!viewingReel) return null;
+  const reel = viewingReel;
+  const liked = reel.hasLiked || false;
 
   const handleLike = () => {
     if (!user) return;
-    toggleLike({ targetId: String(post.id), type: 'post', userId: user.id, hasLiked: liked });
+    toggleLike({ targetId: reel.id, type: 'reel', userId: user.id, hasLiked: liked });
   };
 
   const handleAddComment = (e: React.FormEvent) => {
@@ -55,8 +53,8 @@ const PostDetailsModal: React.FC = () => {
     if (!newComment.trim() || !user) return;
 
     createComment({
-      targetId: String(post.id),
-      type: 'post',
+      targetId: String(reel.id),
+      type: 'reel',
       text: newComment,
       userId: user.id
     }, {
@@ -68,7 +66,7 @@ const PostDetailsModal: React.FC = () => {
     });
   };
 
-  const onClose = () => setViewingPost(null);
+  const onClose = () => setViewingReel(null);
 
   const onUserClick = (user: User) => {
     onClose();
@@ -97,11 +95,12 @@ const PostDetailsModal: React.FC = () => {
       >
         {/* Media Section */}
         <div className="flex-1 bg-black flex items-center justify-center min-h-[300px] md:h-auto border-r border-zinc-800 relative">
-          <OptimizedImage
-            src={post.content.src || post.content.poster}
+          <video
+            src={reel.src}
             className="max-h-full max-w-full"
-            imgClassName="object-contain"
-            alt="post detail"
+            controls
+            autoPlay
+            loop
           />
         </div>
 
@@ -112,17 +111,17 @@ const PostDetailsModal: React.FC = () => {
           >
             <div
               className="flex items-center gap-3"
-              onClick={() => onUserClick(post.user)}
+              onClick={() => onUserClick(reel.user)}
             >
               <div className="w-8 h-8 rounded-full border border-zinc-700 overflow-hidden cursor-pointer">
                 <OptimizedImage
-                  src={post.user.avatar}
+                  src={reel.user.avatar}
                   className="w-full h-full"
-                  alt={post.user.username}
+                  alt={reel.user.username}
                 />
               </div>
               <span className="font-semibold text-sm hover:opacity-70 cursor-pointer">
-                {post.user.username}
+                {reel.user.username}
               </span>
             </div>
             <MoreHorizontal
@@ -135,10 +134,10 @@ const PostDetailsModal: React.FC = () => {
             <div className="flex gap-3">
               <div
                 className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden cursor-pointer"
-                onClick={() => onUserClick(post.user)}
+                onClick={() => onUserClick(reel.user)}
               >
                 <OptimizedImage
-                  src={post.user.avatar}
+                  src={reel.user.avatar}
                   className="w-full h-full"
                   alt="user"
                 />
@@ -146,12 +145,11 @@ const PostDetailsModal: React.FC = () => {
               <div className="text-sm">
                 <span
                   className="font-semibold mr-2 cursor-pointer"
-                  onClick={() => onUserClick(post.user)}
+                  onClick={() => onUserClick(reel.user)}
                 >
-                  {post.user.username}
+                  {reel.user.username}
                 </span>
-                <span>{post.caption}</span>
-                <div className="text-xs text-zinc-500 mt-1">{post.time}</div>
+                <span>{reel.caption}</span>
               </div>
             </div>
 
@@ -198,17 +196,9 @@ const PostDetailsModal: React.FC = () => {
                   onClick={() => showToast("শেয়ার করা হয়েছে")}
                 />
               </div>
-              <Bookmark
-                size={24}
-                className={`cursor-pointer hover:opacity-70 ${isSaved ? "fill-current" : ""}`}
-                onClick={() => toggleSave(post.id)}
-              />
             </div>
             <div className="font-semibold text-sm mb-2">
-              {post.likes + " লাইক"}
-            </div>
-            <div className="text-xs text-zinc-500 uppercase mb-3">
-              {post.time} আগে
+              {reel.likes + " লাইক"}
             </div>
 
             <form
@@ -248,4 +238,4 @@ const PostDetailsModal: React.FC = () => {
   );
 };
 
-export default PostDetailsModal;
+export default ReelDetailsModal;

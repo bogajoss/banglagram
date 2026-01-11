@@ -4,16 +4,18 @@ import { useAppStore } from "../store/useAppStore";
 import { useNavigate } from "react-router-dom";
 import type { User } from "../types";
 import { useGetReels } from "../hooks/queries/useGetReels";
+import { useAuth } from "../hooks/useAuth";
 
 const ReelsView: React.FC = () => {
   const { theme, showToast } = useAppStore();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const glassModal =
     theme === "dark"
       ? "bg-[#121212]/90 backdrop-blur-2xl border border-white/10"
       : "bg-white/90 backdrop-blur-2xl border border-black/10";
 
-  const { data: reels = [], isLoading } = useGetReels();
+  const { data: reels = [], isLoading } = useGetReels(user?.id);
 
   const onUserClick = (user: User) => {
     navigate(`/profile/${user.username}`);

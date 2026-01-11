@@ -20,17 +20,27 @@ export const useGetNotifications = (userId?: string) => {
 
       if (error) throw error;
 
-      return data.map((n: any) => ({
-        id: n.id,
-        type: n.type as "follow" | "system", // Ensure DB types match or cast
-        user: {
-          username: n.actor?.username || "Unknown",
-          avatar: n.actor?.avatar_url || "",
-        },
-        text: n.type === 'follow' ? "started following you." : "interacted with you.", // Simplified text logic
-        time: new Date(n.created_at).toLocaleDateString(),
-        isFollowing: false, // Need separate check for this
-      })) as Notification[];
+      return data.map((n: any) => {
+        let text = "interacted with you.";
+        if (n.type === 'follow') text = "started following you.";
+        else if (n.type === 'like') text = "liked your " + (n.reel_id ? "reel." : "post.");
+        else if (n.type === 'comment') text = "commented on your " + (n.reel_id ? "reel." : "post.");
+
+        return {
+          id: n.id,
+          type: n.type as "follow" | "like" | "comment" | "system",
+          user: {
+            username: n.actor?.username || "Unknown",
+            name: n.actor?.full_name || n.actor?.username || "Unknown",
+            avatar: n.actor?.avatar_url || "",
+          },
+          text,
+          time: new Date(n.created_at).toLocaleDateString(),
+          isFollowing: false, // You might want to fetch this properly if needed
+          post_id: n.post_id,
+          reel_id: n.reel_id,
+        };
+      }) as Notification[];
     },
   });
 };

@@ -1,5 +1,5 @@
 import React from "react";
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
 import { useAppStore } from "../../store/useAppStore";
@@ -8,8 +8,11 @@ import { useAuth } from "../../hooks/useAuth";
 const Layout: React.FC = () => {
   const { theme, isSidebarExpanded } = useAppStore();
   const { user } = useAuth();
+  const location = useLocation();
   const themeClasses =
     theme === "dark" ? "bg-black text-white" : "bg-white text-black";
+
+  const isMessagesPage = location.pathname.startsWith("/messages");
 
   return (
     <div
@@ -18,7 +21,7 @@ const Layout: React.FC = () => {
       {user ? (
         <>
           <Sidebar />
-          <MobileNav />
+          {!isMessagesPage && <MobileNav />}
         </>
       ) : (
         <div className="fixed top-4 right-4 z-[60]">
@@ -32,7 +35,7 @@ const Layout: React.FC = () => {
       )}
 
       <main
-        className={`flex-grow ${user ? (isSidebarExpanded ? "md:ml-[245px]" : "md:ml-[72px]") : ""} flex justify-center transition-all duration-300 ${user ? "pb-14 md:pb-0" : ""}`}
+        className={`flex-grow ${user ? (isSidebarExpanded ? "md:ml-[245px]" : "md:ml-[72px]") : ""} flex justify-center transition-all duration-300 ${user && !isMessagesPage ? "pb-14 md:pb-0" : ""}`}
       >
         <Outlet />
       </main>

@@ -21,8 +21,9 @@ export const useFollowUser = () => {
                     .match({ follower_id: currentUserId, following_id: targetUserId });
                 if (error) throw error;
             } else {
+
                 const { error } = await (supabase
-                    .from("follows") as any)
+                    .from("follows") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
                     .insert({ follower_id: currentUserId, following_id: targetUserId });
                 if (error) throw error;
             }
@@ -30,8 +31,8 @@ export const useFollowUser = () => {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY(variables.targetUsername) });
             // Also invalidate current user's profile to update "following" count
-             // We can't easily guess current user username here unless passed, 
-             // but usually we care more about the profile we are looking at.
+            // We can't easily guess current user username here unless passed, 
+            // but usually we care more about the profile we are looking at.
         }
     });
 };

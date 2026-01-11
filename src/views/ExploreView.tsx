@@ -28,12 +28,12 @@ const ExploreView: React.FC = () => {
           .select('username, full_name, avatar_url')
           .ilike('username', `%${searchQuery}%`)
           .limit(10);
-        
+
         if (data) {
-          const users: User[] = (data as any[]).map((p) => ({
-            username: p.username as string,
-            name: (p.full_name as string) || (p.username as string),
-            avatar: (p.avatar_url as string) || "",
+          const users: User[] = (data as { username: string; full_name: string; avatar_url: string }[]).map((p) => ({
+            username: p.username,
+            name: p.full_name || p.username,
+            avatar: p.avatar_url || "",
           }));
           setSearchResults(users);
         }
@@ -82,11 +82,11 @@ const ExploreView: React.FC = () => {
             className={`bg-transparent border-none outline-none text-sm w-full ${theme === "dark" ? "text-white" : "text-black"}`}
           />
           {searchQuery && (
-             <X 
-               size={18} 
-               className="cursor-pointer" 
-               onClick={() => setSearchQuery("")}
-             />
+            <X
+              size={18}
+              className="cursor-pointer"
+              onClick={() => setSearchQuery("")}
+            />
           )}
         </div>
       </div>
@@ -95,30 +95,30 @@ const ExploreView: React.FC = () => {
         <div className="flex flex-col gap-2">
           {isSearching && <div className="p-4 text-center">Searching...</div>}
           {!isSearching && searchResults.length === 0 && (
-             <div className="p-4 text-center text-gray-500">কোনো ফলাফল পাওয়া যায়নি</div>
+            <div className="p-4 text-center text-gray-500">কোনো ফলাফল পাওয়া যায়নি</div>
           )}
           {searchResults.map((user) => (
-            <div 
+            <div
               key={user.username}
               onClick={() => navigate(`/profile/${user.username}`)}
               className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-gray-100"}`}
             >
-               <OptimizedImage
-                  src={user.avatar}
-                  className="w-10 h-10 rounded-full"
-                  alt={user.username}
-               />
-               <div className="flex flex-col">
-                 <span className="font-semibold text-sm">{user.username}</span>
-                 <span className="text-xs text-gray-500">{user.name}</span>
-               </div>
+              <OptimizedImage
+                src={user.avatar}
+                className="w-10 h-10 rounded-full"
+                alt={user.username}
+              />
+              <div className="flex flex-col">
+                <span className="font-semibold text-sm">{user.username}</span>
+                <span className="text-xs text-gray-500">{user.name}</span>
+              </div>
             </div>
           ))}
         </div>
       ) : (
         <>
           {isLoading ? (
-             <div className="p-10 text-center">Loading explore...</div>
+            <div className="p-10 text-center">Loading explore...</div>
           ) : (
             <motion.div
               variants={containerVariants}

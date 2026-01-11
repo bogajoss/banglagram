@@ -9,16 +9,21 @@ interface ShareModalProps {
   theme: string;
   showToast: (msg: string) => void;
   glassModal: string;
+  shareUrl?: string;
 }
 
 import OptimizedImage from "../OptimizedImage";
+
+import { useNavigate } from "react-router-dom";
 
 const ShareModal: React.FC<ShareModalProps> = ({
   onClose,
   theme,
   showToast,
   glassModal,
+  shareUrl,
 }) => {
+  const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const { data: suggestedUsers = [] } = useGetSuggestedUsers(authUser?.id);
 
@@ -63,7 +68,13 @@ const ShareModal: React.FC<ShareModalProps> = ({
               key={idx}
               className={`flex items-center justify-between p-2 rounded-lg ${theme === "dark" ? "hover:bg-white/5" : "hover:bg-black/5"} cursor-pointer transition-colors`}
             >
-              <div className="flex items-center gap-3">
+              <div
+                className="flex items-center gap-3 flex-grow"
+                onClick={() => {
+                  onClose();
+                  navigate(`/profile/${user.username}`);
+                }}
+              >
                 <div className="w-10 h-10 rounded-full overflow-hidden">
                   <OptimizedImage
                     src={user.avatar}
@@ -97,6 +108,8 @@ const ShareModal: React.FC<ShareModalProps> = ({
           <div
             className="flex flex-col items-center gap-1 cursor-pointer min-w-[60px]"
             onClick={() => {
+              const url = shareUrl || window.location.href;
+              navigator.clipboard.writeText(url);
               showToast("লিঙ্ক কপি করা হয়েছে");
               onClose();
             }}

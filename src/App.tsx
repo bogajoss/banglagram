@@ -121,7 +121,7 @@ export default function App() {
               }
             />
             <Route
-              path="/messages"
+              path="/messages/:username?"
               element={
                 <PageWrapper>
                   <MessagesView />

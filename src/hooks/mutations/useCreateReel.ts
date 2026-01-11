@@ -20,9 +20,9 @@ export const useCreateReel = () => {
       const { error: uploadError } = await supabase.storage
         .from("reels")
         .upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: false,
-            contentType: file.type
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type
         });
 
       if (uploadError) throw uploadError;
@@ -32,8 +32,9 @@ export const useCreateReel = () => {
         .getPublicUrl(fileName);
 
       // 2. Insert
+
       const { data, error: insertError } = await (supabase
-        .from("reels") as any)
+        .from("reels") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .insert({
           user_id: userId,
           caption,

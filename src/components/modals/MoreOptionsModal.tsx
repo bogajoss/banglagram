@@ -5,6 +5,7 @@ interface MoreOptionsModalProps {
   showToast: (msg: string) => void;
   theme: string;
   glassModal: string;
+  shareUrl?: string;
 }
 
 const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
@@ -12,6 +13,7 @@ const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
   showToast,
   theme,
   glassModal,
+  shareUrl,
 }) => {
   return (
     <div
@@ -53,7 +55,8 @@ const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
           <button
             className="py-3.5 border-b border-zinc-700/30 hover:bg-white/5 transition-colors"
             onClick={() => {
-              navigator.clipboard.writeText("https://instagram.com/post/123");
+              const url = shareUrl || window.location.href;
+              navigator.clipboard.writeText(url);
               showToast("লিঙ্ক কপি করা হয়েছে");
               onClose();
             }}

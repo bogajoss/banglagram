@@ -15,12 +15,13 @@ export const useCreateComment = () => {
 
   return useMutation({
     mutationFn: async ({ targetId, type, text, userId }: CreateCommentVariables) => {
-      const payload = type === 'post' 
+      const payload = type === 'post'
         ? { user_id: userId, post_id: targetId, text }
         : { user_id: userId, reel_id: targetId, text };
 
+
       const { data, error } = await (supabase
-        .from("comments") as any)
+        .from("comments") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .insert(payload)
         .select()
         .single();

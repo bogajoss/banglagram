@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabaseClient";
 import type { Story } from "../../types";
+import type { Database } from "../../database.types";
 
 export const STORIES_QUERY_KEY = ["stories"];
 
@@ -23,7 +24,13 @@ export const useGetStories = () => {
 
       if (error) throw error;
 
-      return data.map((story: any) => ({
+      type StoryWithProfile = Database["public"]["Tables"]["stories"]["Row"] & {
+        profiles: { username: string; avatar_url: string | null } | null;
+      };
+
+      const stories = data as unknown as StoryWithProfile[];
+
+      return stories.map((story) => ({
         id: story.id,
         username: story.profiles?.username || "Unknown",
         img: story.media_url,

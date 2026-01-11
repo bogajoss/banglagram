@@ -4,8 +4,11 @@ import { useAppStore } from "../store/useAppStore";
 import { motion, AnimatePresence } from "framer-motion";
 import OptimizedImage from "./OptimizedImage";
 
+import { useNavigate } from "react-router-dom";
+
 const StoryViewer: React.FC = () => {
   const { stories, viewingStory, setViewingStory, showToast } = useAppStore();
+  const navigate = useNavigate();
 
   const initialStoryIndex = stories.findIndex((s) => s.id === viewingStory);
 
@@ -98,14 +101,30 @@ const StoryViewer: React.FC = () => {
 
         {/* User Info */}
         <div className="absolute top-8 left-4 flex items-center gap-3 z-20 text-white">
-          <div className="w-8 h-8 rounded-full border border-white overflow-hidden">
+          <div
+            className="w-8 h-8 rounded-full border border-white overflow-hidden cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              setViewingStory(null);
+              navigate(`/profile/${currentStory.username}`);
+            }}
+          >
             <OptimizedImage
               src={currentStory.img}
               className="w-full h-full"
               alt={currentStory.username}
             />
           </div>
-          <span className="font-semibold text-sm">{currentStory.username}</span>
+          <span
+            className="font-semibold text-sm cursor-pointer hover:underline"
+            onClick={(e) => {
+              e.stopPropagation();
+              setViewingStory(null);
+              navigate(`/profile/${currentStory.username}`);
+            }}
+          >
+            {currentStory.username}
+          </span>
           <span className="text-white/70 text-xs">12h</span>
         </div>
 

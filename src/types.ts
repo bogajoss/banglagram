@@ -13,12 +13,17 @@ export interface User {
 }
 
 export interface Comment {
-  user: string;
+  id: string; // Add ID
+  user: { // Update user to object match
+    username: string;
+    avatar: string;
+    name?: string;
+  };
   text: string;
 }
 
 export interface Post {
-  id: number | string;
+  id: string; // Unify as string
   user: User;
   content: {
     type: "image" | "video";
@@ -35,14 +40,14 @@ export interface Post {
 }
 
 export interface Story {
-  id: number;
+  id: string; // UUID
   username: string;
   img: string;
   isUser?: boolean;
 }
 
 export interface Message {
-  id: number;
+  id: string; // UUID
   user: User;
   lastMessage: string;
   time: string;
@@ -63,11 +68,11 @@ export interface ChatMessage {
 }
 
 export interface Reel {
-  id: string; // Changed from number to string (uuid)
+  id: string;
   user: User;
   src: string;
-  likes: number; // Changed to number
-  comments: number; // Changed to number
+  likes: number;
+  comments: number;
   caption: string;
   audio: string;
   hasLiked?: boolean;
@@ -75,7 +80,7 @@ export interface Reel {
 }
 
 export interface Notification {
-  id: number;
+  id: string; // UUID
   type: "follow" | "system" | "like" | "comment";
   user?: User;
   text: string;

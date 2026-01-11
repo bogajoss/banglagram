@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabaseClient";
 import type { Post } from "../../types";
+import type { Database } from "../../database.types";
 
 export const EXPLORE_POSTS_QUERY_KEY = ["explorePosts"];
 
@@ -21,7 +22,14 @@ export const useGetExplorePosts = () => {
 
       if (error) throw error;
 
-      return data.map((post: any) => ({
+      type PostWithStats = Database["public"]["Tables"]["posts"]["Row"] & {
+        likes: { count: number }[];
+        comments: { count: number }[];
+      };
+
+      const posts = data as unknown as PostWithStats[];
+
+      return posts.map((post) => ({
         id: post.id,
         content: {
           type: "image",

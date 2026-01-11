@@ -22,9 +22,9 @@ export const useCreatePost = () => {
       const { error: uploadError } = await supabase.storage
         .from("posts")
         .upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: false,
-            contentType: file.type
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type
         });
 
       if (uploadError) throw uploadError;
@@ -34,8 +34,9 @@ export const useCreatePost = () => {
         .getPublicUrl(fileName);
 
       // 2. Insert
+
       const { data, error: insertError } = await (supabase
-        .from("posts") as any)
+        .from("posts") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .insert({
           user_id: userId,
           caption,

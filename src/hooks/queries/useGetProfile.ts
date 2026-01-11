@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabaseClient";
 import type { User, Post } from "../../types";
+import type { Database } from "../../database.types";
 
 export const PROFILE_QUERY_KEY = (username: string) => ["profile", username];
 
@@ -19,7 +20,7 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
         .single();
 
       if (error) throw error;
-      const profile = profileData as any;
+      const profile = profileData as Database["public"]["Tables"]["profiles"]["Row"];
 
       // 2. Fetch Stats
       const { count: postsCount } = await supabase
@@ -48,10 +49,17 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
         .eq("user_id", profile.id)
         .order("created_at", { ascending: false });
 
+      type PostWithStats = Database["public"]["Tables"]["posts"]["Row"] & {
+        likes: { count: number }[];
+        comments: { count: number }[];
+      };
+
+      const posts = (postsData || []) as unknown as PostWithStats[];
+
       // Check likes for these posts if currentUserId is provided
       const likedPostIds = new Set<string>();
-      if (currentUserId && postsData && (postsData as any[]).length > 0) {
-        const postIds = (postsData as any[]).map(p => p.id as string);
+      if (currentUserId && posts.length > 0) {
+        const postIds = posts.map(p => p.id);
         const { data: likesData } = await supabase
           .from("likes")
           .select("post_id")
@@ -59,7 +67,7 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
           .in("post_id", postIds);
 
         if (likesData) {
-          (likesData as { post_id: string }[]).forEach(l => likedPostIds.add(l.post_id));
+          (likesData as { post_id: string | null }[]).forEach(l => likedPostIds.add(l.post_id || ""));
         }
       }
 
@@ -73,7 +81,7 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
         isFollowing = !!count && count > 0;
       }
 
-      const formattedPosts: Post[] = ((postsData as any[]) || []).map((post) => {
+      const formattedPosts: Post[] = posts.map((post) => {
         const likes = post.likes as { count: number }[];
         const comments = post.comments as { count: number }[];
 

@@ -24,15 +24,42 @@ import OptimizedImage from "../components/OptimizedImage";
 
 type DbMessage = Database['public']['Tables']['messages']['Row'];
 
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useGetProfile } from "../hooks/queries/useGetProfile";
+
 const MessagesView: React.FC = () => {
   const { theme, showToast } = useAppStore();
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { username } = useParams<{ username: string }>();
   const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
 
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(() => {
+    return (location.state?.user as User) || null;
+  });
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch profile if username is in param but not in state (direct link access)
+  const { data: profileData } = useGetProfile(username || "", user?.id);
+
+  // Handle side effects for navigation state and URL param loading
+  // Handle side effects for navigation state and URL param loading
+  useEffect(() => {
+    if (location.state?.user) {
+      setSelectedUser(location.state.user as User);
+    } else if (username) {
+      // If accessed via URL /messages/username and we have data
+      if (profileData?.user) {
+        setSelectedUser(profileData.user as User);
+      }
+    } else {
+      // Root /messages route - clear selection
+      setSelectedUser(null);
+    }
+  }, [location.state, username, profileData]);
 
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const bgHover = theme === "dark" ? "hover:bg-zinc-900" : "hover:bg-gray-100";
@@ -41,9 +68,8 @@ const MessagesView: React.FC = () => {
   const { data: conversations = [] } = useGetConversations(user?.id);
 
   // Derive selectedUserId from selectedUser
-  const selectedUserId = selectedUser
-    ? conversations.find(c => c.username === selectedUser.username)?.id
-    : undefined;
+  const selectedUserId = selectedUser?.id ||
+    conversations.find(c => c.username === selectedUser?.username)?.id;
 
   // Use Hooks
   const { data: messages = [] } = useGetMessages(user?.id, selectedUserId);
@@ -51,7 +77,7 @@ const MessagesView: React.FC = () => {
 
   // Realtime Subscription
   useEffect(() => {
-    if (!user || !selectedUserId) return;
+    if (!user) return;
 
     const channel = supabase
       .channel('chat_messages_realtime')
@@ -61,17 +87,39 @@ const MessagesView: React.FC = () => {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `receiver_id=eq.${user.id}`, // Incoming messages
         },
         (payload) => {
           const newMsg = payload.new as DbMessage;
-          // Refresh conversations
+
+          if (newMsg.receiver_id !== user.id && newMsg.sender_id !== user.id) {
+            return;
+          }
+
           queryClient.invalidateQueries({ queryKey: ["conversations"] });
 
-          if (selectedUser && newMsg.sender_id === selectedUserId) {
+          // Debug log
+          console.log("Realtime msg:", newMsg, "Selected:", selectedUserId);
+
+          const isRelevant =
+            (newMsg.sender_id === selectedUserId && newMsg.receiver_id === user.id) ||
+            (newMsg.sender_id === user.id && newMsg.receiver_id === selectedUserId);
+
+          if (selectedUserId && isRelevant) {
             queryClient.setQueryData(MESSAGES_QUERY_KEY(selectedUserId), (old: DbMessage[] | undefined) => {
+              // Check if we already have this message (dedup against optimistic or double-fire)
+              if (old && old.some(m => m.id === newMsg.id)) return old;
+
+              // If we have "optimistic" messages, we might want to replace them or intelligent merge.
+              // For simplicity, just appending if not present.
+              // Optimistic usually has 'optimistic-' prefix id. Real one has UUID.
+              // If we just append, we might show duplicates if optimistic one isn't removed.
+              // useSendMessage's onSettled invalidates.
+              // If invalidation happens, useGetMessages refetches and replaces everything.
+              // So this manual update is for instant feedback BEFORE refetch completes.
               return old ? [...old, newMsg] : [newMsg];
             });
+            // Also invalidate to be sure
+            queryClient.invalidateQueries({ queryKey: MESSAGES_QUERY_KEY(selectedUserId) });
           }
         }
       )
@@ -84,7 +132,11 @@ const MessagesView: React.FC = () => {
 
 
   const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedUserId || !user) return;
+    console.log("Attempting to send message:", newMessage, selectedUserId, user?.id, selectedUser);
+    if (!newMessage.trim() || !selectedUserId || !user) {
+      console.warn("Send aborted: Missing data", { msg: newMessage, target: selectedUserId, user: user?.id, selectedObject: selectedUser });
+      return;
+    }
     sendMessage({ content: newMessage, senderId: user.id, receiverId: selectedUserId });
     setNewMessage("");
   };
@@ -93,24 +145,14 @@ const MessagesView: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Handle mobile back button
-  useEffect(() => {
-    const handlePopState = () => {
-      if (selectedUser) setSelectedUser(null);
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [selectedUser]);
 
   const handleSelectUser = (user: User) => {
-    setSelectedUser(user);
-    if (window.innerWidth < 768) {
-      window.history.pushState({ chat: true }, "");
-    }
+    // Navigate to the user's specific route, passing user object in state to avoid fetch
+    navigate(`/messages/${user.username}`, { state: { user } });
   };
 
   return (
-    <div className="w-full max-w-[935px] flex h-full md:h-screen md:pt-4 md:pb-4 md:px-4 flex-col md:flex-row">
+    <div className="w-full flex h-full md:h-[calc(100vh-2rem)] md:pt-4 md:pb-4 md:px-4 flex-col md:flex-row">
       {/* Sidebar List */}
       <div
         className={`w-full h-full md:border ${borderClass} rounded-lg flex overflow-hidden relative shadow-lg`}
@@ -185,14 +227,20 @@ const MessagesView: React.FC = () => {
                   >
                     <ChevronLeft size={28} />
                   </div>
-                  <div className="w-8 h-8 rounded-full overflow-hidden">
+                  <div
+                    className="w-8 h-8 rounded-full overflow-hidden cursor-pointer"
+                    onClick={() => navigate(`/profile/${selectedUser.username}`)}
+                  >
                     <OptimizedImage
                       src={selectedUser.avatar}
                       className="w-full h-full"
                       alt="chat user"
                     />
                   </div>
-                  <div className="font-semibold text-base truncate max-w-[150px]">
+                  <div
+                    className="font-semibold text-base truncate max-w-[150px] cursor-pointer hover:underline"
+                    onClick={() => navigate(`/profile/${selectedUser.username}`)}
+                  >
                     {selectedUser.username}
                   </div>
                 </div>
@@ -203,10 +251,10 @@ const MessagesView: React.FC = () => {
                 </div>
               </div>
               <div className="flex-grow flex flex-col p-4 gap-4 overflow-y-auto">
-                {messages.map((msg: any, idx: number) => (
+                {messages.map((msg: DbMessage, idx: number) => (
                   <div
                     key={msg.id || idx}
-                    className={`flex gap-2 self-start max-w-[85%] items-end ${msg.sender_id === user?.id ? "self-end justify-end" : ""}`}
+                    className={`flex gap-2 max-w-[85%] items-end ${msg.sender_id === user?.id ? "self-end justify-end" : "self-start"}`}
                   >
                     <>
                       {msg.content && (
@@ -222,8 +270,12 @@ const MessagesView: React.FC = () => {
                 <div ref={messagesEndRef} />
               </div>
               <div className="p-4 shrink-0">
-                <div
+                <form
                   className={`border ${borderClass} rounded-full px-2 h-11 flex items-center gap-2 ${theme === "dark" ? "bg-black" : "bg-white"}`}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }}
                 >
                   <div
                     className={`${buttonBg} rounded-full p-2 cursor-pointer ml-1 text-white`}
@@ -235,11 +287,16 @@ const MessagesView: React.FC = () => {
                     placeholder="মেসেজ..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                     className={`bg-transparent border-none outline-none text-sm flex-grow px-2 ${theme === "dark" ? "text-white placeholder-[#a8a8a8]" : "text-black placeholder-gray-500"}`}
                   />
-                  <button onClick={handleSendMessage} className="text-blue-500 font-bold px-2">পাঠান</button>
-                </div>
+                  <button
+                    type="submit"
+                    className="text-blue-500 font-bold px-2 cursor-pointer hover:text-blue-600 disabled:opacity-50"
+                    disabled={!newMessage.trim()}
+                  >
+                    পাঠান
+                  </button>
+                </form>
               </div>
             </>
           ) : (

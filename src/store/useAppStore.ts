@@ -12,9 +12,10 @@ interface AppState {
   toastMessage: string | null;
   isCreateModalOpen: boolean;
   isEditProfileOpen: boolean;
-  viewingStory: number | null;
+  viewingStory: string | null;
   viewingPost: Post | null;
   viewingReel: Reel | null;
+  isSidebarExpanded: boolean;
 
   // Actions
   toggleTheme: () => void;
@@ -22,10 +23,11 @@ interface AppState {
   showToast: (msg: string) => void;
   setCreateModalOpen: (open: boolean) => void;
   setEditProfileOpen: (open: boolean) => void;
-  setViewingStory: (id: number | null) => void;
+  setViewingStory: (id: string | null) => void;
   setViewingPost: (post: Post | null) => void;
   setViewingReel: (reel: Reel | null) => void;
-  toggleSave: (postId: number | string) => void;
+  toggleSidebar: () => void;
+  toggleSave: (postId: string) => void;
   toggleFollow: (username: string) => void;
   updateProfile: (name: string, bio: string, avatar: string) => void;
   setCurrentUser: (user: User) => void;
@@ -42,7 +44,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   stories: [],
   posts: [],
-  savedPostIds: new Set(),
+  savedPostIds: new Set<string>(), // Standardize on string
   followedUsers: new Set(),
   theme: "dark",
   toastMessage: null,
@@ -51,6 +53,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   viewingStory: null,
   viewingPost: null,
   viewingReel: null,
+  isSidebarExpanded: true,
+
+  toggleSidebar: () =>
+    set((state) => ({ isSidebarExpanded: !state.isSidebarExpanded })),
 
   toggleTheme: () =>
     set((state) => ({ theme: state.theme === "dark" ? "light" : "dark" })),
@@ -72,7 +78,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   toggleSave: (postId) =>
     set((state) => {
-      const newSaved = new Set(state.savedPostIds);
+      const newSaved = new Set<string>(state.savedPostIds as unknown as Iterable<string>);
       if (newSaved.has(postId)) {
         newSaved.delete(postId);
         get().showToast("সেভ থেকে সরানো হয়েছে");
@@ -122,7 +128,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((state) => {
       // Optimistic update for stories - though real app would upload
       const newStory: Story = {
-        id: Date.now(),
+        id: String(Date.now()),
         username: state.currentUser.username,
         img,
         isUser: true,
@@ -137,15 +143,15 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((state) => {
       // This is now largely handled by React Query mutation, but keeping for compatibility if needed
       const newPost: Post = {
-        id: Date.now(),
+        id: String(Date.now()),
         user: state.currentUser,
-        content: { type: "image", src: image },
-        likes: "0",
+        content: { type: "image", src: image, poster: image },
+        likes: 0,
         caption,
         comments: 0,
         time: "এইমাত্র",
-        isVerified: false,
         commentList: [],
+        hasLiked: false
       };
       // get().showToast("পোস্ট শেয়ার করা হয়েছে");
       return { posts: [newPost, ...state.posts] };

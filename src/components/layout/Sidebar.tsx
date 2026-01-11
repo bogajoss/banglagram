@@ -10,6 +10,9 @@ import {
   Sun,
   Moon,
   LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Instagram
 } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { useAuth } from "../../hooks/useAuth";
@@ -17,7 +20,7 @@ import { motion } from "framer-motion";
 import OptimizedImage from "../OptimizedImage";
 
 const Sidebar: React.FC = () => {
-  const { theme, toggleTheme, currentUser, setCreateModalOpen } = useAppStore();
+  const { theme, toggleTheme, currentUser, setCreateModalOpen, isSidebarExpanded, toggleSidebar } = useAppStore();
   const { signOut } = useAuth();
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const themeClasses =
@@ -42,16 +45,21 @@ const Sidebar: React.FC = () => {
 
   return (
     <div
-      className={`hidden md:flex flex-col w-[245px] h-screen fixed border-r ${borderClass} p-4 pb-5 justify-between z-50 transition-all duration-300 ${themeClasses}`}
+      className={`hidden md:flex flex-col ${isSidebarExpanded ? "w-[245px]" : "w-[72px]"} h-screen fixed border-r ${borderClass} p-4 pb-5 justify-between z-50 transition-all duration-300 ${themeClasses}`}
     >
       <div>
-        <div className="mb-8 px-2 mt-4">
+        <div className={`mb-8 mt-4 ${isSidebarExpanded ? "px-2" : "flex justify-center"}`}>
           <Link
             to="/"
-            className="text-2xl font-bold tracking-wide italic text-[#006a4e] block"
+            className={`text-2xl font-bold tracking-wide italic text-[#006a4e] block transition-all duration-300 ${isSidebarExpanded ? "opacity-100" : "opacity-0 hidden"}`}
           >
-            Instagram
+            Banglagram
           </Link>
+          {!isSidebarExpanded && (
+            <Link to="/" className="text-[#006a4e]">
+              <Instagram size={28} />
+            </Link>
+          )}
         </div>
         <div className="flex flex-col gap-2">
           {menuItems.map((item, index) => (
@@ -64,9 +72,9 @@ const Sidebar: React.FC = () => {
             >
               {({ isActive }) => (
                 <motion.div
-                  whileHover={{ scale: 1.02, x: 5 }}
+                  whileHover={{ scale: 1.02, x: isSidebarExpanded ? 5 : 0 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`flex items-center gap-4 p-3 rounded-lg ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                  className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
                 >
                   <div className="relative">
                     <div className={isActive ? "text-[#006a4e]" : ""}>
@@ -78,19 +86,21 @@ const Sidebar: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  <span className="text-base truncate">
-                    {item.label === "Home"
-                      ? "হোম"
-                      : item.label === "Explore"
-                        ? "এক্সপ্লোর"
-                        : item.label === "Reels"
-                          ? "রিলস"
-                          : item.label === "Messages"
-                            ? "মেসেজ"
-                            : item.label === "Notifications"
-                              ? "নোটিফিকেশন"
-                              : item.label}
-                  </span>
+                  {isSidebarExpanded && (
+                    <span className="text-base truncate">
+                      {item.label === "Home"
+                        ? "হোম"
+                        : item.label === "Explore"
+                          ? "এক্সপ্লোর"
+                          : item.label === "Reels"
+                            ? "রিলস"
+                            : item.label === "Messages"
+                              ? "মেসেজ"
+                              : item.label === "Notifications"
+                                ? "নোটিফিকেশন"
+                                : item.label}
+                    </span>
+                  )}
                 </motion.div>
               )}
             </NavLink>
@@ -98,15 +108,15 @@ const Sidebar: React.FC = () => {
 
           {/* Create Button (Modal Trigger) */}
           <motion.div
-            whileHover={{ scale: 1.02, x: 5 }}
+            whileHover={{ scale: 1.02, x: isSidebarExpanded ? 5 : 0 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setCreateModalOpen(true)}
-            className={`flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer group ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+            className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg transition-colors cursor-pointer group ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
           >
             <div className="relative">
               <PlusSquare size={24} />
             </div>
-            <span className="text-base truncate">তৈরি করুন</span>
+            {isSidebarExpanded && <span className="text-base truncate">তৈরি করুন</span>}
           </motion.div>
 
           {/* Profile Link */}
@@ -118,16 +128,16 @@ const Sidebar: React.FC = () => {
           >
             {({ isActive }) => (
               <motion.div
-                whileHover={{ scale: 1.02, x: 5 }}
+                whileHover={{ scale: 1.02, x: isSidebarExpanded ? 5 : 0 }}
                 whileTap={{ scale: 0.98 }}
-                className={`flex items-center gap-4 p-3 rounded-lg ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
               >
                 <OptimizedImage
                   src={currentUser.avatar}
                   alt="Profile"
                   className={`w-6 h-6 rounded-full ${isActive ? "border-2 border-[#006a4e]" : ""}`}
                 />
-                <span className="text-base truncate">প্রোফাইল</span>
+                {isSidebarExpanded && <span className="text-base truncate">প্রোফাইল</span>}
               </motion.div>
             )}
           </NavLink>
@@ -138,20 +148,30 @@ const Sidebar: React.FC = () => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={toggleTheme}
-          className={`flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+          className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg transition-colors cursor-pointer ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
         >
           {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
-          <span className="text-base">থিম পরিবর্তন</span>
+          {isSidebarExpanded && <span className="text-base">থিম পরিবর্তন</span>}
+        </motion.div>
+
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={toggleSidebar}
+          className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg transition-colors cursor-pointer ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+        >
+          {isSidebarExpanded ? <PanelLeftClose size={24} /> : <PanelLeftOpen size={24} />}
+          {isSidebarExpanded && <span className="text-base">বন্ধ করুন</span>}
         </motion.div>
 
         <motion.div
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => signOut()}
-          className={`flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer text-red-500 ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+          className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg transition-colors cursor-pointer text-red-500 ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
         >
           <LogOut size={24} />
-          <span className="text-base">লগ আউট</span>
+          {isSidebarExpanded && <span className="text-base">লগ আউট</span>}
         </motion.div>
       </div>
     </div>

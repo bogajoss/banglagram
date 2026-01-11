@@ -156,9 +156,16 @@ const ReelDetailsModal: React.FC = () => {
             {loadingComments ? (
               <div className="text-center py-4 text-zinc-500 text-sm">लोड হচ্ছে...</div>
             ) : comments && comments.length > 0 ? (
-              comments.map((c: any) => (
+              comments.map((c) => (
                 <div key={c.id} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                  <div
+                    className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+                    onClick={() => onUserClick({
+                      username: c.user.username,
+                      name: c.user.username,
+                      avatar: c.user.avatar_url
+                    } as User)}
+                  >
                     <OptimizedImage
                       src={c.user.avatar_url}
                       className="w-full h-full"
@@ -166,7 +173,16 @@ const ReelDetailsModal: React.FC = () => {
                     />
                   </div>
                   <div className="text-sm">
-                    <span className="font-semibold mr-2">{c.user.username}</span>
+                    <span
+                      className="font-semibold mr-2 cursor-pointer hover:opacity-70"
+                      onClick={() => onUserClick({
+                        username: c.user.username,
+                        name: c.user.username,
+                        avatar: c.user.avatar_url
+                      } as User)}
+                    >
+                      {c.user.username}
+                    </span>
                     <span>{c.text}</span>
                   </div>
                 </div>

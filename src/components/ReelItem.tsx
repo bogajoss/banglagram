@@ -7,6 +7,7 @@ import {
   Volume2,
   VolumeX,
   Music2,
+  Play,
 } from "lucide-react";
 import MoreOptionsModal from "./modals/MoreOptionsModal";
 import ShareModal from "./modals/ShareModal";
@@ -42,9 +43,12 @@ const ReelItem: React.FC<ReelItemProps> = ({
 
   const [showHeart, setShowHeart] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const videoRef = useRef<HTMLDivElement>(null);
+  const videoTagRef = useRef<HTMLVideoElement>(null);
+  const shareUrl = `${window.location.origin}/reels/${reel.id}`;
 
   const isLiked = reel.hasLiked || false;
 
@@ -67,12 +71,28 @@ const ReelItem: React.FC<ReelItemProps> = ({
   };
 
 
+  const togglePlay = () => {
+    if (videoTagRef.current) {
+      if (isPlaying) {
+        videoTagRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        videoTagRef.current.play();
+        setIsPlaying(true);
+      }
+    }
+  };
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
+          videoTagRef.current?.play().catch(() => { });
+          setIsPlaying(true);
           setIsMuted(false);
         } else {
+          videoTagRef.current?.pause();
+          setIsPlaying(false);
           setIsMuted(true);
         }
       },
@@ -102,6 +122,7 @@ const ReelItem: React.FC<ReelItemProps> = ({
           showToast={showToast}
           theme={theme}
           glassModal={glassModal}
+          shareUrl={shareUrl}
         />
       )}
       {isShareOpen && (
@@ -110,6 +131,7 @@ const ReelItem: React.FC<ReelItemProps> = ({
           theme={theme}
           showToast={showToast}
           glassModal={glassModal}
+          shareUrl={shareUrl}
         />
       )}
 
@@ -121,12 +143,12 @@ const ReelItem: React.FC<ReelItemProps> = ({
         {/* Render Video instead of Image for Reels if src is video */}
         {reel.src ? (
           <video
+            ref={videoTagRef}
             src={reel.src}
             className="w-full h-full object-cover"
             loop
             muted={isMuted}
-            autoPlay
-            onClick={() => setIsMuted(!isMuted)}
+            onClick={togglePlay}
           />
         ) : (
           <OptimizedImage
@@ -137,8 +159,20 @@ const ReelItem: React.FC<ReelItemProps> = ({
           />
         )}
 
+        {/* Play/Pause Center Indicator */}
+        {!isPlaying && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+            <div className="bg-black/40 p-5 rounded-full backdrop-blur-sm">
+              <Play className="text-white w-10 h-10 fill-white" />
+            </div>
+          </div>
+        )}
+
         {/* Play/Mute Status */}
-        <div className="absolute top-4 right-4 bg-black/50 p-2 rounded-full pointer-events-none transition-opacity">
+        <div
+          className="absolute top-4 right-4 bg-black/50 p-2 rounded-full cursor-pointer transition-opacity hover:bg-black/70 z-30"
+          onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+        >
           {isMuted ? (
             <VolumeX className="text-white w-5 h-5" />
           ) : (

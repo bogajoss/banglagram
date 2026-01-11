@@ -94,7 +94,7 @@ const ProfileView: React.FC = () => {
     // data?.user is of type User.
 
     followUser({
-      targetUserId: (data as any)?.user?.id || "", // We need to expose ID from hook
+      targetUserId: data?.user?.id || "",
       currentUserId: authUser.id,
       isFollowing: userIsFollowing,
       targetUsername: profileUser.username
@@ -241,6 +241,7 @@ const ProfileView: React.FC = () => {
                     {userIsFollowing ? "ফলো করছেন" : "ফলো"}
                   </button>
                   <button
+                    onClick={() => navigate(`/messages/${profileUser.username}`, { state: { user: profileUser } })}
                     className={`${theme === "dark" ? "bg-[#363636] hover:bg-[#262626]" : "bg-gray-200 hover:bg-gray-300"} text-sm font-semibold px-4 py-[7px] rounded-lg transition-colors flex-grow md:flex-grow-0 text-center`}
                   >
                     মেসেজ

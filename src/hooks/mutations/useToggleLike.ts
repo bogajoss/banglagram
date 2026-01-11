@@ -16,7 +16,7 @@ export const useToggleLike = () => {
 
   return useMutation({
     mutationFn: async ({ targetId, type, userId, hasLiked }: ToggleLikeVariables) => {
-      const matchCriteria = type === 'post' 
+      const matchCriteria = type === 'post'
         ? { user_id: userId, post_id: targetId }
         : { user_id: userId, reel_id: targetId };
 
@@ -30,14 +30,14 @@ export const useToggleLike = () => {
       } else {
         // Like
         const { error } = await (supabase
-          .from("likes") as any)
+          .from("likes") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
           .insert(matchCriteria);
         if (error) throw error;
       }
     },
     onMutate: async ({ targetId, type, hasLiked }) => {
       const queryKey = type === 'post' ? FEED_QUERY_KEY : REELS_QUERY_KEY;
-      
+
       // Cancel refetches
       await queryClient.cancelQueries({ queryKey });
 
@@ -47,41 +47,41 @@ export const useToggleLike = () => {
       // Optimistic update
       queryClient.setQueryData(queryKey, (old: unknown) => {
         if (!old) return old;
-        
+
         // Handle Infinite Query (Feed)
         if (type === 'post' && typeof old === 'object' && old !== null && 'pages' in old) {
-             const pagesOld = old as { pages: Post[][] };
-             return {
-                ...pagesOld,
-                pages: pagesOld.pages.map((page: Post[]) =>
-                    page.map((post) => {
-                        if (post.id === targetId) {
-                            const currentLikes = Number(post.likes);
-                            return {
-                                ...post,
-                                hasLiked: !hasLiked,
-                                likes: hasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1
-                            };
-                        }
-                        return post;
-                    })
-                )
-            };
+          const pagesOld = old as { pages: Post[][] };
+          return {
+            ...pagesOld,
+            pages: pagesOld.pages.map((page: Post[]) =>
+              page.map((post) => {
+                if (post.id === targetId) {
+                  const currentLikes = Number(post.likes);
+                  return {
+                    ...post,
+                    hasLiked: !hasLiked,
+                    likes: hasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1
+                  };
+                }
+                return post;
+              })
+            )
+          };
         }
-        
+
         // Handle Array Query (Reels)
         if (type === 'reel' && Array.isArray(old)) {
-            return old.map((reel: Reel) => {
-                if (reel.id === targetId) {
-                    const currentLikes = Number(reel.likes);
-                    return {
-                        ...reel,
-                        hasLiked: !hasLiked,
-                        likes: hasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1
-                    };
-                }
-                return reel;
-            });
+          return old.map((reel: Reel) => {
+            if (reel.id === targetId) {
+              const currentLikes = Number(reel.likes);
+              return {
+                ...reel,
+                hasLiked: !hasLiked,
+                likes: hasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1
+              };
+            }
+            return reel;
+          });
         }
 
         return old;
@@ -90,14 +90,14 @@ export const useToggleLike = () => {
       return { previousData, queryKey };
     },
     onError: (err, _variables, context: { previousData?: unknown; queryKey: string[] } | undefined) => {
-        if (context?.previousData) {
-            queryClient.setQueryData(context.queryKey, context.previousData);
-        }
-        console.error(err);
+      if (context?.previousData) {
+        queryClient.setQueryData(context.queryKey, context.previousData);
+      }
+      console.error(err);
     },
     onSettled: (_, __, { type }) => {
-        const queryKey = type === 'post' ? FEED_QUERY_KEY : REELS_QUERY_KEY;
-        queryClient.invalidateQueries({ queryKey });
+      const queryKey = type === 'post' ? FEED_QUERY_KEY : REELS_QUERY_KEY;
+      queryClient.invalidateQueries({ queryKey });
     }
   });
 };

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabaseClient";
 import type { Reel } from "../../types";
+import type { Database } from "../../database.types";
 
 export const REELS_QUERY_KEY = ["reels"];
 
@@ -20,11 +21,19 @@ export const useGetReels = (currentUserId?: string) => {
 
       if (error) throw error;
 
+      type ReelWithProfile = Database["public"]["Tables"]["reels"]["Row"] & {
+        profiles: { username: string; full_name: string | null; avatar_url: string | null } | null;
+        likes: { count: number }[];
+        comments: { count: number }[];
+      };
+
+      const reelsData = (data || []) as unknown as ReelWithProfile[];
+
       // Check if current user liked these reels
-      const reelIds = (data as any[])?.map((r) => r.id) || [];
+      const reelIds = reelsData.map((r) => r.id);
       const likedReelIds = new Set<string>();
 
-      const uniqueUserIds = Array.from(new Set((data as any[]).map(r => r.user_id)));
+      const uniqueUserIds = Array.from(new Set(reelsData.map(r => r.user_id)));
       const followedUserIds = new Set<string>();
 
       if (currentUserId) {
@@ -36,7 +45,7 @@ export const useGetReels = (currentUserId?: string) => {
             .in("reel_id", reelIds);
 
           if (likesData) {
-            (likesData as any[]).forEach((l) => likedReelIds.add(l.reel_id));
+            (likesData as { reel_id: string | null }[]).forEach((l) => likedReelIds.add(l.reel_id || ""));
           }
         }
 
@@ -48,12 +57,12 @@ export const useGetReels = (currentUserId?: string) => {
             .in("following_id", uniqueUserIds);
 
           if (followsData) {
-            (followsData as any[]).forEach((f) => followedUserIds.add(f.following_id));
+            (followsData as { following_id: string }[]).forEach((f) => followedUserIds.add(f.following_id));
           }
         }
       }
 
-      return data.map((reel: any) => ({
+      return reelsData.map((reel) => ({
         id: reel.id,
         userId: reel.user_id,
         user: {

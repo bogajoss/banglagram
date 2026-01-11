@@ -68,19 +68,22 @@ export interface Database {
         Row: {
           id: string
           user_id: string
-          post_id: string
+          post_id: string | null
+          reel_id: string | null
           created_at: string
         }
         Insert: {
           id?: string
           user_id: string
-          post_id: string
+          post_id?: string | null
+          reel_id?: string | null
           created_at?: string
         }
         Update: {
           id?: string
           user_id?: string
-          post_id?: string
+          post_id?: string | null
+          reel_id?: string | null
           created_at?: string
         }
       }
@@ -88,21 +91,24 @@ export interface Database {
         Row: {
           id: string
           user_id: string
-          post_id: string
+          post_id: string | null
+          reel_id: string | null
           text: string
           created_at: string
         }
         Insert: {
           id?: string
           user_id: string
-          post_id: string
+          post_id?: string | null
+          reel_id?: string | null
           text: string
           created_at?: string
         }
         Update: {
           id?: string
           user_id?: string
-          post_id?: string
+          post_id?: string | null
+          reel_id?: string | null
           text?: string
           created_at?: string
         }
@@ -209,6 +215,7 @@ export interface Database {
           actor_id: string
           type: string
           post_id: string | null
+          reel_id: string | null
           is_read: boolean
           created_at: string
         }
@@ -218,6 +225,7 @@ export interface Database {
           actor_id: string
           type: string
           post_id?: string | null
+          reel_id?: string | null
           is_read?: boolean
           created_at?: string
         }
@@ -227,6 +235,7 @@ export interface Database {
           actor_id?: string
           type?: string
           post_id?: string | null
+          reel_id?: string | null
           is_read?: boolean
           created_at?: string
         }

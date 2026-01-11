@@ -44,6 +44,7 @@ const PostItem: React.FC<PostItemProps> = ({
   const [isShareOpen, setIsShareOpen] = useState(false);
 
   const liked = post.hasLiked || false;
+  const shareUrl = `${window.location.origin}/post/${post.id}`;
 
   const handleLike = () => {
     if (!user) return;
@@ -61,16 +62,16 @@ const PostItem: React.FC<PostItemProps> = ({
     if (!newComment.trim() || !user) return;
 
     createComment({
-        targetId: String(post.id),
-        type: 'post',
-        text: newComment,
-        userId: user.id
+      targetId: String(post.id),
+      type: 'post',
+      text: newComment,
+      userId: user.id
     }, {
-        onSuccess: () => {
-            showToast("কমেন্ট যোগ করা হয়েছে");
-            setNewComment("");
-        },
-        onError: () => showToast("কমেন্ট যোগ করতে সমস্যা হয়েছে")
+      onSuccess: () => {
+        showToast("কমেন্ট যোগ করা হয়েছে");
+        setNewComment("");
+      },
+      onError: () => showToast("কমেন্ট যোগ করতে সমস্যা হয়েছে")
     });
   };
 
@@ -94,6 +95,7 @@ const PostItem: React.FC<PostItemProps> = ({
           showToast={showToast}
           theme={theme}
           glassModal={glassModal}
+          shareUrl={shareUrl}
         />
       )}
       {isShareOpen && (
@@ -102,6 +104,7 @@ const PostItem: React.FC<PostItemProps> = ({
           theme={theme}
           showToast={showToast}
           glassModal={glassModal}
+          shareUrl={shareUrl}
         />
       )}
 

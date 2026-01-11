@@ -1,15 +1,13 @@
 import React from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
 import { useAppStore } from "../../store/useAppStore";
 
 const Layout: React.FC = () => {
-  const { theme } = useAppStore();
+  const { theme, isSidebarExpanded } = useAppStore();
   const themeClasses =
     theme === "dark" ? "bg-black text-white" : "bg-white text-black";
-  const location = useLocation();
-  const isMessages = location.pathname.startsWith("/messages");
 
   return (
     <div
@@ -19,7 +17,7 @@ const Layout: React.FC = () => {
       <MobileNav />
 
       <main
-        className={`flex-grow ${isMessages ? "md:ml-[72px]" : "md:ml-[245px]"} flex justify-center transition-all duration-300 pb-14 md:pb-0`}
+        className={`flex-grow ${isSidebarExpanded ? "md:ml-[245px]" : "md:ml-[72px]"} flex justify-center transition-all duration-300 pb-14 md:pb-0`}
       >
         <Outlet />
       </main>

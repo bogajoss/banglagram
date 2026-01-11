@@ -16,8 +16,9 @@ export const useSendMessage = () => {
 
   return useMutation({
     mutationFn: async ({ content, senderId, receiverId }: SendMessageVariables) => {
+
       const { data, error } = await (supabase
-        .from("messages") as any)
+        .from("messages") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .insert({
           sender_id: senderId,
           receiver_id: receiverId,

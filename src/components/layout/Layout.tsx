@@ -13,6 +13,7 @@ const Layout: React.FC = () => {
     theme === "dark" ? "bg-black text-white" : "bg-white text-black";
 
   const isMessagesPage = location.pathname.startsWith("/messages");
+  const isReelsPage = location.pathname.startsWith("/reels");
 
   return (
     <div
@@ -21,7 +22,7 @@ const Layout: React.FC = () => {
       {user ? (
         <>
           <Sidebar />
-          {!isMessagesPage && <MobileNav />}
+          {!isMessagesPage && !isReelsPage && <MobileNav />}
         </>
       ) : (
         <div className="fixed top-4 right-4 z-[60]">
@@ -35,7 +36,7 @@ const Layout: React.FC = () => {
       )}
 
       <main
-        className={`flex-grow ${user ? (isSidebarExpanded ? "md:ml-[245px]" : "md:ml-[72px]") : ""} flex justify-center transition-all duration-300 ${user && !isMessagesPage ? "pb-14 md:pb-0" : ""}`}
+        className={`flex-grow ${user ? (isSidebarExpanded ? "md:ml-[245px]" : "md:ml-[72px]") : ""} flex justify-center transition-all duration-300 ${user && !isMessagesPage && !isReelsPage ? "pb-14 md:pb-0" : ""}`}
       >
         <Outlet />
       </main>

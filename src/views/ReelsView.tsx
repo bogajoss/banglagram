@@ -2,6 +2,7 @@ import React from "react";
 import ReelItem from "../components/ReelItem";
 import { useAppStore } from "../store/useAppStore";
 import { useNavigate, useParams } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
 import type { User } from "../types";
 import { useGetReels } from "../hooks/queries/useGetReels";
 import { useGetReel } from "../hooks/queries/useGetReel";
@@ -46,7 +47,15 @@ const ReelsView: React.FC = () => {
   }
 
   return (
-    <div className="h-screen w-full flex justify-center bg-black overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
+    <div className="h-screen w-full flex justify-center bg-black overflow-y-scroll snap-y snap-mandatory scrollbar-hide relative">
+      {/* Back Button for Mobile */}
+      <div 
+        className="md:hidden fixed top-4 left-4 z-[60] p-2 bg-black/40 backdrop-blur-md rounded-full text-white cursor-pointer border border-white/10"
+        onClick={() => navigate('/')}
+      >
+        <ChevronLeft size={28} />
+      </div>
+
       <div className="w-full md:w-[400px] h-full">
         {displayReels.map((reel) => (
           <ReelItem

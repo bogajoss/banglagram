@@ -170,9 +170,17 @@ const MessagesView: React.FC = () => {
           <div
             className={`h-[75px] px-5 flex items-center justify-between border-b ${borderClass} shrink-0`}
           >
-            <div className="flex items-center gap-2 cursor-pointer">
-              <span className="font-bold text-xl">{profile?.username}</span>
-              <ChevronDown size={20} />
+            <div className="flex items-center gap-2">
+              <div
+                className="md:hidden cursor-pointer -ml-2 p-1"
+                onClick={() => navigate('/')}
+              >
+                <ChevronLeft size={28} />
+              </div>
+              <div className="flex items-center gap-2 cursor-pointer">
+                <span className="font-bold text-xl">{profile?.username}</span>
+                <ChevronDown size={20} />
+              </div>
             </div>
             <Edit size={24} className="cursor-pointer" />
           </div>

@@ -35,6 +35,7 @@ export const useGetNotifications = (userId?: string) => {
 
         return {
           id: n.id,
+          created_at: n.created_at,
           type: n.type as "follow" | "like" | "comment" | "system",
           user: {
             username: n.actor?.username || "Unknown",

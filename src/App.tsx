@@ -17,6 +17,7 @@ import { useAppStore } from "./store/useAppStore";
 import PageWrapper from "./components/PageWrapper";
 import { useAuth } from "./hooks/useAuth";
 import type { User as AppUser } from "./types";
+import { useGetNotifications } from "./hooks/queries/useGetNotifications";
 
 export default function App() {
   const {
@@ -28,10 +29,19 @@ export default function App() {
     viewingPost,
     viewingReel,
     setCurrentUser,
+    setUnreadNotificationsCount,
   } = useAppStore();
 
   const { user, profile, loading: authLoading } = useAuth();
   const location = useLocation();
+  const { data: notifications = [] } = useGetNotifications(user?.id);
+
+  useEffect(() => {
+    const lastRead = localStorage.getItem("lastNotificationReadTime");
+    const lastReadDate = lastRead ? new Date(lastRead) : new Date(0);
+    const unread = notifications.filter((n: any) => n.created_at && new Date(n.created_at) > lastReadDate);
+    setUnreadNotificationsCount(unread.length);
+  }, [notifications, setUnreadNotificationsCount]);
 
   useEffect(() => {
     if (profile && user) {

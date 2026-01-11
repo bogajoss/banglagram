@@ -16,6 +16,8 @@ interface AppState {
   viewingPost: Post | null;
   viewingReel: Reel | null;
   isSidebarExpanded: boolean;
+  unreadNotificationsCount: number;
+  unreadMessagesCount: number;
 
   // Actions
   toggleTheme: () => void;
@@ -27,6 +29,8 @@ interface AppState {
   setViewingPost: (post: Post | null) => void;
   setViewingReel: (reel: Reel | null) => void;
   toggleSidebar: () => void;
+  setUnreadNotificationsCount: (count: number) => void;
+  setUnreadMessagesCount: (count: number) => void;
   toggleSave: (postId: string) => void;
   toggleFollow: (username: string) => void;
   updateProfile: (name: string, bio: string, avatar: string) => void;
@@ -54,6 +58,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   viewingPost: null,
   viewingReel: null,
   isSidebarExpanded: true,
+  unreadNotificationsCount: 0,
+  unreadMessagesCount: 0,
+
+  setUnreadNotificationsCount: (count) => set({ unreadNotificationsCount: count }),
+  setUnreadMessagesCount: (count) => set({ unreadMessagesCount: count }),
 
   toggleSidebar: () =>
     set((state) => ({ isSidebarExpanded: !state.isSidebarExpanded })),

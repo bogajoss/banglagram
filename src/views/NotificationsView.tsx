@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAppStore } from "../store/useAppStore";
 import { useNavigate } from "react-router-dom";
 import type { User, Notification } from "../types";
@@ -11,7 +11,7 @@ import { supabase } from "../lib/supabaseClient";
 import OptimizedImage from "../components/OptimizedImage";
 
 const NotificationsView: React.FC = () => {
-  const { theme, followedUsers, toggleFollow } = useAppStore();
+  const { theme, followedUsers, toggleFollow, setUnreadNotificationsCount } = useAppStore();
   const navigate = useNavigate();
   const { user } = useAuth();
   const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
@@ -22,6 +22,13 @@ const NotificationsView: React.FC = () => {
   const { data: suggestedUsers = [] } = useGetSuggestedUsers(user?.id);
 
   const { setViewingPost, setViewingReel } = useAppStore();
+
+  useEffect(() => {
+    // Reset unread count on mount
+    setUnreadNotificationsCount(0);
+    // Store current time as last read
+    localStorage.setItem("lastNotificationReadTime", new Date().toISOString());
+  }, [setUnreadNotificationsCount]);
 
   const onUserClick = (user: User) => {
     navigate(`/profile/${user.username}`);

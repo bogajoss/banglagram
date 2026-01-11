@@ -20,7 +20,7 @@ import { motion } from "framer-motion";
 import OptimizedImage from "../OptimizedImage";
 
 const Sidebar: React.FC = () => {
-  const { theme, toggleTheme, currentUser, setCreateModalOpen, isSidebarExpanded, toggleSidebar } = useAppStore();
+  const { theme, toggleTheme, currentUser, setCreateModalOpen, isSidebarExpanded, toggleSidebar, unreadNotificationsCount, unreadMessagesCount } = useAppStore();
   const { signOut } = useAuth();
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const themeClasses =
@@ -34,12 +34,13 @@ const Sidebar: React.FC = () => {
       icon: <MessageCircle size={24} />,
       label: "Messages",
       path: "/messages",
-      badge: 1,
+      badge: unreadMessagesCount > 0 ? (unreadMessagesCount > 99 ? "99+" : unreadMessagesCount) : undefined,
     },
     {
       icon: <Heart size={24} />,
       label: "Notifications",
       path: "/notifications",
+      badge: unreadNotificationsCount > 0 ? (unreadNotificationsCount > 99 ? "99+" : unreadNotificationsCount) : undefined,
     },
   ];
 
@@ -81,7 +82,7 @@ const Sidebar: React.FC = () => {
                       {item.icon}
                     </div>
                     {item.badge && (
-                      <div className="absolute -top-2 -right-2 bg-[#f42a41] text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full border-2 border-black">
+                      <div className="absolute -top-2 -right-2 bg-[#f42a41] text-white text-[10px] font-bold h-4 min-w-[16px] px-1 flex items-center justify-center rounded-full border-2 border-black">
                         {item.badge}
                       </div>
                     )}

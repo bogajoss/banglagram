@@ -54,7 +54,10 @@ const ReelItem: React.FC<ReelItemProps> = ({
   const isLiked = reel.hasLiked || false;
 
   const handleLike = () => {
-    if (!user) return;
+    if (!user) {
+      showToast("লাইক করতে লগ ইন করুন");
+      return;
+    }
     toggleLike({
       targetId: reel.id,
       type: "reel",
@@ -64,7 +67,11 @@ const ReelItem: React.FC<ReelItemProps> = ({
   };
 
   const handleFollow = () => {
-    if (!user || !reel.userId) return;
+    if (!user) {
+      showToast("ফলো করতে লগ ইন করুন");
+      return;
+    }
+    if (!reel.userId) return;
     followUser(
       {
         targetUserId: reel.userId,

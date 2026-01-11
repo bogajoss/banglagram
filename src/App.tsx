@@ -38,6 +38,11 @@ export default function App() {
   const location = useLocation();
   const { data: notifications = [] } = useGetNotifications(user?.id);
 
+  // Define public routes that don't require authentication
+  const isPublicRoute =
+    location.pathname.startsWith("/reels/") &&
+    location.pathname.split("/").length === 3;
+
   useEffect(() => {
     const lastRead = localStorage.getItem("lastNotificationReadTime");
     const lastReadDate = lastRead ? new Date(lastRead) : new Date(0);
@@ -83,7 +88,7 @@ export default function App() {
     );
   }
 
-  if (!user) {
+  if (!user && !isPublicRoute) {
     return (
       <Suspense
         fallback={
@@ -154,7 +159,7 @@ export default function App() {
                 }
               />
               <Route
-                path="/reels"
+                path="/reels/:id?"
                 element={
                   <PageWrapper>
                     <ReelsView />

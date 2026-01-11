@@ -57,7 +57,10 @@ const PostDetailsModal: React.FC = () => {
   const liked = activeItem.hasLiked || false;
 
   const handleLike = () => {
-    if (!user) return;
+    if (!user) {
+      showToast("লাইক করতে লগ ইন করুন");
+      return;
+    }
     toggleLike({
       targetId: String(activeItem.id),
       type,
@@ -68,7 +71,11 @@ const PostDetailsModal: React.FC = () => {
 
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !user) return;
+    if (!newComment.trim()) return;
+    if (!user) {
+      showToast("কমেন্ট করতে লগ ইন করুন");
+      return;
+    }
 
     createComment(
       {

@@ -21,7 +21,9 @@ const HomeView: React.FC = () => {
 
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { ref, inView } = useInView();
+  const { ref, inView } = useInView({
+    rootMargin: '1000px', // Trigger fetch 1000px before reaching the bottom
+  });
 
   const {
     data: feedData,
@@ -129,6 +131,7 @@ const HomeView: React.FC = () => {
                 >
                   <OptimizedImage
                     src={story.img}
+                    width={100}
                     className="w-full h-full rounded-full"
                     alt={story.username}
                   />
@@ -183,6 +186,7 @@ const HomeView: React.FC = () => {
           <div className="flex items-center gap-3">
             <OptimizedImage
               src={currentUser.avatar}
+              width={100}
               className="w-11 h-11 rounded-full"
               alt="user"
             />
@@ -218,6 +222,7 @@ const HomeView: React.FC = () => {
               <div className="flex items-center gap-3">
                 <OptimizedImage
                   src={u.avatar}
+                  width={100}
                   className="w-8 h-8 rounded-full"
                   alt={u.username}
                 />

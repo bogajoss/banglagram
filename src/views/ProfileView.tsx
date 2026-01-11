@@ -202,6 +202,7 @@ const ProfileView: React.FC = () => {
             >
               <OptimizedImage
                 src={profileUser.avatar}
+                width={200}
                 className="w-full h-full"
                 alt="profile"
               />
@@ -391,6 +392,7 @@ const ProfileView: React.FC = () => {
             >
               <OptimizedImage
                 src={post.content.src || post.content.poster}
+                width={400}
                 className="w-full h-full"
                 alt="post grid"
               />

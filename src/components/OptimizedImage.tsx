@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallbackColor?: string;
   imgClassName?: string;
+  width?: number;
+  height?: number;
+  quality?: number;
 }
 
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
@@ -12,10 +15,26 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   className,
   imgClassName,
   fallbackColor,
+  width: customWidth,
+  height: customHeight,
+  quality = 75,
   ...props
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState(false);
+
+  // Apply Supabase Image Transformation if it's a Supabase storage URL
+  let optimizedSrc = src;
+  if (src && src.includes("storage.v1/object/public/")) {
+    const transformParams = [];
+    if (customWidth) transformParams.push(`width=${customWidth}`);
+    if (customHeight) transformParams.push(`height=${customHeight}`);
+    transformParams.push(`quality=${quality}`);
+    transformParams.push(`format=webp`); // WebP is smaller and better for web
+
+    const separator = src.includes("?") ? "&" : "?";
+    optimizedSrc = `${src}${separator}render=image&${transformParams.join("&")}`;
+  }
 
   const bgColor = fallbackColor || "bg-zinc-200 dark:bg-zinc-800";
 
@@ -44,7 +63,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
       {/* Actual Image */}
       <img
-        src={src}
+        src={optimizedSrc}
         alt={alt}
         className={`w-full h-full transition-opacity duration-500 ${
           imgClassName || "object-cover"

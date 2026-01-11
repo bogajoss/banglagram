@@ -75,6 +75,7 @@ export interface Reel {
   id: string;
   user: User;
   src: string;
+  poster?: string;
   likes: number;
   comments: number;
   caption: string;

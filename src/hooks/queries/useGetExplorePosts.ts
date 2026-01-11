@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabaseClient";
 import type { Post } from "../../types";
 import type { Database } from "../../database.types";
@@ -6,10 +6,13 @@ import type { Database } from "../../database.types";
 export const EXPLORE_POSTS_QUERY_KEY = ["explorePosts"];
 
 export const useGetExplorePosts = () => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: EXPLORE_POSTS_QUERY_KEY,
-    queryFn: async () => {
-      // Fetch random posts or just latest posts
+    queryFn: async ({ pageParam = 0 }) => {
+      const from = pageParam * 15;
+      const to = from + 14;
+
+      // Fetch posts with pagination
       const { data, error } = await supabase
         .from("posts")
         .select(
@@ -19,8 +22,8 @@ export const useGetExplorePosts = () => {
           comments (count)
         `,
         )
-        .limit(20)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
 
@@ -39,8 +42,11 @@ export const useGetExplorePosts = () => {
         },
         likes: post.likes[0]?.count || 0,
         comments: post.comments[0]?.count || 0,
-        // Minimal user info needed for explore grid if we don't show avatar
       })) as Post[];
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length === 15 ? allPages.length : undefined;
     },
   });
 };

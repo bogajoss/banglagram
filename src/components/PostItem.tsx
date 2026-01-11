@@ -127,6 +127,7 @@ const PostItem: React.FC<PostItemProps> = ({
           >
             <OptimizedImage
               src={post.user.avatar}
+              width={100}
               className="w-full h-full"
               alt={post.user.username}
             />
@@ -158,6 +159,7 @@ const PostItem: React.FC<PostItemProps> = ({
       >
         <OptimizedImage
           src={post.content.src || post.content.poster}
+          width={800}
           className="w-full h-full"
           alt="Post content"
         />

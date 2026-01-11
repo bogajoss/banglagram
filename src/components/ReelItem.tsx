@@ -160,6 +160,8 @@ const ReelItem: React.FC<ReelItemProps> = ({
           <video
             ref={videoTagRef}
             src={reel.src}
+            poster={reel.poster}
+            preload="metadata"
             className="w-full h-full object-cover"
             loop
             muted={isMuted}
@@ -168,6 +170,7 @@ const ReelItem: React.FC<ReelItemProps> = ({
         ) : (
           <OptimizedImage
             src={reel.src}
+            width={400}
             className="w-full h-full"
             onClick={() => setIsMuted(!isMuted)}
             alt="reel"
@@ -222,6 +225,7 @@ const ReelItem: React.FC<ReelItemProps> = ({
             <div className="w-8 h-8 rounded-full border border-white/50 overflow-hidden cursor-pointer">
               <OptimizedImage
                 src={reel.user.avatar}
+                width={100}
                 className="w-full h-full"
                 alt="reel user"
               />
@@ -304,6 +308,7 @@ const ReelItem: React.FC<ReelItemProps> = ({
           >
             <OptimizedImage
               src={reel.user.avatar}
+              width={100}
               className="w-full h-full"
               alt="user thumb"
             />

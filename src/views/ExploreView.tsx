@@ -5,6 +5,7 @@ import type { Post, User } from "../types";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { useGetExplorePosts } from "../hooks/queries/useGetExplorePosts";
+import { useInView } from "react-intersection-observer";
 
 import { motion } from "framer-motion";
 
@@ -17,8 +18,23 @@ const ExploreView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const { ref, inView } = useInView({
+    rootMargin: '1200px', // Explore grid items are smaller, so we trigger a bit earlier
+  });
 
-  const { data: posts = [], isLoading } = useGetExplorePosts();
+  const { 
+    data: exploreData, 
+    isLoading, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage 
+  } = useGetExplorePosts();
+
+  useEffect(() => {
+    if (inView && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
@@ -116,6 +132,7 @@ const ExploreView: React.FC = () => {
             >
               <OptimizedImage
                 src={user.avatar}
+                width={100}
                 className="w-10 h-10 rounded-full"
                 alt={user.username}
               />
@@ -138,38 +155,50 @@ const ExploreView: React.FC = () => {
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="grid grid-cols-3 gap-1 md:gap-4 pb-14"
+              className="grid grid-cols-3 gap-1 md:gap-4"
             >
-              {posts.map((post) => (
-                <motion.div
-                  key={post.id}
-                  variants={itemVariants}
-                  whileHover={{ scale: 0.98 }}
-                  className="relative aspect-square group cursor-pointer overflow-hidden"
-                  onClick={() => setViewingPost(post as Post)}
-                >
-                  <OptimizedImage
-                    src={post.content.src || post.content.poster}
-                    className="w-full h-full transition-transform duration-300 group-hover:scale-110"
-                    alt="explore"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200 z-20">
-                    <div className="flex items-center gap-1">
-                      <Heart fill="white" size={16} /> {post.likes}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <CommentIcon
-                        fill="white"
-                        size={16}
-                        className="-scale-x-100"
-                      />{" "}
-                      {post.comments}
-                    </div>
-                  </div>
-                </motion.div>
+              {exploreData?.pages.map((page, i) => (
+                <React.Fragment key={i}>
+                  {page.map((post) => (
+                    <motion.div
+                      key={post.id}
+                      variants={itemVariants}
+                      whileHover={{ scale: 0.98 }}
+                      className="relative aspect-square group cursor-pointer overflow-hidden"
+                      onClick={() => setViewingPost(post as Post)}
+                    >
+                      <OptimizedImage
+                        src={post.content.src || post.content.poster}
+                        width={400}
+                        className="w-full h-full transition-transform duration-300 group-hover:scale-110"
+                        alt="explore"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200 z-20">
+                        <div className="flex items-center gap-1">
+                          <Heart fill="white" size={16} /> {post.likes}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <CommentIcon
+                            fill="white"
+                            size={16}
+                            className="-scale-x-100"
+                          />{" "}
+                          {post.comments}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </React.Fragment>
               ))}
             </motion.div>
           )}
+          <div ref={ref} className="h-10 text-center py-4 text-gray-500">
+            {isFetchingNextPage
+              ? "আরও লোড হচ্ছে..."
+              : hasNextPage
+                ? "নিচে দেখুন"
+                : ""}
+          </div>
         </>
       )}
     </div>

@@ -159,6 +159,7 @@ const Sidebar: React.FC = () => {
                 <OptimizedImage
                   src={currentUser.avatar}
                   alt="Profile"
+                  width={100}
                   className={`w-6 h-6 rounded-full ${isActive ? "border-2 border-[#006a4e]" : ""}`}
                 />
                 {isSidebarExpanded && (

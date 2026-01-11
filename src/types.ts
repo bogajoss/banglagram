@@ -36,6 +36,7 @@ export interface Post {
   time: string;
   isVerified?: boolean;
   hasLiked?: boolean;
+  hasSaved?: boolean;
   commentList?: Comment[];
 }
 

@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabaseClient";
 import { useAppStore } from "../../store/useAppStore";
-import { PROFILE_QUERY_KEY } from "../queries/useGetProfile";
 
 interface UpdateProfileVariables {
     userId: string;
@@ -16,8 +15,8 @@ export const useUpdateProfile = () => {
 
     return useMutation({
         mutationFn: async ({ userId, name, bio, avatar }: UpdateProfileVariables) => {
-            const { data, error } = await supabase
-                .from("profiles")
+            const { data, error } = await (supabase
+                .from("profiles") as any)
                 .update({
                     full_name: name,
                     bio: bio,
@@ -30,20 +29,22 @@ export const useUpdateProfile = () => {
             if (error) throw error;
             return data;
         },
-        onSuccess: (data) => {
+        onSuccess: (data: any) => {
             showToast("প্রোফাইল আপডেট করা হয়েছে");
 
             // Update local store
             setCurrentUser({
                 ...currentUser,
-                name: data.full_name || "",
-                bio: data.bio || "",
-                avatar: data.avatar_url || ""
+                name: data?.full_name || "",
+                bio: data?.bio || "",
+                avatar: data?.avatar_url || ""
             });
 
             // Invalidate profile query to refetch fresh data
-            queryClient.invalidateQueries({ queryKey: [PROFILE_QUERY_KEY] });
-            queryClient.invalidateQueries({ queryKey: ["profile", data.username] });
+            queryClient.invalidateQueries({ queryKey: ["profile"] });
+            if (data?.username) {
+                queryClient.invalidateQueries({ queryKey: ["profile", data.username] });
+            }
         },
         onError: (error) => {
             console.error("Update profile error:", error);

@@ -57,7 +57,7 @@ export const useCreateComment = () => {
 
       return { previousComments, commentsKey };
     },
-    onError: (err, _variables, context) => {
+    onError: (_err, _variables, context) => {
       if (context?.previousComments) {
         queryClient.setQueryData(context.commentsKey, context.previousComments);
       }

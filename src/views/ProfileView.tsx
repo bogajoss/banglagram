@@ -22,13 +22,16 @@ import { useGetProfile } from "../hooks/queries/useGetProfile";
 import { useAuth } from "../hooks/useAuth";
 import { useFollowUser } from "../hooks/mutations/useFollowUser";
 import { useGetFollows } from "../hooks/queries/useGetFollows";
+import { useGetSavedPosts } from "../hooks/queries/useGetSavedPosts";
+import { useGetTaggedPosts } from "../hooks/queries/useGetTaggedPosts";
+import SettingsModal from "../components/modals/SettingsModal";
+import ArchiveModal from "../components/modals/ArchiveModal";
 
 import OptimizedImage from "../components/OptimizedImage";
 
 const ProfileView: React.FC = () => {
   const {
     currentUser,
-    savedPostIds,
     theme,
     setViewingPost,
     setEditProfileOpen,
@@ -40,10 +43,15 @@ const ProfileView: React.FC = () => {
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
 
+  // Determine if it's the current user's profile
+  const isMe = !username || username === authUser?.user_metadata?.username;
+
   const [activeTab, setActiveTab] = useState("posts");
   const [listModalType, setListModalType] = useState<
     "followers" | "following" | null
   >(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isArchiveOpen, setIsArchiveOpen] = useState(false);
 
   const targetUsername = username || authUser?.user_metadata?.username || currentUser.username;
 
@@ -55,11 +63,12 @@ const ProfileView: React.FC = () => {
     listModalType
   );
 
+  const { data: realSavedPosts = [] } = useGetSavedPosts(isMe ? authUser?.id : undefined);
+  const { data: taggedPosts = [] } = useGetTaggedPosts(data?.user?.id);
+
   const profileUser = data?.user;
   const userPosts = data?.posts || [];
 
-  // Determine if it's the current user's profile
-  const isMe = !username || username === authUser?.user_metadata?.username;
 
   const userIsFollowing = profileUser?.isFollowing || false;
 
@@ -67,10 +76,7 @@ const ProfileView: React.FC = () => {
   const textSecondary = theme === "dark" ? "text-[#a8a8a8]" : "text-zinc-500";
   const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
 
-  // Filter for saved posts - this still relies on client store for IDs but we need the post objects.
-  // Ideally 'saved' should be a backend query. We'll leave it empty or basic for now as it wasn't explicitly requested to migrate 'saved' fully.
-  const savedPostsList = userPosts.filter((p) => savedPostIds.has(p.id));
-  const displayPosts = activeTab === "saved" ? savedPostsList : userPosts;
+  const displayPosts = activeTab === "saved" ? realSavedPosts : (activeTab === "tagged" ? taggedPosts : userPosts);
 
   const handleOpenList = (type: "followers" | "following") =>
     setListModalType(type);
@@ -141,6 +147,8 @@ const ProfileView: React.FC = () => {
           }
         />
       )}
+      {isSettingsOpen && <SettingsModal onClose={() => setIsSettingsOpen(false)} />}
+      {isArchiveOpen && <ArchiveModal onClose={() => setIsArchiveOpen(false)} />}
 
       <div
         className={`md:hidden sticky top-0 z-10 border-b ${borderClass} px-4 h-[44px] flex items-center justify-between ${theme === "dark" ? "bg-black/90 backdrop-blur-md" : "bg-white/90 backdrop-blur-md"}`}
@@ -234,6 +242,7 @@ const ProfileView: React.FC = () => {
                     এডিট প্রোফাইল
                   </button>
                   <button
+                    onClick={() => setIsArchiveOpen(true)}
                     className={`${theme === "dark" ? "bg-[#363636] hover:bg-[#262626]" : "bg-gray-200 hover:bg-gray-300"} text-sm font-semibold px-4 py-[7px] rounded-lg transition-colors flex-grow md:flex-grow-0 text-center`}
                   >
                     আর্কাইভ দেখুন
@@ -258,6 +267,7 @@ const ProfileView: React.FC = () => {
             </div>
             {isMe && (
               <button
+                onClick={() => setIsSettingsOpen(true)}
                 className={`hidden md:block ${theme === "dark" ? "text-white" : "text-black"}`}
               >
                 <Settings size={24} />

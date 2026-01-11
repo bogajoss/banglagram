@@ -4,9 +4,10 @@ import { useAuth } from "../hooks/useAuth";
 import { useAppStore } from "../store/useAppStore";
 
 export default function AuthView() {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
   const { theme, showToast } = useAppStore();
   const [isLogin, setIsLogin] = useState(true);
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -20,7 +21,13 @@ export default function AuthView() {
     setLoading(true);
     setError(null);
     try {
-      if (isLogin) {
+      if (forgotPasswordMode) {
+        const { error: resetError } = await resetPassword(email);
+        if (resetError) throw resetError;
+        showToast("আপনার ইমেইলে রিসেট লিংক পাঠানো হয়েছে");
+        setForgotPasswordMode(false);
+        setIsLogin(true);
+      } else if (isLogin) {
         const { error: signInError } = await signIn(email, password);
         if (signInError) throw signInError;
       } else {
@@ -80,7 +87,7 @@ export default function AuthView() {
           <div className="flex flex-col items-center">
             <h1 className="text-4xl font-bold italic text-[#006a4e] mb-2 font-billabong">Banglagram</h1>
             <p className={`${labelColor} text-sm mb-8`}>
-              {isLogin ? "আপনার অ্যাকাউন্টে লগইন করুন" : "নতুন অ্যাকাউন্ট তৈরি করুন"}
+              {forgotPasswordMode ? "পাসওয়ার্ড রিসেট করুন" : (isLogin ? "আপনার অ্যাকাউন্টে লগইন করুন" : "নতুন অ্যাকাউন্ট তৈরি করুন")}
             </p>
           </div>
 
@@ -128,24 +135,26 @@ export default function AuthView() {
                 required
               />
             </div>
-            <div>
-              <label className={`font-semibold text-xs ${labelColor} pb-1 block`}>Password</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                className={`w-full p-3 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-[#006a4e]/50 transition-all ${inputBg}`}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+            {!forgotPasswordMode && (
+              <div>
+                <label className={`font-semibold text-xs ${labelColor} pb-1 block`}>Password</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  className={`w-full p-3 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-[#006a4e]/50 transition-all ${inputBg}`}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            )}
 
-            {isLogin && (
+            {!forgotPasswordMode && isLogin && (
               <div className="text-right">
                 <button
                   type="button"
                   className={`text-xs font-semibold ${labelColor} hover:text-[#006a4e] transition-colors`}
-                  onClick={() => showToast("পাসওয়ার্ড রিসেট ফিচার শীঘ্রই আসছে")}
+                  onClick={() => setForgotPasswordMode(true)}
                 >
                   Forgot Password?
                 </button>
@@ -163,7 +172,7 @@ export default function AuthView() {
                   <span>প্রসেস হচ্ছে...</span>
                 </div>
               ) : (
-                isLogin ? "Log In" : "Sign Up"
+                forgotPasswordMode ? "Reset Password" : (isLogin ? "Log In" : "Sign Up")
               )}
             </button>
           </form>
@@ -198,18 +207,33 @@ export default function AuthView() {
             </button>
           </div>
 
-          <p className={`mt-8 text-center text-sm ${labelColor}`}>
-            {isLogin ? "নতুন অ্যাকাউন্ট দরকার?" : "আগে থেকেই অ্যাকাউন্ট আছে?"}
-            <button
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setError(null);
-              }}
-              className="ml-2 text-[#006a4e] font-bold hover:underline"
-            >
-              {isLogin ? "Sign up" : "Log in"}
-            </button>
-          </p>
+          <div className={`mt-8 text-center text-sm ${labelColor}`}>
+            {forgotPasswordMode ? (
+              <button
+                onClick={() => {
+                  setForgotPasswordMode(false);
+                  setIsLogin(true);
+                  setError(null);
+                }}
+                className="text-[#006a4e] font-bold hover:underline"
+              >
+                লগইন পেজে ফিরে যান
+              </button>
+            ) : (
+              <p>
+                {isLogin ? "নতুন অ্যাকাউন্ট দরকার?" : "আগে থেকেই অ্যাকাউন্ট আছে?"}
+                <button
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setError(null);
+                  }}
+                  className="ml-2 text-[#006a4e] font-bold hover:underline"
+                >
+                  {isLogin ? "Sign up" : "Log in"}
+                </button>
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

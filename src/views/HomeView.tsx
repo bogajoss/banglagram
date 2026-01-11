@@ -11,6 +11,7 @@ import { useGetSuggestedUsers } from "../hooks/queries/useGetSuggestedUsers";
 import { useAuth } from "../hooks/useAuth";
 import { useInView } from "react-intersection-observer";
 import { useFollowUser } from "../hooks/mutations/useFollowUser";
+import { useToggleSave } from "../hooks/mutations/useToggleSave";
 
 import OptimizedImage from "../components/OptimizedImage";
 
@@ -19,8 +20,6 @@ const HomeView: React.FC = () => {
     currentUser,
     theme,
     showToast,
-    toggleSave,
-    savedPostIds,
     setViewingStory,
     setViewingPost,
   } = useAppStore();
@@ -38,9 +37,10 @@ const HomeView: React.FC = () => {
     isFetchingNextPage
   } = useGetFeed(user?.id);
 
-  const { data: stories = [] } = useGetStories();
+  const { data: stories = [] } = useGetStories(user?.id);
   const { data: suggestedUsers = [] } = useGetSuggestedUsers(user?.id);
   const { mutate: followUser } = useFollowUser();
+  const { mutate: toggleSaveMutation } = useToggleSave();
 
   useEffect(() => {
     if (inView && hasNextPage) {
@@ -152,8 +152,12 @@ const HomeView: React.FC = () => {
                 <PostItem
                   key={post.id}
                   post={post}
-                  isSaved={savedPostIds.has(post.id)}
-                  onToggleSave={() => toggleSave(post.id)}
+                  isSaved={!!post.hasSaved}
+                  onToggleSave={() => toggleSaveMutation({
+                    postId: post.id,
+                    userId: user?.id || "",
+                    hasSaved: !!post.hasSaved
+                  })}
                   onUserClick={handleUserClick}
                   onPostClick={setViewingPost}
                 />

@@ -34,8 +34,10 @@ export const useGetFeed = (userId?: string) => {
       const posts = (postsData || []) as unknown as PostWithProfile[];
       const postIds = posts.map(p => p.id);
 
-      // 2. Fetch User Likes (if logged in)
+      // 2. Fetch User Likes and Saves (if logged in)
       const likedPostIds = new Set<string>();
+      const savedPostIds = new Set<string>();
+
       if (userId && postIds.length > 0) {
         const { data: likesData } = await supabase
           .from("likes")
@@ -46,6 +48,18 @@ export const useGetFeed = (userId?: string) => {
         if (likesData) {
           (likesData as { post_id: string | null }[]).forEach((l) => {
             if (l.post_id) likedPostIds.add(l.post_id);
+          });
+        }
+
+        const { data: savesData } = await supabase
+          .from("saves")
+          .select("post_id")
+          .eq("user_id", userId)
+          .in("post_id", postIds);
+
+        if (savesData) {
+          (savesData as { post_id: string | null }[]).forEach((s) => {
+            if (s.post_id) savedPostIds.add(s.post_id);
           });
         }
       }
@@ -73,6 +87,7 @@ export const useGetFeed = (userId?: string) => {
           time: new Date(post.created_at).toLocaleDateString(),
           isVerified: false,
           hasLiked: likedPostIds.has(post.id),
+          hasSaved: savedPostIds.has(post.id),
         };
       });
     },

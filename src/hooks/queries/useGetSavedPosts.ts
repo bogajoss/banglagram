@@ -1,0 +1,61 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "../../lib/supabaseClient";
+import type { Post } from "../../types";
+
+export const SAVED_POSTS_QUERY_KEY = ["savedPosts"];
+
+export const useGetSavedPosts = (userId: string | undefined) => {
+    return useQuery({
+        queryKey: [...SAVED_POSTS_QUERY_KEY, userId],
+        enabled: !!userId,
+        queryFn: async () => {
+            if (!userId) return [];
+
+
+            const { data: deepData, error: deepError } = await supabase
+                .from("saves")
+                .select(`
+            created_at,
+            post:posts (
+                *,
+                likes (count),
+                comments (count),
+                user:profiles (
+                    username, full_name, avatar_url
+                )
+            )
+        `)
+                .eq("user_id", userId)
+                .order("created_at", { ascending: false });
+
+            if (deepError) throw deepError;
+
+            // Transform
+            const posts: Post[] = deepData.map((item: any) => {
+                const p = item.post;
+                if (!p) return null; // Should not happen
+
+                return {
+                    id: p.id,
+                    user: {
+                        username: p.user?.username || "Unknown",
+                        name: p.user?.full_name || "",
+                        avatar: p.user?.avatar_url || "",
+                    },
+                    content: {
+                        type: "image",
+                        src: p.image_url,
+                    },
+                    likes: p.likes?.[0]?.count || 0,
+                    caption: p.caption || "",
+                    comments: p.comments?.[0]?.count || 0,
+                    time: new Date(p.created_at).toLocaleDateString(),
+                    hasLiked: false, // We don't check liked status here for now, can be improved.
+                    hasSaved: true // Obviously true
+                };
+            }).filter(Boolean) as Post[];
+
+            return posts;
+        },
+    });
+};

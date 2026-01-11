@@ -11,6 +11,8 @@ export interface AuthContextType {
   loading: boolean;
   signIn: (email: string, pass: string) => Promise<{ data: { session: Session | null; user: User | null }; error: AuthError | null }>;
   signUp: (email: string, pass: string, metadata: { username: string; full_name: string; avatar_url: string }) => Promise<{ data: { session: Session | null; user: User | null }; error: AuthError | null }>;
+  resetPassword: (email: string) => Promise<{ data: unknown; error: AuthError | null }>;
+  updatePassword: (newPassword: string) => Promise<{ data: unknown; error: AuthError | null }>;
   signOut: () => Promise<void>;
 }
 

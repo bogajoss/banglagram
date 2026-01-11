@@ -14,7 +14,11 @@ export const useGetNotifications = (userId?: string) => {
         .from("notifications")
         .select(
           `
-          *,
+          id,
+          created_at,
+          type,
+          post_id,
+          reel_id,
           actor:profiles!actor_id (username, avatar_url, is_verified)
         `,
         )

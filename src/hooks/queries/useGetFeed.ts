@@ -16,7 +16,11 @@ export const useGetFeed = (userId?: string) => {
         .from("posts")
         .select(
           `
-          *,
+          id,
+          created_at,
+          caption,
+          image_url,
+          user_id,
           profiles (username, full_name, avatar_url, is_verified),
           likes (count),
           comments (count)

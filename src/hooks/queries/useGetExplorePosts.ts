@@ -17,7 +17,8 @@ export const useGetExplorePosts = () => {
         .from("posts")
         .select(
           `
-          *,
+          id,
+          image_url,
           likes (count),
           comments (count)
         `,

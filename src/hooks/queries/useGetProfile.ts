@@ -18,7 +18,7 @@ export const useGetProfile = (
       // 1. Fetch Profile
       const { data: profileData, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, username, full_name, avatar_url, bio, is_verified")
         .eq("username", username)
         .single();
 
@@ -47,7 +47,10 @@ export const useGetProfile = (
         .from("posts")
         .select(
           `
-           *,
+           id,
+           image_url,
+           caption,
+           created_at,
            likes (count),
            comments (count)
         `,

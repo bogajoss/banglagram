@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
 import {
   Heart,
   MessageCircle as CommentIcon,
@@ -30,7 +30,7 @@ import OptimizedImage from "./OptimizedImage";
 import { useAppStore } from "../store/useAppStore";
 import VerifiedBadge from "./VerifiedBadge";
 
-const ReelItem: React.FC<ReelItemProps> = ({
+const ReelItem: React.FC<ReelItemProps> = memo(({
   reel,
   showToast,
   theme,
@@ -317,6 +317,6 @@ const ReelItem: React.FC<ReelItemProps> = ({
       </div>
     </motion.div>
   );
-};
+});
 
 export default ReelItem;

@@ -117,12 +117,17 @@ async function main() {
     process.cwd(),
     "missing_features_schema.sql",
   );
+  const optimizationPath = path.resolve(
+    process.cwd(),
+    "optimization_schema.sql",
+  );
 
   if (!(await runSqlFile(schemaPath))) process.exit(1);
   if (!(await runSqlFile(storagePath))) process.exit(1);
   if (!(await runSqlFile(triggersPath))) process.exit(1);
   if (!(await runSqlFile(reelsUpdatePath))) process.exit(1);
   if (!(await runSqlFile(missingFeaturesPath))) process.exit(1);
+  if (!(await runSqlFile(optimizationPath))) process.exit(1);
 
   console.log("All migrations completed.");
 }

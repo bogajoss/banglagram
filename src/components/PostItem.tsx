@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import {
   Heart,
   MessageCircle as CommentIcon,
@@ -27,7 +27,7 @@ interface PostItemProps {
   onPostClick: (post: Post) => void;
 }
 
-const PostItem: React.FC<PostItemProps> = ({
+const PostItem: React.FC<PostItemProps> = memo(({
   post,
   isSaved,
   onToggleSave,
@@ -251,6 +251,6 @@ const PostItem: React.FC<PostItemProps> = ({
       </div>
     </motion.div>
   );
-};
+});
 
 export default PostItem;

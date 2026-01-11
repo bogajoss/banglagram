@@ -1,15 +1,23 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabaseClient";
 import { FEED_QUERY_KEY } from "../queries/useGetFeed";
 import { REELS_QUERY_KEY } from "../queries/useGetReels";
 import { useAuth } from "../../hooks/useAuth";
 import type { Comment } from "../queries/useGetComments";
+import type { Post, Reel } from "../../types";
 
 interface CreateCommentVariables {
   targetId: string;
   type: "post" | "reel";
   text: string;
   userId: string;
+}
+
+interface MutationContext {
+  previousComments?: Comment[];
+  previousFeed?: unknown;
+  commentsKey: (string | undefined)[];
+  feedKey: string[];
 }
 
 export const useCreateComment = () => {
@@ -28,7 +36,8 @@ export const useCreateComment = () => {
           ? { user_id: userId, post_id: targetId, text }
           : { user_id: userId, reel_id: targetId, text };
 
-      const { data, error } = await (supabase.from("comments") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      const { data, error } = await supabase
+        .from("comments")
         .insert(payload)
         .select()
         .single();
@@ -38,9 +47,13 @@ export const useCreateComment = () => {
     },
     onMutate: async ({ targetId, type, text, userId }) => {
       const commentsKey = ["comments", type, targetId];
-      await queryClient.cancelQueries({ queryKey: commentsKey });
+      const feedKey = type === "post" ? FEED_QUERY_KEY : REELS_QUERY_KEY;
 
-      const previousComments = queryClient.getQueryData(commentsKey);
+      await queryClient.cancelQueries({ queryKey: commentsKey });
+      await queryClient.cancelQueries({ queryKey: feedKey });
+
+      const previousComments = queryClient.getQueryData<Comment[]>(commentsKey);
+      const previousFeed = queryClient.getQueryData(feedKey);
 
       const optimisticComment: Comment = {
         id: `temp-${Date.now()}`,
@@ -55,15 +68,59 @@ export const useCreateComment = () => {
         },
       };
 
+      // 1. Update comments list
       queryClient.setQueryData(commentsKey, (old: Comment[] = []) => {
         return [optimisticComment, ...old];
       });
 
-      return { previousComments, commentsKey };
+      // 2. Update comment count in feed/reels
+      queryClient.setQueryData(feedKey, (old: any) => {
+        if (!old) return old;
+
+        // Handle Infinite Query (Feed)
+        if (type === "post" && (old as InfiniteData<Post[]>).pages) {
+          const infiniteData = old as InfiniteData<Post[]>;
+          return {
+            ...infiniteData,
+            pages: infiniteData.pages.map((page) =>
+              page.map((post) => {
+                if (post.id === targetId) {
+                  return {
+                    ...post,
+                    comments: Number(post.comments) + 1,
+                  };
+                }
+                return post;
+              }),
+            ),
+          };
+        }
+
+        // Handle Array Query (Reels)
+        if (type === "reel" && Array.isArray(old)) {
+          return (old as Reel[]).map((reel) => {
+            if (reel.id === targetId) {
+              return {
+                ...reel,
+                comments: Number(reel.comments) + 1,
+              };
+            }
+            return reel;
+          });
+        }
+
+        return old;
+      });
+
+      return { previousComments, previousFeed, commentsKey, feedKey } as MutationContext;
     },
     onError: (_err, _variables, context) => {
-      if (context?.previousComments) {
-        queryClient.setQueryData(context.commentsKey, context.previousComments);
+      const ctx = context as MutationContext;
+      if (ctx?.previousComments) {
+        queryClient.setQueryData(ctx.commentsKey, ctx.previousComments);
+      }
+      if (ctx?.previousFeed) {
+        queryClient.setQueryData(ctx.feedKey, ctx.previousFeed);
       }
     },
     onSuccess: (_, variables) => {

@@ -14,7 +14,8 @@ export interface User {
 
 export interface Comment {
   id: string; // Add ID
-  user: { // Update user to object match
+  user: {
+    // Update user to object match
     username: string;
     avatar: string;
     name?: string;
@@ -86,6 +87,7 @@ export interface Notification {
   user?: User;
   text: string;
   time: string;
+  created_at?: string; // ISO string for sorting
   isFollowing?: boolean;
   icon?: string;
   postId?: string;

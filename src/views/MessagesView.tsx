@@ -14,7 +14,10 @@ import { useAppStore } from "../store/useAppStore";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../hooks/useAuth";
 import type { User } from "../types";
-import { useGetMessages, MESSAGES_QUERY_KEY } from "../hooks/queries/useGetMessages";
+import {
+  useGetMessages,
+  MESSAGES_QUERY_KEY,
+} from "../hooks/queries/useGetMessages";
 import { useGetConversations } from "../hooks/queries/useGetConversations";
 import { useSendMessage } from "../hooks/mutations/useSendMessage";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,7 +25,7 @@ import type { Database } from "../database.types";
 
 import OptimizedImage from "../components/OptimizedImage";
 
-type DbMessage = Database['public']['Tables']['messages']['Row'];
+type DbMessage = Database["public"]["Tables"]["messages"]["Row"];
 
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { useGetProfile } from "../hooks/queries/useGetProfile";
@@ -36,30 +39,14 @@ const MessagesView: React.FC = () => {
   const { username } = useParams<{ username: string }>();
   const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
 
-  const [selectedUser, setSelectedUser] = useState<User | null>(() => {
-    return (location.state?.user as User) || null;
-  });
-  const [newMessage, setNewMessage] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
   // Fetch profile if username is in param but not in state (direct link access)
   const { data: profileData } = useGetProfile(username || "", user?.id);
 
-  // Handle side effects for navigation state and URL param loading
-  // Handle side effects for navigation state and URL param loading
-  useEffect(() => {
-    if (location.state?.user) {
-      setSelectedUser(location.state.user as User);
-    } else if (username) {
-      // If accessed via URL /messages/username and we have data
-      if (profileData?.user) {
-        setSelectedUser(profileData.user as User);
-      }
-    } else {
-      // Root /messages route - clear selection
-      setSelectedUser(null);
-    }
-  }, [location.state, username, profileData]);
+  // Derive selectedUser from location state or fetched profile data
+  const selectedUser = (location.state?.user as User) || (profileData?.user as User) || null;
+
+  const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const bgHover = theme === "dark" ? "hover:bg-zinc-900" : "hover:bg-gray-100";
@@ -68,8 +55,9 @@ const MessagesView: React.FC = () => {
   const { data: conversations = [] } = useGetConversations(user?.id);
 
   // Derive selectedUserId from selectedUser
-  const selectedUserId = selectedUser?.id ||
-    conversations.find(c => c.username === selectedUser?.username)?.id;
+  const selectedUserId =
+    selectedUser?.id ||
+    conversations.find((c) => c.username === selectedUser?.username)?.id;
 
   // Use Hooks
   const { data: messages = [] } = useGetMessages(user?.id, selectedUserId);
@@ -80,13 +68,13 @@ const MessagesView: React.FC = () => {
     if (!user) return;
 
     const channel = supabase
-      .channel('chat_messages_realtime')
+      .channel("chat_messages_realtime")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
         },
         (payload) => {
           const newMsg = payload.new as DbMessage;
@@ -101,27 +89,34 @@ const MessagesView: React.FC = () => {
           console.log("Realtime msg:", newMsg, "Selected:", selectedUserId);
 
           const isRelevant =
-            (newMsg.sender_id === selectedUserId && newMsg.receiver_id === user.id) ||
-            (newMsg.sender_id === user.id && newMsg.receiver_id === selectedUserId);
+            (newMsg.sender_id === selectedUserId &&
+              newMsg.receiver_id === user.id) ||
+            (newMsg.sender_id === user.id &&
+              newMsg.receiver_id === selectedUserId);
 
           if (selectedUserId && isRelevant) {
-            queryClient.setQueryData(MESSAGES_QUERY_KEY(selectedUserId), (old: DbMessage[] | undefined) => {
-              // Check if we already have this message (dedup against optimistic or double-fire)
-              if (old && old.some(m => m.id === newMsg.id)) return old;
+            queryClient.setQueryData(
+              MESSAGES_QUERY_KEY(selectedUserId),
+              (old: DbMessage[] | undefined) => {
+                // Check if we already have this message (dedup against optimistic or double-fire)
+                if (old && old.some((m) => m.id === newMsg.id)) return old;
 
-              // If we have "optimistic" messages, we might want to replace them or intelligent merge.
-              // For simplicity, just appending if not present.
-              // Optimistic usually has 'optimistic-' prefix id. Real one has UUID.
-              // If we just append, we might show duplicates if optimistic one isn't removed.
-              // useSendMessage's onSettled invalidates.
-              // If invalidation happens, useGetMessages refetches and replaces everything.
-              // So this manual update is for instant feedback BEFORE refetch completes.
-              return old ? [...old, newMsg] : [newMsg];
-            });
+                // If we have "optimistic" messages, we might want to replace them or intelligent merge.
+                // For simplicity, just appending if not present.
+                // Optimistic usually has 'optimistic-' prefix id. Real one has UUID.
+                // If we just append, we might show duplicates if optimistic one isn't removed.
+                // useSendMessage's onSettled invalidates.
+                // If invalidation happens, useGetMessages refetches and replaces everything.
+                // So this manual update is for instant feedback BEFORE refetch completes.
+                return old ? [...old, newMsg] : [newMsg];
+              },
+            );
             // Also invalidate to be sure
-            queryClient.invalidateQueries({ queryKey: MESSAGES_QUERY_KEY(selectedUserId) });
+            queryClient.invalidateQueries({
+              queryKey: MESSAGES_QUERY_KEY(selectedUserId),
+            });
           }
-        }
+        },
       )
       .subscribe();
 
@@ -130,21 +125,34 @@ const MessagesView: React.FC = () => {
     };
   }, [user, selectedUserId, queryClient]);
 
-
   const handleSendMessage = () => {
-    console.log("Attempting to send message:", newMessage, selectedUserId, user?.id, selectedUser);
+    console.log(
+      "Attempting to send message:",
+      newMessage,
+      selectedUserId,
+      user?.id,
+      selectedUser,
+    );
     if (!newMessage.trim() || !selectedUserId || !user) {
-      console.warn("Send aborted: Missing data", { msg: newMessage, target: selectedUserId, user: user?.id, selectedObject: selectedUser });
+      console.warn("Send aborted: Missing data", {
+        msg: newMessage,
+        target: selectedUserId,
+        user: user?.id,
+        selectedObject: selectedUser,
+      });
       return;
     }
-    sendMessage({ content: newMessage, senderId: user.id, receiverId: selectedUserId });
+    sendMessage({
+      content: newMessage,
+      senderId: user.id,
+      receiverId: selectedUserId,
+    });
     setNewMessage("");
   };
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
 
   const handleSelectUser = (user: User) => {
     // Navigate to the user's specific route, passing user object in state to avoid fetch
@@ -197,9 +205,7 @@ const MessagesView: React.FC = () => {
                   />
                 </div>
                 <div className="flex-grow min-w-0">
-                  <div className="text-sm truncate font-bold">
-                    {u.username}
-                  </div>
+                  <div className="text-sm truncate font-bold">{u.username}</div>
                   <div
                     className={`text-xs truncate ${theme === "dark" ? "text-[#a8a8a8]" : "text-gray-500"}`}
                   >
@@ -223,13 +229,15 @@ const MessagesView: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <div
                     className="md:hidden cursor-pointer -ml-2 p-2"
-                    onClick={() => setSelectedUser(null)}
+                    onClick={() => navigate('/messages')}
                   >
                     <ChevronLeft size={28} />
                   </div>
                   <div
                     className="w-8 h-8 rounded-full overflow-hidden cursor-pointer"
-                    onClick={() => navigate(`/profile/${selectedUser.username}`)}
+                    onClick={() =>
+                      navigate(`/profile/${selectedUser.username}`)
+                    }
                   >
                     <OptimizedImage
                       src={selectedUser.avatar}
@@ -239,7 +247,9 @@ const MessagesView: React.FC = () => {
                   </div>
                   <div
                     className="font-semibold text-base truncate max-w-[150px] cursor-pointer hover:underline"
-                    onClick={() => navigate(`/profile/${selectedUser.username}`)}
+                    onClick={() =>
+                      navigate(`/profile/${selectedUser.username}`)
+                    }
                   >
                     {selectedUser.username}
                   </div>
@@ -259,7 +269,7 @@ const MessagesView: React.FC = () => {
                     <>
                       {msg.content && (
                         <div
-                          className={`rounded-2xl px-4 py-2 text-sm ${msg.sender_id === user?.id ? "bg-[#006a4e] text-white" : (theme === "dark" ? "bg-[#262626] text-white" : "bg-gray-200 text-black")}`}
+                          className={`rounded-2xl px-4 py-2 text-sm ${msg.sender_id === user?.id ? "bg-[#006a4e] text-white" : theme === "dark" ? "bg-[#262626] text-white" : "bg-gray-200 text-black"}`}
                         >
                           {msg.content}
                         </div>

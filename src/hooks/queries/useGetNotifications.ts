@@ -12,26 +12,31 @@ export const useGetNotifications = (userId?: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notifications")
-        .select(`
+        .select(
+          `
           *,
           actor:profiles!actor_id (username, avatar_url)
-        `)
+        `,
+        )
         .eq("user_id", userId as string)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      type NotificationWithActor = Database["public"]["Tables"]["notifications"]["Row"] & {
-        actor: { username: string; avatar_url: string | null } | null;
-      };
+      type NotificationWithActor =
+        Database["public"]["Tables"]["notifications"]["Row"] & {
+          actor: { username: string; avatar_url: string | null } | null;
+        };
 
       const notifications = (data || []) as unknown as NotificationWithActor[];
 
       return notifications.map((n) => {
         let text = "interacted with you.";
-        if (n.type === 'follow') text = "started following you.";
-        else if (n.type === 'like') text = "liked your " + (n.reel_id ? "reel." : "post.");
-        else if (n.type === 'comment') text = "commented on your " + (n.reel_id ? "reel." : "post.");
+        if (n.type === "follow") text = "started following you.";
+        else if (n.type === "like")
+          text = "liked your " + (n.reel_id ? "reel." : "post.");
+        else if (n.type === "comment")
+          text = "commented on your " + (n.reel_id ? "reel." : "post.");
 
         return {
           id: n.id,
@@ -39,9 +44,9 @@ export const useGetNotifications = (userId?: string) => {
           type: n.type as "follow" | "like" | "comment" | "system",
           user: {
             username: n.actor?.username || "Unknown",
-            name: n.actor?.username || "Unknown", // Fallback as full_name might not be in the join if not selected. Wait, I selected username, avatar_url. 
-            // In step 122 I added full_name to the select list? 
-            // Checking previous file content... line 16 selects 'username, avatar_url'. 
+            name: n.actor?.username || "Unknown", // Fallback as full_name might not be in the join if not selected. Wait, I selected username, avatar_url.
+            // In step 122 I added full_name to the select list?
+            // Checking previous file content... line 16 selects 'username, avatar_url'.
             // I should add full_name to the query to be safe or just use username.
             // Let's stick to what is selected: username.
             avatar: n.actor?.avatar_url || "",

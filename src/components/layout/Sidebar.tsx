@@ -12,7 +12,7 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
-  Instagram
+  Instagram,
 } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { useAuth } from "../../hooks/useAuth";
@@ -20,7 +20,16 @@ import { motion } from "framer-motion";
 import OptimizedImage from "../OptimizedImage";
 
 const Sidebar: React.FC = () => {
-  const { theme, toggleTheme, currentUser, setCreateModalOpen, isSidebarExpanded, toggleSidebar, unreadNotificationsCount, unreadMessagesCount } = useAppStore();
+  const {
+    theme,
+    toggleTheme,
+    currentUser,
+    setCreateModalOpen,
+    isSidebarExpanded,
+    toggleSidebar,
+    unreadNotificationsCount,
+    unreadMessagesCount,
+  } = useAppStore();
   const { signOut } = useAuth();
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const themeClasses =
@@ -34,13 +43,23 @@ const Sidebar: React.FC = () => {
       icon: <MessageCircle size={24} />,
       label: "Messages",
       path: "/messages",
-      badge: unreadMessagesCount > 0 ? (unreadMessagesCount > 99 ? "99+" : unreadMessagesCount) : undefined,
+      badge:
+        unreadMessagesCount > 0
+          ? unreadMessagesCount > 99
+            ? "99+"
+            : unreadMessagesCount
+          : undefined,
     },
     {
       icon: <Heart size={24} />,
       label: "Notifications",
       path: "/notifications",
-      badge: unreadNotificationsCount > 0 ? (unreadNotificationsCount > 99 ? "99+" : unreadNotificationsCount) : undefined,
+      badge:
+        unreadNotificationsCount > 0
+          ? unreadNotificationsCount > 99
+            ? "99+"
+            : unreadNotificationsCount
+          : undefined,
     },
   ];
 
@@ -49,7 +68,9 @@ const Sidebar: React.FC = () => {
       className={`hidden md:flex flex-col ${isSidebarExpanded ? "w-[245px]" : "w-[72px]"} h-screen fixed border-r ${borderClass} p-4 pb-5 justify-between z-50 transition-all duration-300 ${themeClasses}`}
     >
       <div>
-        <div className={`mb-8 mt-4 ${isSidebarExpanded ? "px-2" : "flex justify-center"}`}>
+        <div
+          className={`mb-8 mt-4 ${isSidebarExpanded ? "px-2" : "flex justify-center"}`}
+        >
           <Link
             to="/"
             className={`text-2xl font-bold tracking-wide italic text-[#006a4e] block transition-all duration-300 ${isSidebarExpanded ? "opacity-100" : "opacity-0 hidden"}`}
@@ -117,7 +138,9 @@ const Sidebar: React.FC = () => {
             <div className="relative">
               <PlusSquare size={24} />
             </div>
-            {isSidebarExpanded && <span className="text-base truncate">তৈরি করুন</span>}
+            {isSidebarExpanded && (
+              <span className="text-base truncate">তৈরি করুন</span>
+            )}
           </motion.div>
 
           {/* Profile Link */}
@@ -138,7 +161,9 @@ const Sidebar: React.FC = () => {
                   alt="Profile"
                   className={`w-6 h-6 rounded-full ${isActive ? "border-2 border-[#006a4e]" : ""}`}
                 />
-                {isSidebarExpanded && <span className="text-base truncate">প্রোফাইল</span>}
+                {isSidebarExpanded && (
+                  <span className="text-base truncate">প্রোফাইল</span>
+                )}
               </motion.div>
             )}
           </NavLink>
@@ -161,7 +186,11 @@ const Sidebar: React.FC = () => {
           onClick={toggleSidebar}
           className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg transition-colors cursor-pointer ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
         >
-          {isSidebarExpanded ? <PanelLeftClose size={24} /> : <PanelLeftOpen size={24} />}
+          {isSidebarExpanded ? (
+            <PanelLeftClose size={24} />
+          ) : (
+            <PanelLeftOpen size={24} />
+          )}
           {isSidebarExpanded && <span className="text-base">বন্ধ করুন</span>}
         </motion.div>
 

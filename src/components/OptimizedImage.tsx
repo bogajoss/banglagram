@@ -21,11 +21,11 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   if (!src) {
     return (
-        <div className={`relative overflow-hidden ${className} ${bgColor}`}>
-            <div className="absolute inset-0 flex items-center justify-center text-zinc-400 text-xs">
-                No Image
-            </div>
+      <div className={`relative overflow-hidden ${className} ${bgColor}`}>
+        <div className="absolute inset-0 flex items-center justify-center text-zinc-400 text-xs">
+          No Image
         </div>
+      </div>
     );
   }
 

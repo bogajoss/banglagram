@@ -9,7 +9,7 @@ export const useGetSuggestedUsers = (currentUserId?: string) => {
   return useQuery({
     queryKey: SUGGESTED_USERS_QUERY_KEY,
     queryFn: async () => {
-      // Simple logic: Fetch random users. 
+      // Simple logic: Fetch random users.
       // Better logic: Fetch users NOT in 'follows' table where follower_id = currentUserId.
 
       const excludeIds: string[] = [];
@@ -21,7 +21,9 @@ export const useGetSuggestedUsers = (currentUserId?: string) => {
           .eq("follower_id", currentUserId);
 
         if (follows) {
-          (follows as { following_id: string }[]).forEach((f) => excludeIds.push(f.following_id));
+          (follows as { following_id: string }[]).forEach((f) =>
+            excludeIds.push(f.following_id),
+          );
         }
       }
 
@@ -31,7 +33,7 @@ export const useGetSuggestedUsers = (currentUserId?: string) => {
         .limit(20);
 
       if (excludeIds.length > 0 && excludeIds.length < 50) {
-        query = query.not("id", "in", `(${excludeIds.join(',')})`);
+        query = query.not("id", "in", `(${excludeIds.join(",")})`);
       }
 
       const { data, error } = await query;
@@ -40,7 +42,9 @@ export const useGetSuggestedUsers = (currentUserId?: string) => {
       type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
       // Client side filter fallback
-      const filtered = (data as ProfileRow[]).filter((p) => !excludeIds.includes(p.id)).slice(0, 5);
+      const filtered = (data as ProfileRow[])
+        .filter((p) => !excludeIds.includes(p.id))
+        .slice(0, 5);
 
       return filtered.map((p) => ({
         id: p.id,
@@ -48,7 +52,7 @@ export const useGetSuggestedUsers = (currentUserId?: string) => {
         name: p.full_name || p.username,
         avatar: p.avatar_url || "",
         subtitle: "Suggested for you",
-        isFollowing: false
+        isFollowing: false,
       })) as (User & { subtitle: string })[];
     },
   });

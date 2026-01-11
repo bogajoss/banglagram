@@ -7,7 +7,7 @@ import type { Comment } from "../queries/useGetComments";
 
 interface CreateCommentVariables {
   targetId: string;
-  type: 'post' | 'reel';
+  type: "post" | "reel";
   text: string;
   userId: string;
 }
@@ -17,14 +17,18 @@ export const useCreateComment = () => {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ targetId, type, text, userId }: CreateCommentVariables) => {
-      const payload = type === 'post'
-        ? { user_id: userId, post_id: targetId, text }
-        : { user_id: userId, reel_id: targetId, text };
+    mutationFn: async ({
+      targetId,
+      type,
+      text,
+      userId,
+    }: CreateCommentVariables) => {
+      const payload =
+        type === "post"
+          ? { user_id: userId, post_id: targetId, text }
+          : { user_id: userId, reel_id: targetId, text };
 
-
-      const { data, error } = await (supabase
-        .from("comments") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase.from("comments") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .insert(payload)
         .select()
         .single();
@@ -43,12 +47,12 @@ export const useCreateComment = () => {
         created_at: new Date().toISOString(),
         text,
         user_id: userId,
-        post_id: type === 'post' ? targetId : undefined,
-        reel_id: type === 'reel' ? targetId : undefined,
+        post_id: type === "post" ? targetId : undefined,
+        reel_id: type === "reel" ? targetId : undefined,
         user: {
           username: profile?.username || "You",
-          avatar_url: profile?.avatar_url || ""
-        }
+          avatar_url: profile?.avatar_url || "",
+        },
       };
 
       queryClient.setQueryData(commentsKey, (old: Comment[] = []) => {
@@ -63,10 +67,13 @@ export const useCreateComment = () => {
       }
     },
     onSuccess: (_, variables) => {
-      const feedKey = variables.type === 'post' ? FEED_QUERY_KEY : REELS_QUERY_KEY;
+      const feedKey =
+        variables.type === "post" ? FEED_QUERY_KEY : REELS_QUERY_KEY;
       queryClient.invalidateQueries({ queryKey: feedKey });
       // Also invalidate comments to get real ID
-      queryClient.invalidateQueries({ queryKey: ["comments", variables.type, variables.targetId] });
+      queryClient.invalidateQueries({
+        queryKey: ["comments", variables.type, variables.targetId],
+      });
     },
   });
 };

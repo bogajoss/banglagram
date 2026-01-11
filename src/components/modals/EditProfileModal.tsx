@@ -33,16 +33,19 @@ const EditProfileModal: React.FC = () => {
 
   const handleSave = () => {
     if (!user) return;
-    updateProfileMutation({
-      userId: user.id,
-      name,
-      bio: bio || "",
-      avatar,
-    }, {
-      onSuccess: () => {
-        onClose();
-      }
-    });
+    updateProfileMutation(
+      {
+        userId: user.id,
+        name,
+        bio: bio || "",
+        avatar,
+      },
+      {
+        onSuccess: () => {
+          onClose();
+        },
+      },
+    );
   };
 
   return (

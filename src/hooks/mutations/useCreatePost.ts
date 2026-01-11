@@ -15,28 +15,32 @@ export const useCreatePost = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ file, caption, location, userId }: CreatePostVariables) => {
+    mutationFn: async ({
+      file,
+      caption,
+      location,
+      userId,
+    }: CreatePostVariables) => {
       // 1. Upload
       const fileExt = file.name.split(".").pop();
       const fileName = `${userId}/${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
         .from("posts")
         .upload(fileName, file, {
-          cacheControl: '3600',
+          cacheControl: "3600",
           upsert: false,
-          contentType: file.type
+          contentType: file.type,
         });
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("posts")
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("posts").getPublicUrl(fileName);
 
       // 2. Insert
 
-      const { data, error: insertError } = await (supabase
-        .from("posts") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      const { data, error: insertError } = await (supabase.from("posts") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .insert({
           user_id: userId,
           caption,
@@ -51,7 +55,9 @@ export const useCreatePost = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: FEED_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY(variables.username) });
+      queryClient.invalidateQueries({
+        queryKey: PROFILE_QUERY_KEY(variables.username),
+      });
     },
   });
 };

@@ -12,11 +12,13 @@ export const useGetExplorePosts = () => {
       // Fetch random posts or just latest posts
       const { data, error } = await supabase
         .from("posts")
-        .select(`
+        .select(
+          `
           *,
           likes (count),
           comments (count)
-        `)
+        `,
+        )
         .limit(20)
         .order("created_at", { ascending: false });
 

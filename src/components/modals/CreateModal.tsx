@@ -22,7 +22,7 @@ const CreateModal: React.FC = () => {
   const [caption, setCaption] = useState("");
   const [location, setLocation] = useState("");
   const [isVideo, setIsVideo] = useState(false);
-  
+
   const { mutate: createPost, isPending: isPostPending } = useCreatePost();
   const { mutate: createReel, isPending: isReelPending } = useCreateReel();
 
@@ -32,7 +32,7 @@ const CreateModal: React.FC = () => {
     const selected = e.target.files?.[0];
     if (selected) {
       setFile(selected);
-      const isVid = selected.type.startsWith('video/');
+      const isVid = selected.type.startsWith("video/");
       setIsVideo(isVid);
       setPreview(URL.createObjectURL(selected));
     }
@@ -40,34 +40,40 @@ const CreateModal: React.FC = () => {
 
   const handleShare = () => {
     if (!file || !user || !profile) return;
-    
+
     if (isVideo) {
-        createReel({
-            file,
-            caption,
-            userId: user.id,
-            username: profile.username
-        }, {
-            onSuccess: () => {
-                showToast("রিল শেয়ার করা হয়েছে");
-                setCreateModalOpen(false);
-            },
-            onError: () => showToast("রিল শেয়ার করতে সমস্যা হয়েছে")
-        });
+      createReel(
+        {
+          file,
+          caption,
+          userId: user.id,
+          username: profile.username,
+        },
+        {
+          onSuccess: () => {
+            showToast("রিল শেয়ার করা হয়েছে");
+            setCreateModalOpen(false);
+          },
+          onError: () => showToast("রিল শেয়ার করতে সমস্যা হয়েছে"),
+        },
+      );
     } else {
-        createPost({ 
-            file, 
-            caption, 
-            location, 
-            userId: user.id, 
-            username: profile.username 
-        }, {
-            onSuccess: () => {
-                showToast("পোস্ট শেয়ার করা হয়েছে");
-                setCreateModalOpen(false);
-            },
-            onError: () => showToast("পোস্ট শেয়ার করতে সমস্যা হয়েছে")
-        });
+      createPost(
+        {
+          file,
+          caption,
+          location,
+          userId: user.id,
+          username: profile.username,
+        },
+        {
+          onSuccess: () => {
+            showToast("পোস্ট শেয়ার করা হয়েছে");
+            setCreateModalOpen(false);
+          },
+          onError: () => showToast("পোস্ট শেয়ার করতে সমস্যা হয়েছে"),
+        },
+      );
     }
   };
 
@@ -129,20 +135,30 @@ const CreateModal: React.FC = () => {
           >
             {preview ? (
               isVideo ? (
-                  <video src={preview} controls className="max-h-full max-w-full" />
+                <video
+                  src={preview}
+                  controls
+                  className="max-h-full max-w-full"
+                />
               ) : (
-                  <OptimizedImage
-                    src={preview}
-                    className="max-h-full max-w-full"
-                    imgClassName="object-contain"
-                    alt="preview"
-                  />
+                <OptimizedImage
+                  src={preview}
+                  className="max-h-full max-w-full"
+                  imgClassName="object-contain"
+                  alt="preview"
+                />
               )
             ) : (
               <div className="flex flex-col items-center gap-4">
                 <div className="flex gap-4 mb-2">
-                    <ImageIcon size={40} className={theme === "dark" ? "text-white" : "text-black"} />
-                    <Video size={40} className={theme === "dark" ? "text-white" : "text-black"} />
+                  <ImageIcon
+                    size={40}
+                    className={theme === "dark" ? "text-white" : "text-black"}
+                  />
+                  <Video
+                    size={40}
+                    className={theme === "dark" ? "text-white" : "text-black"}
+                  />
                 </div>
                 <p className="text-xl font-light">
                   ফটো বা ভিডিও এখানে টেনে আনুন
@@ -170,12 +186,17 @@ const CreateModal: React.FC = () => {
               <div className="p-4 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full overflow-hidden">
                   <OptimizedImage
-                    src={user?.user_metadata?.avatar_url || "https://api.dicebear.com/9.x/avataaars/svg?seed=default"}
+                    src={
+                      user?.user_metadata?.avatar_url ||
+                      "https://api.dicebear.com/9.x/avataaars/svg?seed=default"
+                    }
                     className="w-full h-full"
                     alt="user"
                   />
                 </div>
-                <span className="font-semibold text-sm">{user?.user_metadata?.username}</span>
+                <span className="font-semibold text-sm">
+                  {user?.user_metadata?.username}
+                </span>
               </div>
               <textarea
                 className={`flex-grow p-4 bg-transparent outline-none resize-none text-sm ${theme === "dark" ? "placeholder-gray-500" : "placeholder-gray-400"}`}
@@ -184,21 +205,23 @@ const CreateModal: React.FC = () => {
                 onChange={(e) => setCaption(e.target.value)}
               />
               {!isVideo && (
-                  <div
-                    className={`p-4 border-t ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-400">লোকেশন যোগ করুন</span>
-                      <MapPin size={16} className="text-gray-400" />
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="লোকেশন"
-                      className="w-full bg-transparent outline-none text-sm py-1"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                    />
+                <div
+                  className={`p-4 border-t ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-400">
+                      লোকেশন যোগ করুন
+                    </span>
+                    <MapPin size={16} className="text-gray-400" />
                   </div>
+                  <input
+                    type="text"
+                    placeholder="লোকেশন"
+                    className="w-full bg-transparent outline-none text-sm py-1"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
+                </div>
               )}
             </div>
           )}

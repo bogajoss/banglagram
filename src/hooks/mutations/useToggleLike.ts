@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabaseClient";
 import { FEED_QUERY_KEY } from "../queries/useGetFeed";
@@ -6,7 +7,7 @@ import type { Post, Reel } from "../../types";
 
 interface ToggleLikeVariables {
   targetId: string;
-  type: 'post' | 'reel';
+  type: "post" | "reel";
   userId: string;
   hasLiked: boolean;
 }
@@ -15,10 +16,16 @@ export const useToggleLike = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ targetId, type, userId, hasLiked }: ToggleLikeVariables) => {
-      const matchCriteria = type === 'post'
-        ? { user_id: userId, post_id: targetId }
-        : { user_id: userId, reel_id: targetId };
+    mutationFn: async ({
+      targetId,
+      type,
+      userId,
+      hasLiked,
+    }: ToggleLikeVariables) => {
+      const matchCriteria =
+        type === "post"
+          ? { user_id: userId, post_id: targetId }
+          : { user_id: userId, reel_id: targetId };
 
       if (hasLiked) {
         // Unlike
@@ -29,30 +36,36 @@ export const useToggleLike = () => {
         if (error) throw error;
       } else {
         // Like
-        const { error } = await (supabase
-          .from("likes") as any)
-          .insert(matchCriteria);
+        const { error } = await (supabase.from("likes") as any).insert(
+          matchCriteria,
+        );
         if (error) throw error;
 
         // Manual Notification Trigger (since DB trigger for likes might be missing)
         try {
           let ownerId: string | null = null;
-          if (type === 'post') {
-            const { data: p } = await supabase.from('posts').select('user_id').eq('id', targetId).single();
-            ownerId = (p as any)?.user_id;
+          if (type === "post") {
+            const { data: p } = await (supabase.from("posts") as any)
+              .select("user_id")
+              .eq("id", targetId)
+              .single();
+            ownerId = p?.user_id || null;
           } else {
-            const { data: r } = await supabase.from('reels').select('user_id').eq('id', targetId).single();
-            ownerId = (r as any)?.user_id;
+            const { data: r } = await (supabase.from("reels") as any)
+              .select("user_id")
+              .eq("id", targetId)
+              .single();
+            ownerId = r?.user_id || null;
           }
 
           if (ownerId && ownerId !== userId) {
-            await (supabase.from('notifications') as any).insert({
+            await (supabase.from("notifications") as any).insert({
               user_id: ownerId,
               actor_id: userId,
-              type: 'like',
-              post_id: type === 'post' ? targetId : null,
-              reel_id: type === 'reel' ? targetId : null,
-              is_read: false
+              type: "like",
+              post_id: type === "post" ? targetId : null,
+              reel_id: type === "reel" ? targetId : null,
+              is_read: false,
             });
           }
         } catch (notifError) {
@@ -62,7 +75,7 @@ export const useToggleLike = () => {
       }
     },
     onMutate: async ({ targetId, type, hasLiked }) => {
-      const queryKey = type === 'post' ? FEED_QUERY_KEY : REELS_QUERY_KEY;
+      const queryKey = type === "post" ? FEED_QUERY_KEY : REELS_QUERY_KEY;
 
       // Cancel refetches
       await queryClient.cancelQueries({ queryKey });
@@ -75,7 +88,12 @@ export const useToggleLike = () => {
         if (!old) return old;
 
         // Handle Infinite Query (Feed)
-        if (type === 'post' && typeof old === 'object' && old !== null && 'pages' in old) {
+        if (
+          type === "post" &&
+          typeof old === "object" &&
+          old !== null &&
+          "pages" in old
+        ) {
           const pagesOld = old as { pages: Post[][] };
           return {
             ...pagesOld,
@@ -86,24 +104,28 @@ export const useToggleLike = () => {
                   return {
                     ...post,
                     hasLiked: !hasLiked,
-                    likes: hasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1
+                    likes: hasLiked
+                      ? Math.max(0, currentLikes - 1)
+                      : currentLikes + 1,
                   };
                 }
                 return post;
-              })
-            )
+              }),
+            ),
           };
         }
 
         // Handle Array Query (Reels)
-        if (type === 'reel' && Array.isArray(old)) {
+        if (type === "reel" && Array.isArray(old)) {
           return old.map((reel: Reel) => {
             if (reel.id === targetId) {
               const currentLikes = Number(reel.likes);
               return {
                 ...reel,
                 hasLiked: !hasLiked,
-                likes: hasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1
+                likes: hasLiked
+                  ? Math.max(0, currentLikes - 1)
+                  : currentLikes + 1,
               };
             }
             return reel;
@@ -115,15 +137,19 @@ export const useToggleLike = () => {
 
       return { previousData, queryKey };
     },
-    onError: (err, _variables, context: { previousData?: unknown; queryKey: string[] } | undefined) => {
+    onError: (
+      err,
+      _variables,
+      context: { previousData?: unknown; queryKey: string[] } | undefined,
+    ) => {
       if (context?.previousData) {
         queryClient.setQueryData(context.queryKey, context.previousData);
       }
       console.error(err);
     },
     onSettled: (_, __, { type }) => {
-      const queryKey = type === 'post' ? FEED_QUERY_KEY : REELS_QUERY_KEY;
+      const queryKey = type === "post" ? FEED_QUERY_KEY : REELS_QUERY_KEY;
       queryClient.invalidateQueries({ queryKey });
-    }
+    },
   });
 };

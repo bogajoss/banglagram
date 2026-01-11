@@ -16,13 +16,8 @@ import { useToggleSave } from "../hooks/mutations/useToggleSave";
 import OptimizedImage from "../components/OptimizedImage";
 
 const HomeView: React.FC = () => {
-  const {
-    currentUser,
-    theme,
-    showToast,
-    setViewingStory,
-    setViewingPost,
-  } = useAppStore();
+  const { currentUser, theme, showToast, setViewingStory, setViewingPost } =
+    useAppStore();
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -34,7 +29,7 @@ const HomeView: React.FC = () => {
     isError: feedError,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage
+    isFetchingNextPage,
   } = useGetFeed(user?.id);
 
   const { data: stories = [] } = useGetStories(user?.id);
@@ -47,7 +42,6 @@ const HomeView: React.FC = () => {
       fetchNextPage();
     }
   }, [inView, hasNextPage, fetchNextPage]);
-
 
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const textSecondary = theme === "dark" ? "text-[#a8a8a8]" : "text-zinc-500";
@@ -78,11 +72,15 @@ const HomeView: React.FC = () => {
         <div className="w-full h-96 bg-gray-200 dark:bg-gray-800 animate-pulse rounded-md mb-4"></div>
         <div className="w-full h-96 bg-gray-200 dark:bg-gray-800 animate-pulse rounded-md"></div>
       </div>
-    )
+    );
   }
 
   if (feedError) {
-    return <div className="p-4 text-center">Error loading feed. Please try again.</div>
+    return (
+      <div className="p-4 text-center">
+        Error loading feed. Please try again.
+      </div>
+    );
   }
 
   return (
@@ -153,11 +151,13 @@ const HomeView: React.FC = () => {
                   key={post.id}
                   post={post}
                   isSaved={!!post.hasSaved}
-                  onToggleSave={() => toggleSaveMutation({
-                    postId: post.id,
-                    userId: user?.id || "",
-                    hasSaved: !!post.hasSaved
-                  })}
+                  onToggleSave={() =>
+                    toggleSaveMutation({
+                      postId: post.id,
+                      userId: user?.id || "",
+                      hasSaved: !!post.hasSaved,
+                    })
+                  }
                   onUserClick={handleUserClick}
                   onPostClick={setViewingPost}
                 />
@@ -165,7 +165,11 @@ const HomeView: React.FC = () => {
             </React.Fragment>
           ))}
           <div ref={ref} className="h-10 text-center text-gray-500">
-            {isFetchingNextPage ? 'Loading more...' : hasNextPage ? 'Load more' : 'No more posts'}
+            {isFetchingNextPage
+              ? "Loading more..."
+              : hasNextPage
+                ? "Load more"
+                : "No more posts"}
           </div>
         </div>
       </div>
@@ -233,7 +237,7 @@ const HomeView: React.FC = () => {
                       targetUserId: u.id,
                       currentUserId: user.id,
                       isFollowing: false,
-                      targetUsername: u.username
+                      targetUsername: u.username,
                     });
                   }
                 }}

@@ -5,7 +5,10 @@ import type { Database } from "../../database.types";
 
 export const PROFILE_QUERY_KEY = (username: string) => ["profile", username];
 
-export const useGetProfile = (username: string | undefined, currentUserId?: string) => {
+export const useGetProfile = (
+  username: string | undefined,
+  currentUserId?: string,
+) => {
   return useQuery({
     queryKey: PROFILE_QUERY_KEY(username || ""),
     enabled: !!username,
@@ -20,7 +23,8 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
         .single();
 
       if (error) throw error;
-      const profile = profileData as Database["public"]["Tables"]["profiles"]["Row"];
+      const profile =
+        profileData as Database["public"]["Tables"]["profiles"]["Row"];
 
       // 2. Fetch Stats
       const { count: postsCount } = await supabase
@@ -41,11 +45,13 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
       // 3. Fetch User's Posts
       const { data: postsData } = await supabase
         .from("posts")
-        .select(`
+        .select(
+          `
            *,
            likes (count),
            comments (count)
-        `)
+        `,
+        )
         .eq("user_id", profile.id)
         .order("created_at", { ascending: false });
 
@@ -59,7 +65,7 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
       // Check likes for these posts if currentUserId is provided
       const likedPostIds = new Set<string>();
       if (currentUserId && posts.length > 0) {
-        const postIds = posts.map(p => p.id);
+        const postIds = posts.map((p) => p.id);
         const { data: likesData } = await supabase
           .from("likes")
           .select("post_id")
@@ -67,7 +73,9 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
           .in("post_id", postIds);
 
         if (likesData) {
-          (likesData as { post_id: string | null }[]).forEach(l => likedPostIds.add(l.post_id || ""));
+          (likesData as { post_id: string | null }[]).forEach((l) =>
+            likedPostIds.add(l.post_id || ""),
+          );
         }
       }
 
@@ -90,7 +98,7 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
           user: {
             username: profile.username,
             name: profile.full_name || profile.username,
-            avatar: profile.avatar_url || ""
+            avatar: profile.avatar_url || "",
           },
           content: { type: "image", src: post.image_url },
           likes: likes[0]?.count || 0,
@@ -98,7 +106,7 @@ export const useGetProfile = (username: string | undefined, currentUserId?: stri
           comments: comments[0]?.count || 0,
           time: new Date(post.created_at).toLocaleDateString(),
           isVerified: false,
-          hasLiked: likedPostIds.has(post.id)
+          hasLiked: likedPostIds.has(post.id),
         };
       });
 

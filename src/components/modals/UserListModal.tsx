@@ -62,7 +62,9 @@ const UserListModal: React.FC<UserListModalProps> = ({
                     />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold">{user.username}</span>
+                    <span className="text-sm font-semibold">
+                      {user.username}
+                    </span>
                     <span className="text-xs opacity-70">
                       {user.name || user.username}
                     </span>
@@ -77,7 +79,9 @@ const UserListModal: React.FC<UserListModalProps> = ({
             ))
           )}
           {!loading && users.length === 0 && (
-            <div className="text-center py-10 text-sm opacity-60">তালিকা খালি</div>
+            <div className="text-center py-10 text-sm opacity-60">
+              তালিকা খালি
+            </div>
           )}
         </div>
       </div>

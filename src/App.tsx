@@ -41,7 +41,9 @@ export default function App() {
   useEffect(() => {
     const lastRead = localStorage.getItem("lastNotificationReadTime");
     const lastReadDate = lastRead ? new Date(lastRead) : new Date(0);
-    const unread = notifications.filter((n: any) => n.created_at && new Date(n.created_at) > lastReadDate);
+    const unread = notifications.filter(
+      (n) => n.created_at && new Date(n.created_at) > lastReadDate,
+    );
     setUnreadNotificationsCount(unread.length);
   }, [notifications, setUnreadNotificationsCount]);
 
@@ -51,9 +53,12 @@ export default function App() {
       const appUser: AppUser = {
         username: profile.username,
         name: profile.full_name || user.email || "User",
-        avatar: profile.avatar_url || "https://api.dicebear.com/9.x/avataaars/svg?seed=default",
+        avatar:
+          profile.avatar_url ||
+          "https://api.dicebear.com/9.x/avataaars/svg?seed=default",
         bio: profile.bio || "",
-        stats: { // These would ideally come from the DB too, simple default for now or fetch via hook
+        stats: {
+          // These would ideally come from the DB too, simple default for now or fetch via hook
           posts: 0,
           followers: 0,
           following: 0,
@@ -79,15 +84,19 @@ export default function App() {
 
   if (!user) {
     return (
-      <Suspense fallback={
-        <div className={`min-h-screen flex items-center justify-center ${theme === "dark" ? "bg-black" : "bg-white"}`}>
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
-            className="w-20 h-20 animate-pulse"
-            alt="Loading"
-          />
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div
+            className={`min-h-screen flex items-center justify-center ${theme === "dark" ? "bg-black" : "bg-white"}`}
+          >
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
+              className="w-20 h-20 animate-pulse"
+              alt="Loading"
+            />
+          </div>
+        }
+      >
         <AuthView />
       </Suspense>
     );
@@ -118,7 +127,9 @@ export default function App() {
       <AnimatePresence mode="wait">
         <Suspense
           fallback={
-            <div className={`min-h-screen w-full flex items-center justify-center ${theme === "dark" ? "bg-black" : "bg-white"}`}>
+            <div
+              className={`min-h-screen w-full flex items-center justify-center ${theme === "dark" ? "bg-black" : "bg-white"}`}
+            >
               <div className="w-8 h-8 border-4 border-[#006a4e] border-t-transparent rounded-full animate-spin"></div>
             </div>
           }

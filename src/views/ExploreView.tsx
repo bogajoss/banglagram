@@ -24,13 +24,19 @@ const ExploreView: React.FC = () => {
       if (searchQuery.trim().length > 0) {
         setIsSearching(true);
         const { data } = await supabase
-          .from('profiles')
-          .select('username, full_name, avatar_url')
-          .ilike('username', `%${searchQuery}%`)
+          .from("profiles")
+          .select("username, full_name, avatar_url")
+          .ilike("username", `%${searchQuery}%`)
           .limit(10);
 
         if (data) {
-          const users: User[] = (data as { username: string; full_name: string; avatar_url: string }[]).map((p) => ({
+          const users: User[] = (
+            data as {
+              username: string;
+              full_name: string;
+              avatar_url: string;
+            }[]
+          ).map((p) => ({
             username: p.username,
             name: p.full_name || p.username,
             avatar: p.avatar_url || "",
@@ -95,7 +101,9 @@ const ExploreView: React.FC = () => {
         <div className="flex flex-col gap-2">
           {isSearching && <div className="p-4 text-center">Searching...</div>}
           {!isSearching && searchResults.length === 0 && (
-            <div className="p-4 text-center text-gray-500">কোনো ফলাফল পাওয়া যায়নি</div>
+            <div className="p-4 text-center text-gray-500">
+              কোনো ফলাফল পাওয়া যায়নি
+            </div>
           )}
           {searchResults.map((user) => (
             <div
@@ -144,7 +152,11 @@ const ExploreView: React.FC = () => {
                       <Heart fill="white" size={16} /> {post.likes}
                     </div>
                     <div className="flex items-center gap-1">
-                      <CommentIcon fill="white" size={16} className="-scale-x-100" />{" "}
+                      <CommentIcon
+                        fill="white"
+                        size={16}
+                        className="-scale-x-100"
+                      />{" "}
                       {post.comments}
                     </div>
                   </div>

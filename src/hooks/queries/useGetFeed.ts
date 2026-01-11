@@ -14,25 +14,31 @@ export const useGetFeed = (userId?: string) => {
       // 1. Fetch Posts
       const { data: postsData, error: postsError } = await supabase
         .from("posts")
-        .select(`
+        .select(
+          `
           *,
           profiles (username, full_name, avatar_url),
           likes (count),
           comments (count)
-        `)
+        `,
+        )
         .order("created_at", { ascending: false })
         .range(from, to);
 
       if (postsError) throw postsError;
 
       type PostWithProfile = Database["public"]["Tables"]["posts"]["Row"] & {
-        profiles: { username: string; full_name: string | null; avatar_url: string | null } | null;
+        profiles: {
+          username: string;
+          full_name: string | null;
+          avatar_url: string | null;
+        } | null;
         likes: { count: number }[];
         comments: { count: number }[];
       };
 
       const posts = (postsData || []) as unknown as PostWithProfile[];
-      const postIds = posts.map(p => p.id);
+      const postIds = posts.map((p) => p.id);
 
       // 2. Fetch User Likes and Saves (if logged in)
       const likedPostIds = new Set<string>();

@@ -53,22 +53,27 @@ const ProfileView: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
 
-  const targetUsername = username || authUser?.user_metadata?.username || currentUser.username;
+  const targetUsername =
+    username || authUser?.user_metadata?.username || currentUser.username;
 
-  const { data, isLoading, isError } = useGetProfile(targetUsername, authUser?.id);
+  const { data, isLoading, isError } = useGetProfile(
+    targetUsername,
+    authUser?.id,
+  );
   const { mutate: followUser } = useFollowUser();
 
   const { data: followsList = [], isLoading: followsLoading } = useGetFollows(
     data?.user?.id || "",
-    listModalType
+    listModalType,
   );
 
-  const { data: realSavedPosts = [] } = useGetSavedPosts(isMe ? authUser?.id : undefined);
+  const { data: realSavedPosts = [] } = useGetSavedPosts(
+    isMe ? authUser?.id : undefined,
+  );
   const { data: taggedPosts = [] } = useGetTaggedPosts(data?.user?.id);
 
   const profileUser = data?.user;
   const userPosts = data?.posts || [];
-
 
   const userIsFollowing = profileUser?.isFollowing || false;
 
@@ -76,7 +81,12 @@ const ProfileView: React.FC = () => {
   const textSecondary = theme === "dark" ? "text-[#a8a8a8]" : "text-zinc-500";
   const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
 
-  const displayPosts = activeTab === "saved" ? realSavedPosts : (activeTab === "tagged" ? taggedPosts : userPosts);
+  const displayPosts =
+    activeTab === "saved"
+      ? realSavedPosts
+      : activeTab === "tagged"
+        ? taggedPosts
+        : userPosts;
 
   const handleOpenList = (type: "followers" | "following") =>
     setListModalType(type);
@@ -109,9 +119,9 @@ const ProfileView: React.FC = () => {
       targetUserId: data?.user?.id || "",
       currentUserId: authUser.id,
       isFollowing: userIsFollowing,
-      targetUsername: profileUser.username
+      targetUsername: profileUser.username,
     });
-  }
+  };
 
   const handleStoryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -124,8 +134,10 @@ const ProfileView: React.FC = () => {
     }
   };
 
-  if (isLoading) return <div className="flex justify-center p-10">Loading...</div>;
-  if (isError || !profileUser) return <div className="flex justify-center p-10">Profile not found</div>;
+  if (isLoading)
+    return <div className="flex justify-center p-10">Loading...</div>;
+  if (isError || !profileUser)
+    return <div className="flex justify-center p-10">Profile not found</div>;
 
   return (
     <div className="w-full max-w-[935px] px-0 md:px-5 py-0 md:py-[30px]">
@@ -147,8 +159,12 @@ const ProfileView: React.FC = () => {
           }
         />
       )}
-      {isSettingsOpen && <SettingsModal onClose={() => setIsSettingsOpen(false)} />}
-      {isArchiveOpen && <ArchiveModal onClose={() => setIsArchiveOpen(false)} />}
+      {isSettingsOpen && (
+        <SettingsModal onClose={() => setIsSettingsOpen(false)} />
+      )}
+      {isArchiveOpen && (
+        <ArchiveModal onClose={() => setIsArchiveOpen(false)} />
+      )}
 
       <div
         className={`md:hidden sticky top-0 z-10 border-b ${borderClass} px-4 h-[44px] flex items-center justify-between ${theme === "dark" ? "bg-black/90 backdrop-blur-md" : "bg-white/90 backdrop-blur-md"}`}
@@ -257,7 +273,11 @@ const ProfileView: React.FC = () => {
                     {userIsFollowing ? "ফলো করছেন" : "ফলো"}
                   </button>
                   <button
-                    onClick={() => navigate(`/messages/${profileUser.username}`, { state: { user: profileUser } })}
+                    onClick={() =>
+                      navigate(`/messages/${profileUser.username}`, {
+                        state: { user: profileUser },
+                      })
+                    }
                     className={`${theme === "dark" ? "bg-[#363636] hover:bg-[#262626]" : "bg-gray-200 hover:bg-gray-300"} text-sm font-semibold px-4 py-[7px] rounded-lg transition-colors flex-grow md:flex-grow-0 text-center`}
                   >
                     মেসেজ

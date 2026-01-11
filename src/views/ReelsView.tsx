@@ -22,11 +22,19 @@ const ReelsView: React.FC = () => {
   };
 
   if (isLoading) {
-      return <div className="h-screen w-full flex items-center justify-center bg-black text-white">Loading reels...</div>;
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-black text-white">
+        Loading reels...
+      </div>
+    );
   }
 
   if (reels.length === 0) {
-      return <div className="h-screen w-full flex items-center justify-center bg-black text-white">No reels yet</div>;
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-black text-white">
+        No reels yet
+      </div>
+    );
   }
 
   return (

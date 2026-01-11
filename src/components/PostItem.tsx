@@ -48,7 +48,12 @@ const PostItem: React.FC<PostItemProps> = ({
 
   const handleLike = () => {
     if (!user) return;
-    toggleLike({ targetId: String(post.id), type: 'post', userId: user.id, hasLiked: liked });
+    toggleLike({
+      targetId: String(post.id),
+      type: "post",
+      userId: user.id,
+      hasLiked: liked,
+    });
   };
 
   const handleDoubleClick = () => {
@@ -61,18 +66,21 @@ const PostItem: React.FC<PostItemProps> = ({
     e.preventDefault();
     if (!newComment.trim() || !user) return;
 
-    createComment({
-      targetId: String(post.id),
-      type: 'post',
-      text: newComment,
-      userId: user.id
-    }, {
-      onSuccess: () => {
-        showToast("কমেন্ট যোগ করা হয়েছে");
-        setNewComment("");
+    createComment(
+      {
+        targetId: String(post.id),
+        type: "post",
+        text: newComment,
+        userId: user.id,
       },
-      onError: () => showToast("কমেন্ট যোগ করতে সমস্যা হয়েছে")
-    });
+      {
+        onSuccess: () => {
+          showToast("কমেন্ট যোগ করা হয়েছে");
+          setNewComment("");
+        },
+        onError: () => showToast("কমেন্ট যোগ করতে সমস্যা হয়েছে"),
+      },
+    );
   };
 
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
@@ -219,9 +227,7 @@ const PostItem: React.FC<PostItemProps> = ({
       </div>
 
       <div className="text-sm px-3 md:px-0">
-        <div className="font-semibold mb-1">
-          {post.likes} লাইক
-        </div>
+        <div className="font-semibold mb-1">{post.likes} লাইক</div>
         <div className="mb-1">
           <span
             className="font-semibold mr-2 cursor-pointer hover:opacity-70"

@@ -44,7 +44,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     username: "",
     name: "",
     avatar: "",
-    stats: { posts: 0, followers: 0, following: 0 }
+    stats: { posts: 0, followers: 0, following: 0 },
   },
   stories: [],
   posts: [],
@@ -61,7 +61,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   unreadNotificationsCount: 0,
   unreadMessagesCount: 0,
 
-  setUnreadNotificationsCount: (count) => set({ unreadNotificationsCount: count }),
+  setUnreadNotificationsCount: (count) =>
+    set({ unreadNotificationsCount: count }),
   setUnreadMessagesCount: (count) => set({ unreadMessagesCount: count }),
 
   toggleSidebar: () =>
@@ -87,7 +88,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   toggleSave: (postId) =>
     set((state) => {
-      const newSaved = new Set<string>(state.savedPostIds as unknown as Iterable<string>);
+      const newSaved = new Set<string>(
+        state.savedPostIds as unknown as Iterable<string>,
+      );
       if (newSaved.has(postId)) {
         newSaved.delete(postId);
         get().showToast("সেভ থেকে সরানো হয়েছে");
@@ -160,7 +163,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         comments: 0,
         time: "এইমাত্র",
         commentList: [],
-        hasLiked: false
+        hasLiked: false,
       };
       // get().showToast("পোস্ট শেয়ার করা হয়েছে");
       return { posts: [newPost, ...state.posts] };

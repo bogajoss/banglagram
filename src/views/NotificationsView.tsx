@@ -11,14 +11,16 @@ import { supabase } from "../lib/supabaseClient";
 import OptimizedImage from "../components/OptimizedImage";
 
 const NotificationsView: React.FC = () => {
-  const { theme, followedUsers, toggleFollow, setUnreadNotificationsCount } = useAppStore();
+  const { theme, followedUsers, toggleFollow, setUnreadNotificationsCount } =
+    useAppStore();
   const navigate = useNavigate();
   const { user } = useAuth();
   const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const textSecondary = theme === "dark" ? "text-[#a8a8a8]" : "text-zinc-500";
 
-  const { data: notifications = [], isLoading: notifLoading } = useGetNotifications(user?.id);
+  const { data: notifications = [], isLoading: notifLoading } =
+    useGetNotifications(user?.id);
   const { data: suggestedUsers = [] } = useGetSuggestedUsers(user?.id);
 
   const { setViewingPost, setViewingReel } = useAppStore();
@@ -35,7 +37,7 @@ const NotificationsView: React.FC = () => {
   };
 
   const handleNotificationClick = async (notif: Notification) => {
-    if (notif.type === 'follow') {
+    if (notif.type === "follow") {
       if (notif.user) onUserClick(notif.user);
       return;
     }
@@ -43,78 +45,84 @@ const NotificationsView: React.FC = () => {
     try {
       if (notif.postId) {
         const { data, error } = await supabase
-          .from('posts')
-          .select(`
+          .from("posts")
+          .select(
+            `
                     *,
                     user:profiles(*),
                     likes(count),
                     comments(count)
-                `)
-          .eq('id', notif.postId)
+                `,
+          )
+          .eq("id", notif.postId)
           .single();
 
         if (error || !data) throw error;
 
         // Define exact shape or cast to unknown first
-        const postData = data as unknown as Database['public']['Tables']['posts']['Row'] & {
-          user: Database['public']['Tables']['profiles']['Row'];
-          likes: { count: number }[];
-          comments: { count: number }[];
-        };
+        const postData =
+          data as unknown as Database["public"]["Tables"]["posts"]["Row"] & {
+            user: Database["public"]["Tables"]["profiles"]["Row"];
+            likes: { count: number }[];
+            comments: { count: number }[];
+          };
 
         // Fetch if current user liked it
         const { count } = await supabase
-          .from('likes')
-          .select('*', { count: 'exact', head: true })
-          .eq('post_id', notif.postId)
-          .eq('user_id', user?.id || "");
+          .from("likes")
+          .select("*", { count: "exact", head: true })
+          .eq("post_id", notif.postId)
+          .eq("user_id", user?.id || "");
 
         const post = {
           id: postData.id,
           user: {
             username: postData.user.username,
             name: postData.user.full_name,
-            avatar: postData.user.avatar_url
+            avatar: postData.user.avatar_url,
           },
           content: {
-            type: 'image', // Assuming image for posts
+            type: "image", // Assuming image for posts
             src: postData.image_url,
-            poster: postData.image_url
+            poster: postData.image_url,
           },
           likes: postData.likes[0].count,
           comments: postData.comments[0].count,
           caption: postData.caption,
           time: new Date(postData.created_at).toLocaleDateString(),
           hasLiked: count ? count > 0 : false,
-          commentList: []
+          commentList: [],
         };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setViewingPost(post as any); // Post type mismatch slightly on 'content', ok for now
       } else if (notif.reelId) {
         const { data, error } = await supabase
-          .from('reels')
-          .select(`
+          .from("reels")
+          .select(
+            `
                     *,
                     user:profiles(*),
                     likes(count),
                     comments(count)
-                `)
-          .eq('id', notif.reelId)
+                `,
+          )
+          .eq("id", notif.reelId)
           .single();
 
         if (error || !data) throw error;
 
-        const reelData = data as unknown as Database['public']['Tables']['reels']['Row'] & {
-          user: Database['public']['Tables']['profiles']['Row'];
-          likes: { count: number }[];
-          comments: { count: number }[];
-        };
+        const reelData =
+          data as unknown as Database["public"]["Tables"]["reels"]["Row"] & {
+            user: Database["public"]["Tables"]["profiles"]["Row"];
+            likes: { count: number }[];
+            comments: { count: number }[];
+          };
 
         const { count } = await supabase
-          .from('likes')
-          .select('*', { count: 'exact', head: true })
-          .eq('reel_id', notif.reelId)
-          .eq('user_id', user?.id || "");
+          .from("likes")
+          .select("*", { count: "exact", head: true })
+          .eq("reel_id", notif.reelId)
+          .eq("user_id", user?.id || "");
 
         const reel = {
           id: reelData.id,
@@ -122,7 +130,7 @@ const NotificationsView: React.FC = () => {
           user: {
             username: reelData.user.username,
             name: reelData.user.full_name,
-            avatar: reelData.user.avatar_url
+            avatar: reelData.user.avatar_url,
           },
           likes: reelData.likes[0].count,
           comments: reelData.comments[0].count,
@@ -138,7 +146,6 @@ const NotificationsView: React.FC = () => {
     }
   };
 
-
   return (
     <div className="w-full max-w-[600px] flex flex-col gap-6">
       <div
@@ -152,8 +159,14 @@ const NotificationsView: React.FC = () => {
         <div>
           <h2 className="text-base font-bold mb-4 px-2">আগের</h2>
           <div className="flex flex-col gap-4">
-            {notifLoading && <div className="p-4 text-center">Loading notifications...</div>}
-            {!notifLoading && notifications.length === 0 && <div className="p-4 text-center text-gray-500">কোনো নোটিফিকেশন নেই</div>}
+            {notifLoading && (
+              <div className="p-4 text-center">Loading notifications...</div>
+            )}
+            {!notifLoading && notifications.length === 0 && (
+              <div className="p-4 text-center text-gray-500">
+                কোনো নোটিফিকেশন নেই
+              </div>
+            )}
 
             {notifications.map((notif) => (
               <div
@@ -195,7 +208,10 @@ const NotificationsView: React.FC = () => {
                         {notif.user.username}
                       </span>
                     )}
-                    <span className="ml-1 cursor-pointer hover:opacity-80" onClick={() => handleNotificationClick(notif)}>
+                    <span
+                      className="ml-1 cursor-pointer hover:opacity-80"
+                      onClick={() => handleNotificationClick(notif)}
+                    >
                       {notif.text}
                     </span>
                     <span className={`${textSecondary} ml-1`}>
@@ -217,8 +233,7 @@ const NotificationsView: React.FC = () => {
                   </button>
                 ) : null}
               </div>
-            ),
-            )}
+            ))}
           </div>
         </div>
         <div className={`border-t ${borderClass} pt-4`}>

@@ -29,7 +29,7 @@ const PostDetailsModal: React.FC = () => {
     savedPostIds,
     toggleSave,
     setViewingPost,
-    setViewingReel
+    setViewingReel,
   } = useAppStore();
   const navigate = useNavigate();
 
@@ -42,10 +42,13 @@ const PostDetailsModal: React.FC = () => {
 
   const activeItem = viewingPost || viewingReel;
   const isReel = !!viewingReel;
-  const type = isReel ? 'reel' : 'post';
+  const type = isReel ? "reel" : "post";
   const itemId = activeItem ? String(activeItem.id) : "";
 
-  const { data: comments, isLoading: loadingComments } = useGetComments(itemId, type);
+  const { data: comments, isLoading: loadingComments } = useGetComments(
+    itemId,
+    type,
+  );
 
   if (!activeItem) return null;
 
@@ -54,25 +57,33 @@ const PostDetailsModal: React.FC = () => {
 
   const handleLike = () => {
     if (!user) return;
-    toggleLike({ targetId: String(activeItem.id), type, userId: user.id, hasLiked: liked });
+    toggleLike({
+      targetId: String(activeItem.id),
+      type,
+      userId: user.id,
+      hasLiked: liked,
+    });
   };
 
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !user) return;
 
-    createComment({
-      targetId: String(activeItem.id),
-      type,
-      text: newComment,
-      userId: user.id
-    }, {
-      onSuccess: () => {
-        showToast("কমেন্ট যোগ করা হয়েছে");
-        setNewComment("");
+    createComment(
+      {
+        targetId: String(activeItem.id),
+        type,
+        text: newComment,
+        userId: user.id,
       },
-      onError: () => showToast("কমেন্ট যোগ করতে সমস্যা হয়েছে")
-    });
+      {
+        onSuccess: () => {
+          showToast("কমেন্ট যোগ করা হয়েছে");
+          setNewComment("");
+        },
+        onError: () => showToast("কমেন্ট যোগ করতে সমস্যা হয়েছে"),
+      },
+    );
   };
 
   const onClose = () => {
@@ -104,7 +115,7 @@ const PostDetailsModal: React.FC = () => {
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
         className={`w-full max-w-5xl h-[80vh] md:h-auto md:max-h-[90vh] rounded-t-xl md:rounded-lg overflow-hidden flex flex-col md:flex-row shadow-2xl ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
       >
         {/* Media Section */}
         <div className="hidden md:flex flex-1 bg-black items-center justify-center min-h-[300px] md:h-auto border-r border-zinc-800 relative">
@@ -118,7 +129,10 @@ const PostDetailsModal: React.FC = () => {
             />
           ) : (
             <OptimizedImage
-              src={(activeItem as any).content?.src || (activeItem as any).content?.poster}
+              src={
+                (activeItem as any).content?.src ||
+                (activeItem as any).content?.poster
+              }
               className="max-h-full max-w-full"
               imgClassName="object-contain"
               alt="post detail"
@@ -132,7 +146,9 @@ const PostDetailsModal: React.FC = () => {
             className={`p-4 border-b ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"} flex items-center justify-between shrink-0`}
           >
             {/* Mobile Header: Comments Title */}
-            <div className="md:hidden w-full text-center font-bold text-sm">কমেন্ট</div>
+            <div className="md:hidden w-full text-center font-bold text-sm">
+              কমেন্ট
+            </div>
 
             {/* Desktop Header: User Profile */}
             <div
@@ -158,7 +174,10 @@ const PostDetailsModal: React.FC = () => {
             />
 
             {/* Mobile Close Button */}
-            <div className="absolute right-4 top-4 md:hidden cursor-pointer" onClick={onClose}>
+            <div
+              className="absolute right-4 top-4 md:hidden cursor-pointer"
+              onClick={onClose}
+            >
               <X size={20} />
             </div>
           </div>
@@ -183,35 +202,48 @@ const PostDetailsModal: React.FC = () => {
                   {activeItem.user.username}
                 </span>
                 <span>{activeItem.caption}</span>
-                <div className="text-xs text-zinc-500 mt-1">{(activeItem as any).time}</div>
+                <div className="text-xs text-zinc-500 mt-1">
+                  {(activeItem as any).time}
+                </div>
               </div>
             </div>
 
             {loadingComments ? (
-              <div className="text-center py-4 text-zinc-500 text-sm">लोड হচ্ছে...</div>
+              <div className="text-center py-4 text-zinc-500 text-sm">
+                लोड হচ্ছে...
+              </div>
             ) : comments && comments.length > 0 ? (
               comments.map((c: any) => {
                 // Simple time ago helper
                 const timeAgo = (dateStr: string) => {
                   try {
-                    const diff = (new Date().getTime() - new Date(dateStr).getTime()) / 1000;
+                    const diff =
+                      (new Date().getTime() - new Date(dateStr).getTime()) /
+                      1000;
                     if (diff < 60) return "এখনই";
                     if (diff < 3600) return `${Math.floor(diff / 60)}মি`;
                     if (diff < 86400) return `${Math.floor(diff / 3600)}ঘ`;
                     return `${Math.floor(diff / 86400)}দিন`;
-                  } catch (e) { return "" }
+                  } catch {
+                    return "";
+                  }
                 };
 
                 return (
-                  <div key={c.id} className="flex gap-3 justify-between items-start group">
+                  <div
+                    key={c.id}
+                    className="flex gap-3 justify-between items-start group"
+                  >
                     <div className="flex gap-3">
                       <div
                         className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
-                        onClick={() => onUserClick({
-                          username: c.user.username,
-                          name: c.user.username,
-                          avatar: c.user.avatar_url
-                        } as User)}
+                        onClick={() =>
+                          onUserClick({
+                            username: c.user.username,
+                            name: c.user.username,
+                            avatar: c.user.avatar_url,
+                          } as User)
+                        }
                       >
                         <OptimizedImage
                           src={c.user.avatar_url}
@@ -223,11 +255,13 @@ const PostDetailsModal: React.FC = () => {
                         <div className="text-sm leading-tight">
                           <span
                             className="font-semibold mr-2 cursor-pointer hover:opacity-70"
-                            onClick={() => onUserClick({
-                              username: c.user.username,
-                              name: c.user.username,
-                              avatar: c.user.avatar_url
-                            } as User)}
+                            onClick={() =>
+                              onUserClick({
+                                username: c.user.username,
+                                name: c.user.username,
+                                avatar: c.user.avatar_url,
+                              } as User)
+                            }
                           >
                             {c.user.username}
                           </span>
@@ -235,17 +269,26 @@ const PostDetailsModal: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-4 text-xs text-zinc-500 font-semibold mt-1.5">
                           <span>{timeAgo(c.created_at)}</span>
-                          <span className="cursor-pointer hover:text-zinc-400">0 লাইক</span>
-                          <span className="cursor-pointer hover:text-zinc-400">রিপ্লাই</span>
+                          <span className="cursor-pointer hover:text-zinc-400">
+                            0 লাইক
+                          </span>
+                          <span className="cursor-pointer hover:text-zinc-400">
+                            রিপ্লাই
+                          </span>
                         </div>
                       </div>
                     </div>
-                    <Heart size={12} className="cursor-pointer text-zinc-500 hover:opacity-50 mt-2" />
+                    <Heart
+                      size={12}
+                      className="cursor-pointer text-zinc-500 hover:opacity-50 mt-2"
+                    />
                   </div>
-                )
+                );
               })
             ) : (
-              <div className="text-center py-10 text-zinc-500 text-sm">কোনো কমেন্ট নেই</div>
+              <div className="text-center py-10 text-zinc-500 text-sm">
+                কোনো কমেন্ট নেই
+              </div>
             )}
           </div>
 
@@ -284,7 +327,7 @@ const PostDetailsModal: React.FC = () => {
 
             {/* Quick Emojis */}
             <div className="flex justify-between px-2 mb-3 mt-1 overflow-x-auto gap-4 scrollbar-hide">
-              {['❤️', '🙌', '🔥', '👏', '😢', '😍', '😮', '😂'].map((emoji) => (
+              {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😮", "😂"].map((emoji) => (
                 <span
                   key={emoji}
                   className="text-2xl cursor-pointer hover:scale-125 transition-transform"

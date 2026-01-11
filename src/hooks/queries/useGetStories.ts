@@ -14,31 +14,38 @@ export const useGetStories = (currentUserId: string | undefined) => {
 
       const { data, error } = await supabase
         .from("stories")
-        .select(`
+        .select(
+          `
             *,
             user:profiles (
                 username,
                 avatar_url
             )
-        `)
+        `,
+        )
         // .gt("expires_at", new Date().toISOString()) // Uncomment if expiration works correctly
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       // Transform
-      const stories: Story[] = data.map((s: any) => ({
+      const stories: Story[] = data.map((s: {
+        id: string;
+        user_id: string;
+        media_url: string;
+        user: { username: string; avatar_url: string | null } | null;
+      }) => ({
         id: s.id,
         username: s.user?.username || "User",
         img: s.media_url, // Assuming media_url is image. If video, Story type might need update
-        isUser: s.user_id === currentUserId
+        isUser: s.user_id === currentUserId,
       }));
 
-      // Group by user? 
+      // Group by user?
       // Current UI (HomeView) shows list of circles. 1 circle per user? Or per story?
       // Instagram shows 1 circle per user.
       // But StoryViewer iterates through all stories.
-      // Banglagram UI seems to show individual stories in the list? 
+      // Banglagram UI seems to show individual stories in the list?
       // Let's check HomeView mock data.
       /*
       stories: [

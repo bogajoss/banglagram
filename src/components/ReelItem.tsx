@@ -54,22 +54,29 @@ const ReelItem: React.FC<ReelItemProps> = ({
 
   const handleLike = () => {
     if (!user) return;
-    toggleLike({ targetId: reel.id, type: 'reel', userId: user.id, hasLiked: isLiked });
+    toggleLike({
+      targetId: reel.id,
+      type: "reel",
+      userId: user.id,
+      hasLiked: isLiked,
+    });
   };
 
   const handleFollow = () => {
     if (!user || !reel.userId) return;
-    followUser({
-      targetUserId: reel.userId,
-      currentUserId: user.id,
-      isFollowing: reel.user.isFollowing || false,
-      targetUsername: reel.user.username
-    }, {
-      onSuccess: () => showToast("ফলো করা হয়েছে"),
-      onError: () => showToast("ফলো করতে সমস্যা হয়েছে")
-    });
+    followUser(
+      {
+        targetUserId: reel.userId,
+        currentUserId: user.id,
+        isFollowing: reel.user.isFollowing || false,
+        targetUsername: reel.user.username,
+      },
+      {
+        onSuccess: () => showToast("ফলো করা হয়েছে"),
+        onError: () => showToast("ফলো করতে সমস্যা হয়েছে"),
+      },
+    );
   };
-
 
   const togglePlay = () => {
     if (videoTagRef.current) {
@@ -87,7 +94,7 @@ const ReelItem: React.FC<ReelItemProps> = ({
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          videoTagRef.current?.play().catch(() => { });
+          videoTagRef.current?.play().catch(() => {});
           setIsPlaying(true);
           setIsMuted(false);
         } else {
@@ -171,7 +178,10 @@ const ReelItem: React.FC<ReelItemProps> = ({
         {/* Play/Mute Status */}
         <div
           className="absolute top-4 right-4 bg-black/50 p-2 rounded-full cursor-pointer transition-opacity hover:bg-black/70 z-30"
-          onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsMuted(!isMuted);
+          }}
         >
           {isMuted ? (
             <VolumeX className="text-white w-5 h-5" />

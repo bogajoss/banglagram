@@ -11,18 +11,24 @@ export const useGetReels = (currentUserId?: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reels")
-        .select(`
+        .select(
+          `
           *,
           profiles (username, full_name, avatar_url),
           likes (count),
           comments (count)
-        `)
+        `,
+        )
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       type ReelWithProfile = Database["public"]["Tables"]["reels"]["Row"] & {
-        profiles: { username: string; full_name: string | null; avatar_url: string | null } | null;
+        profiles: {
+          username: string;
+          full_name: string | null;
+          avatar_url: string | null;
+        } | null;
         likes: { count: number }[];
         comments: { count: number }[];
       };
@@ -33,7 +39,9 @@ export const useGetReels = (currentUserId?: string) => {
       const reelIds = reelsData.map((r) => r.id);
       const likedReelIds = new Set<string>();
 
-      const uniqueUserIds = Array.from(new Set(reelsData.map(r => r.user_id)));
+      const uniqueUserIds = Array.from(
+        new Set(reelsData.map((r) => r.user_id)),
+      );
       const followedUserIds = new Set<string>();
 
       if (currentUserId) {
@@ -45,7 +53,9 @@ export const useGetReels = (currentUserId?: string) => {
             .in("reel_id", reelIds);
 
           if (likesData) {
-            (likesData as { reel_id: string | null }[]).forEach((l) => likedReelIds.add(l.reel_id || ""));
+            (likesData as { reel_id: string | null }[]).forEach((l) =>
+              likedReelIds.add(l.reel_id || ""),
+            );
           }
         }
 
@@ -57,7 +67,9 @@ export const useGetReels = (currentUserId?: string) => {
             .in("following_id", uniqueUserIds);
 
           if (followsData) {
-            (followsData as { following_id: string }[]).forEach((f) => followedUserIds.add(f.following_id));
+            (followsData as { following_id: string }[]).forEach((f) =>
+              followedUserIds.add(f.following_id),
+            );
           }
         }
       }

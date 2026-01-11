@@ -2,6 +2,8 @@ import { useEffect, Suspense, lazy } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import Layout from "./components/layout/Layout";
+import { supabase } from "./lib/supabaseClient";
+import { useQueryClient } from "@tanstack/react-query";
 // Lazy load views for optimization
 const HomeView = lazy(() => import("./views/HomeView"));
 const ProfileView = lazy(() => import("./views/ProfileView"));
@@ -19,7 +21,7 @@ import { useAppStore } from "./store/useAppStore";
 import PageWrapper from "./components/PageWrapper";
 import { useAuth } from "./hooks/useAuth";
 import type { User as AppUser } from "./types";
-import { useGetNotifications } from "./hooks/queries/useGetNotifications";
+import { useGetNotifications, NOTIFICATIONS_QUERY_KEY } from "./hooks/queries/useGetNotifications";
 
 export default function App() {
   const {
@@ -32,16 +34,45 @@ export default function App() {
     viewingReel,
     setCurrentUser,
     setUnreadNotificationsCount,
+    showToast,
   } = useAppStore();
 
   const { user, profile, loading: authLoading } = useAuth();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const { data: notifications = [] } = useGetNotifications(user?.id);
 
   // Define public routes that don't require authentication
   const isPublicRoute =
     location.pathname.startsWith("/reels/") &&
     location.pathname.split("/").length === 3;
+
+  // Realtime Notifications Subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`notifications_realtime_${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log("New notification:", payload);
+          queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+          showToast("একটি নতুন নোটিফিকেশন এসেছে");
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient, showToast]);
 
   useEffect(() => {
     const lastRead = localStorage.getItem("lastNotificationReadTime");

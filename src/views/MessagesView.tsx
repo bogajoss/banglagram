@@ -4,8 +4,6 @@ import {
   Edit,
   Search,
   ChevronLeft,
-  Phone,
-  Video,
   Info,
   Camera,
   MessageCircle,
@@ -260,8 +258,6 @@ const MessagesView: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <Phone size={24} className="cursor-pointer" />
-                  <Video size={24} className="cursor-pointer" />
                   <Info size={24} className="cursor-pointer" />
                 </div>
               </div>

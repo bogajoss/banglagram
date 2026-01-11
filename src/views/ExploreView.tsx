@@ -19,15 +19,15 @@ const ExploreView: React.FC = () => {
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { ref, inView } = useInView({
-    rootMargin: '1200px', // Explore grid items are smaller, so we trigger a bit earlier
+    rootMargin: "1200px", // Explore grid items are smaller, so we trigger a bit earlier
   });
 
-  const { 
-    data: exploreData, 
-    isLoading, 
-    fetchNextPage, 
-    hasNextPage, 
-    isFetchingNextPage 
+  const {
+    data: exploreData,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   } = useGetExplorePosts();
 
   useEffect(() => {

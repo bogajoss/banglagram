@@ -29,7 +29,11 @@ export const useGetNotifications = (userId?: string) => {
 
       type NotificationWithActor =
         Database["public"]["Tables"]["notifications"]["Row"] & {
-          actor: { username: string; avatar_url: string | null; is_verified: boolean | null } | null;
+          actor: {
+            username: string;
+            avatar_url: string | null;
+            is_verified: boolean | null;
+          } | null;
         };
 
       const notifications = (data || []) as unknown as NotificationWithActor[];

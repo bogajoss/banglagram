@@ -101,8 +101,9 @@ export default function AuthView() {
       >
         <div className="max-w-md mx-auto">
           <div className="flex flex-col items-center">
-            <h1 className="text-4xl font-bold italic text-[#006a4e] mb-2 font-billabong">
-              Banglagram
+            <img src="/icon.png" alt="SysMed Logo" className="w-20 h-20 object-contain mb-4" />
+            <h1 className="text-4xl font-bold tracking-tight text-[#006a4e] mb-8">
+              SysMed
             </h1>
             <p className={`${labelColor} text-sm mb-8`}>
               {forgotPasswordMode

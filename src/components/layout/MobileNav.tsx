@@ -69,12 +69,13 @@ const MobileNav: React.FC = () => {
       >
         {({ isActive }) => (
           <motion.div whileTap={{ scale: 0.8 }} className="p-3">
-                      <OptimizedImage
-                        src={currentUser.avatar}
-                        width={100}
-                        className={`w-6 h-6 rounded-full ${isActive ? "border-2 border-[#006a4e]" : ""}`}
-                        alt="profile"
-                      />          </motion.div>
+            <OptimizedImage
+              src={currentUser.avatar}
+              width={100}
+              className={`w-6 h-6 rounded-full ${isActive ? "border-2 border-[#006a4e]" : ""}`}
+              alt="profile"
+            />{" "}
+          </motion.div>
         )}
       </NavLink>
     </div>

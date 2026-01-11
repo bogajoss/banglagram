@@ -12,7 +12,6 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
-  Instagram,
 } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { useAuth } from "../../hooks/useAuth";
@@ -71,15 +70,16 @@ const Sidebar: React.FC = () => {
         <div
           className={`mb-8 mt-4 ${isSidebarExpanded ? "px-2" : "flex justify-center"}`}
         >
-          <Link
-            to="/"
-            className={`text-2xl font-bold tracking-wide italic text-[#006a4e] block transition-all duration-300 ${isSidebarExpanded ? "opacity-100" : "opacity-0 hidden"}`}
-          >
-            Banglagram
-          </Link>
-          {!isSidebarExpanded && (
-            <Link to="/" className="text-[#006a4e]">
-              <Instagram size={28} />
+          {isSidebarExpanded ? (
+            <div className="flex items-center gap-2">
+              <img src="/icon.png" alt="Logo" className="w-8 h-8 object-contain" />
+              <h1 className="text-xl font-bold tracking-tight text-[#006a4e]">
+                SysMed
+              </h1>
+            </div>
+          ) : (
+            <Link to="/" className="flex justify-center items-center">
+              <img src="/icon.png" alt="SysMed" className="w-8 h-8 object-contain" />
             </Link>
           )}
         </div>

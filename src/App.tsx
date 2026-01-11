@@ -21,7 +21,10 @@ import { useAppStore } from "./store/useAppStore";
 import PageWrapper from "./components/PageWrapper";
 import { useAuth } from "./hooks/useAuth";
 import type { User as AppUser } from "./types";
-import { useGetNotifications, NOTIFICATIONS_QUERY_KEY } from "./hooks/queries/useGetNotifications";
+import {
+  useGetNotifications,
+  NOTIFICATIONS_QUERY_KEY,
+} from "./hooks/queries/useGetNotifications";
 
 export default function App() {
   const {
@@ -111,7 +114,7 @@ export default function App() {
         className={`min-h-screen flex items-center justify-center ${theme === "dark" ? "bg-black" : "bg-white"}`}
       >
         <img
-          src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
+          src="/icon.png"
           className="w-20 h-20 animate-pulse"
           alt="Loading"
         />
@@ -127,7 +130,7 @@ export default function App() {
             className={`min-h-screen flex items-center justify-center ${theme === "dark" ? "bg-black" : "bg-white"}`}
           >
             <img
-              src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
+              src="/icon.png"
               className="w-20 h-20 animate-pulse"
               alt="Loading"
             />

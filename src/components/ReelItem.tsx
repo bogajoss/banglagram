@@ -30,293 +30,289 @@ import OptimizedImage from "./OptimizedImage";
 import { useAppStore } from "../store/useAppStore";
 import VerifiedBadge from "./VerifiedBadge";
 
-const ReelItem: React.FC<ReelItemProps> = memo(({
-  reel,
-  showToast,
-  theme,
-  onUserClick,
-  glassModal,
-}) => {
-  const { setViewingReel } = useAppStore();
-  const { user } = useAuth();
-  const { mutate: toggleLike } = useToggleLike();
-  const { mutate: followUser } = useFollowUser();
+const ReelItem: React.FC<ReelItemProps> = memo(
+  ({ reel, showToast, theme, onUserClick, glassModal }) => {
+    const { setViewingReel } = useAppStore();
+    const { user } = useAuth();
+    const { mutate: toggleLike } = useToggleLike();
+    const { mutate: followUser } = useFollowUser();
 
-  const [showHeart, setShowHeart] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
-  const [isShareOpen, setIsShareOpen] = useState(false);
-  const videoRef = useRef<HTMLDivElement>(null);
-  const videoTagRef = useRef<HTMLVideoElement>(null);
-  const shareUrl = `${window.location.origin}/reels/${reel.id}`;
+    const [showHeart, setShowHeart] = useState(false);
+    const [isMuted, setIsMuted] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(true);
+    const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+    const [isShareOpen, setIsShareOpen] = useState(false);
+    const videoRef = useRef<HTMLDivElement>(null);
+    const videoTagRef = useRef<HTMLVideoElement>(null);
+    const shareUrl = `${window.location.origin}/reels/${reel.id}`;
 
-  const isLiked = reel.hasLiked || false;
+    const isLiked = reel.hasLiked || false;
 
-  const handleLike = () => {
-    if (!user) {
-      showToast("লাইক করতে লগ ইন করুন");
-      return;
-    }
-    toggleLike({
-      targetId: reel.id,
-      type: "reel",
-      userId: user.id,
-      hasLiked: isLiked,
-    });
-  };
-
-  const handleFollow = () => {
-    if (!user) {
-      showToast("ফলো করতে লগ ইন করুন");
-      return;
-    }
-    if (!reel.userId) return;
-    followUser(
-      {
-        targetUserId: reel.userId,
-        currentUserId: user.id,
-        isFollowing: reel.user.isFollowing || false,
-        targetUsername: reel.user.username,
-      },
-      {
-        onSuccess: () => showToast("ফলো করা হয়েছে"),
-        onError: () => showToast("ফলো করতে সমস্যা হয়েছে"),
-      },
-    );
-  };
-
-  const togglePlay = () => {
-    if (videoTagRef.current) {
-      if (isPlaying) {
-        videoTagRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        videoTagRef.current.play();
-        setIsPlaying(true);
+    const handleLike = () => {
+      if (!user) {
+        showToast("লাইক করতে লগ ইন করুন");
+        return;
       }
-    }
-  };
+      toggleLike({
+        targetId: reel.id,
+        type: "reel",
+        userId: user.id,
+        hasLiked: isLiked,
+      });
+    };
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          videoTagRef.current?.play().catch(() => {});
-          setIsPlaying(true);
-          setIsMuted(false);
-        } else {
-          videoTagRef.current?.pause();
+    const handleFollow = () => {
+      if (!user) {
+        showToast("ফলো করতে লগ ইন করুন");
+        return;
+      }
+      if (!reel.userId) return;
+      followUser(
+        {
+          targetUserId: reel.userId,
+          currentUserId: user.id,
+          isFollowing: reel.user.isFollowing || false,
+          targetUsername: reel.user.username,
+        },
+        {
+          onSuccess: () => showToast("ফলো করা হয়েছে"),
+          onError: () => showToast("ফলো করতে সমস্যা হয়েছে"),
+        },
+      );
+    };
+
+    const togglePlay = () => {
+      if (videoTagRef.current) {
+        if (isPlaying) {
+          videoTagRef.current.pause();
           setIsPlaying(false);
-          setIsMuted(true);
+        } else {
+          videoTagRef.current.play();
+          setIsPlaying(true);
         }
-      },
-      { threshold: 0.6 },
-    );
-    if (videoRef.current) observer.observe(videoRef.current);
-    return () => observer.disconnect();
-  }, []);
+      }
+    };
 
-  const handleDoubleClick = () => {
-    handleLike();
-    setShowHeart(true);
-    setTimeout(() => setShowHeart(false), 1000);
-  };
+    useEffect(() => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            videoTagRef.current?.play().catch(() => {});
+            setIsPlaying(true);
+            setIsMuted(false);
+          } else {
+            videoTagRef.current?.pause();
+            setIsPlaying(false);
+            setIsMuted(true);
+          }
+        },
+        { threshold: 0.6 },
+      );
+      if (videoRef.current) observer.observe(videoRef.current);
+      return () => observer.disconnect();
+    }, []);
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
-      className="h-full w-full flex justify-center items-center snap-start relative md:pt-0"
-    >
-      {isOptionsOpen && (
-        <MoreOptionsModal
-          onClose={() => setIsOptionsOpen(false)}
-          showToast={showToast}
-          theme={theme}
-          glassModal={glassModal}
-          shareUrl={shareUrl}
-        />
-      )}
-      {isShareOpen && (
-        <ShareModal
-          onClose={() => setIsShareOpen(false)}
-          theme={theme}
-          showToast={showToast}
-          glassModal={glassModal}
-          shareUrl={shareUrl}
-        />
-      )}
+    const handleDoubleClick = () => {
+      handleLike();
+      setShowHeart(true);
+      setTimeout(() => setShowHeart(false), 1000);
+    };
 
-      <div
-        ref={videoRef}
-        className="relative h-full md:h-[95vh] w-full md:w-[400px] bg-zinc-900 md:rounded-lg overflow-hidden border-zinc-800 md:border group shadow-2xl"
-        onDoubleClick={handleDoubleClick}
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="h-full w-full flex justify-center items-center snap-start relative md:pt-0"
       >
-        {/* Render Video instead of Image for Reels if src is video */}
-        {reel.src ? (
-          <video
-            ref={videoTagRef}
-            src={reel.src}
-            poster={reel.poster}
-            preload="metadata"
-            className="w-full h-full object-cover"
-            loop
-            muted={isMuted}
-            onClick={togglePlay}
+        {isOptionsOpen && (
+          <MoreOptionsModal
+            onClose={() => setIsOptionsOpen(false)}
+            showToast={showToast}
+            theme={theme}
+            glassModal={glassModal}
+            shareUrl={shareUrl}
           />
-        ) : (
-          <OptimizedImage
-            src={reel.src}
-            width={400}
-            className="w-full h-full"
-            onClick={() => setIsMuted(!isMuted)}
-            alt="reel"
+        )}
+        {isShareOpen && (
+          <ShareModal
+            onClose={() => setIsShareOpen(false)}
+            theme={theme}
+            showToast={showToast}
+            glassModal={glassModal}
+            shareUrl={shareUrl}
           />
         )}
 
-        {/* Play/Pause Center Indicator */}
-        {!isPlaying && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-            <div className="bg-black/40 p-5 rounded-full backdrop-blur-sm">
-              <Play className="text-white w-10 h-10 fill-white" />
+        <div
+          ref={videoRef}
+          className="relative h-full md:h-[95vh] w-full md:w-[400px] bg-zinc-900 md:rounded-lg overflow-hidden border-zinc-800 md:border group shadow-2xl"
+          onDoubleClick={handleDoubleClick}
+        >
+          {/* Render Video instead of Image for Reels if src is video */}
+          {reel.src ? (
+            <video
+              ref={videoTagRef}
+              src={reel.src}
+              poster={reel.poster}
+              preload="metadata"
+              className="w-full h-full object-cover"
+              loop
+              muted={isMuted}
+              onClick={togglePlay}
+            />
+          ) : (
+            <OptimizedImage
+              src={reel.src}
+              width={400}
+              className="w-full h-full"
+              onClick={() => setIsMuted(!isMuted)}
+              alt="reel"
+            />
+          )}
+
+          {/* Play/Pause Center Indicator */}
+          {!isPlaying && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+              <div className="bg-black/40 p-5 rounded-full backdrop-blur-sm">
+                <Play className="text-white w-10 h-10 fill-white" />
+              </div>
+            </div>
+          )}
+
+          {/* Play/Mute Status */}
+          <div
+            className="absolute top-4 right-4 bg-black/50 p-2 rounded-full cursor-pointer transition-opacity hover:bg-black/70 z-30"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsMuted(!isMuted);
+            }}
+          >
+            {isMuted ? (
+              <VolumeX className="text-white w-5 h-5" />
+            ) : (
+              <Volume2 className="text-white w-5 h-5" />
+            )}
+          </div>
+
+          <AnimatePresence>
+            {showHeart && (
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1.2, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+              >
+                <Heart
+                  size={100}
+                  className="text-white fill-white drop-shadow-lg"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent pt-20 pb-20 md:pb-4">
+            <div
+              className="flex items-center gap-3 mb-3"
+              onClick={() => onUserClick(reel.user)}
+            >
+              <div className="w-8 h-8 rounded-full border border-white/50 overflow-hidden cursor-pointer">
+                <OptimizedImage
+                  src={reel.user.avatar}
+                  width={100}
+                  className="w-full h-full"
+                  alt="reel user"
+                />
+              </div>
+              <span className="font-semibold text-sm shadow-black drop-shadow-md text-white cursor-pointer hover:opacity-70 transition-opacity">
+                {reel.user.username}
+              </span>
+              {reel.user.isVerified && <VerifiedBadge />}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`border border-white/30 rounded-lg px-3 py-1 text-xs font-semibold backdrop-blur-sm transition-colors ${reel.user.isFollowing ? "bg-white/20 text-white" : "text-white hover:bg-white/10"}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleFollow();
+                }}
+              >
+                {reel.user.isFollowing ? "ফলো করছেন" : "ফলো"}
+              </motion.button>
+            </div>
+            <div className="text-sm mb-3 line-clamp-2 drop-shadow-md text-white">
+              {reel.caption}{" "}
+              <span className="text-zinc-300 cursor-pointer font-semibold hover:text-white">
+                আরও
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs drop-shadow-md text-white opacity-80">
+              <Music2 size={12} />
+              <div className="truncate w-40">{reel.audio}</div>
             </div>
           </div>
-        )}
 
-        {/* Play/Mute Status */}
-        <div
-          className="absolute top-4 right-4 bg-black/50 p-2 rounded-full cursor-pointer transition-opacity hover:bg-black/70 z-30"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsMuted(!isMuted);
-          }}
-        >
-          {isMuted ? (
-            <VolumeX className="text-white w-5 h-5" />
-          ) : (
-            <Volume2 className="text-white w-5 h-5" />
-          )}
-        </div>
-
-        <AnimatePresence>
-          {showHeart && (
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1.2, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
-            >
-              <Heart
-                size={100}
-                className="text-white fill-white drop-shadow-lg"
+          <div className="absolute bottom-20 md:bottom-4 right-2 flex flex-col items-center gap-6 md:gap-4 text-white pb-safe">
+            <div className="flex flex-col items-center gap-1">
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Heart
+                  size={28}
+                  strokeWidth={1.5}
+                  className={`cursor-pointer transition-colors ${isLiked ? "fill-[#f42a41] text-[#f42a41]" : ""}`}
+                  onClick={handleLike}
+                />
+              </motion.div>
+              <span className="text-xs font-semibold drop-shadow-md">
+                {reel.likes}
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <CommentIcon
+                  size={28}
+                  strokeWidth={1.5}
+                  className="-scale-x-100 drop-shadow-lg cursor-pointer hover:opacity-80"
+                  onClick={() => setViewingReel(reel)}
+                />
+              </motion.div>
+              <span className="text-xs font-semibold drop-shadow-md">
+                {reel.comments}
+              </span>
+            </div>
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Send
+                size={28}
+                strokeWidth={1.5}
+                className="cursor-pointer hover:opacity-80"
+                onClick={() => setIsShareOpen(true)}
               />
             </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent pt-20 pb-20 md:pb-4">
-          <div
-            className="flex items-center gap-3 mb-3"
-            onClick={() => onUserClick(reel.user)}
-          >
-            <div className="w-8 h-8 rounded-full border border-white/50 overflow-hidden cursor-pointer">
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <MoreHorizontal
+                size={28}
+                strokeWidth={1.5}
+                className="cursor-pointer hover:opacity-80"
+                onClick={() => setIsOptionsOpen(true)}
+              />
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              className="w-6 h-6 border-2 border-white rounded-md overflow-hidden mt-2 cursor-pointer"
+              onClick={() => onUserClick(reel.user)}
+            >
               <OptimizedImage
                 src={reel.user.avatar}
                 width={100}
                 className="w-full h-full"
-                alt="reel user"
-              />
-            </div>
-            <span className="font-semibold text-sm shadow-black drop-shadow-md text-white cursor-pointer hover:opacity-70 transition-opacity">
-              {reel.user.username}
-            </span>
-            {reel.user.isVerified && <VerifiedBadge />}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`border border-white/30 rounded-lg px-3 py-1 text-xs font-semibold backdrop-blur-sm transition-colors ${reel.user.isFollowing ? "bg-white/20 text-white" : "text-white hover:bg-white/10"}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleFollow();
-              }}
-            >
-              {reel.user.isFollowing ? "ফলো করছেন" : "ফলো"}
-            </motion.button>
-          </div>
-          <div className="text-sm mb-3 line-clamp-2 drop-shadow-md text-white">
-            {reel.caption}{" "}
-            <span className="text-zinc-300 cursor-pointer font-semibold hover:text-white">
-              আরও
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-xs drop-shadow-md text-white opacity-80">
-            <Music2 size={12} />
-            <div className="truncate w-40">{reel.audio}</div>
-          </div>
-        </div>
-
-        <div className="absolute bottom-20 md:bottom-4 right-2 flex flex-col items-center gap-6 md:gap-4 text-white pb-safe">
-          <div className="flex flex-col items-center gap-1">
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Heart
-                size={28}
-                strokeWidth={1.5}
-                className={`cursor-pointer transition-colors ${isLiked ? "fill-[#f42a41] text-[#f42a41]" : ""}`}
-                onClick={handleLike}
+                alt="user thumb"
               />
             </motion.div>
-            <span className="text-xs font-semibold drop-shadow-md">
-              {reel.likes}
-            </span>
           </div>
-          <div className="flex flex-col items-center gap-1">
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <CommentIcon
-                size={28}
-                strokeWidth={1.5}
-                className="-scale-x-100 drop-shadow-lg cursor-pointer hover:opacity-80"
-                onClick={() => setViewingReel(reel)}
-              />
-            </motion.div>
-            <span className="text-xs font-semibold drop-shadow-md">
-              {reel.comments}
-            </span>
-          </div>
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Send
-              size={28}
-              strokeWidth={1.5}
-              className="cursor-pointer hover:opacity-80"
-              onClick={() => setIsShareOpen(true)}
-            />
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <MoreHorizontal
-              size={28}
-              strokeWidth={1.5}
-              className="cursor-pointer hover:opacity-80"
-              onClick={() => setIsOptionsOpen(true)}
-            />
-          </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.1 }}
-            className="w-6 h-6 border-2 border-white rounded-md overflow-hidden mt-2 cursor-pointer"
-            onClick={() => onUserClick(reel.user)}
-          >
-            <OptimizedImage
-              src={reel.user.avatar}
-              width={100}
-              className="w-full h-full"
-              alt="user thumb"
-            />
-          </motion.div>
         </div>
-      </div>
-    </motion.div>
-  );
-});
+      </motion.div>
+    );
+  },
+);
 
 export default ReelItem;

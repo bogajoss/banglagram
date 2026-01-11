@@ -20,8 +20,13 @@ const ReelsView: React.FC = () => {
       : "bg-white/90 backdrop-blur-2xl border border-black/10";
 
   // If ID is provided, we only want that one reel
-  const { data: singleReel, isLoading: isLoadingSingle } = useGetReel(id, user?.id);
-  const { data: allReels = [], isLoading: isLoadingAll } = useGetReels(user?.id);
+  const { data: singleReel, isLoading: isLoadingSingle } = useGetReel(
+    id,
+    user?.id,
+  );
+  const { data: allReels = [], isLoading: isLoadingAll } = useGetReels(
+    user?.id,
+  );
 
   const onUserClick = (user: User) => {
     navigate(`/profile/${user.username}`);
@@ -49,9 +54,9 @@ const ReelsView: React.FC = () => {
   return (
     <div className="h-screen w-full flex justify-center bg-black overflow-y-scroll snap-y snap-mandatory scrollbar-hide relative">
       {/* Back Button for Mobile */}
-      <div 
+      <div
         className="md:hidden fixed top-4 left-4 z-[60] p-2 bg-black/40 backdrop-blur-md rounded-full text-white cursor-pointer border border-white/10"
-        onClick={() => navigate('/')}
+        onClick={() => navigate("/")}
       >
         <ChevronLeft size={28} />
       </div>

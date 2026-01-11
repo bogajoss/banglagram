@@ -22,7 +22,7 @@ const HomeView: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { ref, inView } = useInView({
-    rootMargin: '1000px', // Trigger fetch 1000px before reaching the bottom
+    rootMargin: "1000px", // Trigger fetch 1000px before reaching the bottom
   });
 
   const {

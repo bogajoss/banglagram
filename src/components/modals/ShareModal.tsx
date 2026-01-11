@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { X, Search, Copy, PlusSquare } from "lucide-react";
 import type { User } from "../../types";
 import { useGetSuggestedUsers } from "../../hooks/queries/useGetSuggestedUsers";
 import { useAuth } from "../../hooks/useAuth";
+import { supabase } from "../../lib/supabaseClient";
 
 interface ShareModalProps {
   onClose: () => void;
@@ -27,8 +28,49 @@ const ShareModal: React.FC<ShareModalProps> = ({
   const { user: authUser } = useAuth();
   const { data: suggestedUsers = [] } = useGetSuggestedUsers(authUser?.id);
 
-  // Use suggested users for the share list
-  const users = suggestedUsers.slice(0, 8) as User[];
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.trim().length > 0) {
+        setIsSearching(true);
+        const { data } = await supabase
+          .from("profiles")
+          .select("id, username, full_name, avatar_url, is_verified")
+          .ilike("username", `%${searchQuery}%`)
+          .limit(10);
+
+        if (data) {
+          const users: User[] = (
+            data as {
+              id: string;
+              username: string;
+              full_name: string;
+              avatar_url: string;
+              is_verified: boolean;
+            }[]
+          ).map((p) => ({
+            id: p.id,
+            username: p.username,
+            name: p.full_name || p.username,
+            avatar: p.avatar_url || "",
+            isVerified: p.is_verified || false,
+          }));
+          setSearchResults(users);
+        }
+        setIsSearching(false);
+      } else {
+        setSearchResults([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
+  // If searching, use searchResults, otherwise use suggestedUsers
+  const users = searchQuery.trim() ? searchResults : (suggestedUsers.slice(0, 8) as User[]);
 
   return (
     <div
@@ -58,12 +100,30 @@ const ShareModal: React.FC<ShareModalProps> = ({
             <input
               type="text"
               placeholder="অনুসন্ধান"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent border-none outline-none text-sm w-full"
             />
+            {searchQuery && (
+              <X
+                size={18}
+                className="cursor-pointer text-[#8e8e8e]"
+                onClick={() => setSearchQuery("")}
+              />
+            )}
           </div>
         </div>
         <div className="h-64 overflow-y-auto p-2">
-          {users.map((user, idx) => (
+          {isSearching ? (
+            <div className="p-4 text-center text-sm text-gray-500">
+              অনুসন্ধান করা হচ্ছে...
+            </div>
+          ) : users.length === 0 ? (
+            <div className="p-4 text-center text-sm text-gray-500">
+              কোনো ফলাফল পাওয়া যায়নি
+            </div>
+          ) : (
+            users.map((user, idx) => (
             <div
               key={idx}
               className={`flex items-center justify-between p-2 rounded-lg ${theme === "dark" ? "hover:bg-white/5" : "hover:bg-black/5"} cursor-pointer transition-colors`}
@@ -100,7 +160,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
                 পাঠান
               </button>
             </div>
-          ))}
+          )))}
         </div>
         <div
           className={`p-4 border-t ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"} flex gap-4 overflow-x-auto`}

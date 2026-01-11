@@ -7,6 +7,7 @@ import {
   Info,
   Camera,
   MessageCircle,
+  X,
 } from "lucide-react";
 import { useAppStore } from "../store/useAppStore";
 import { supabase } from "../lib/supabaseClient";
@@ -42,13 +43,55 @@ const MessagesView: React.FC = () => {
   const { data: profileData } = useGetProfile(username || "", user?.id);
 
   // Derive selectedUser from location state or fetched profile data
-  const selectedUser = (location.state?.user as User) || (profileData?.user as User) || null;
+  const selectedUser =
+    (location.state?.user as User) || (profileData?.user as User) || null;
 
   const [newMessage, setNewMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const bgHover = theme === "dark" ? "hover:bg-zinc-900" : "hover:bg-gray-100";
+
+  // Search logic
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.trim().length > 0) {
+        setIsSearching(true);
+        const { data } = await supabase
+          .from("profiles")
+          .select("id, username, full_name, avatar_url, is_verified")
+          .ilike("username", `%${searchQuery}%`)
+          .limit(10);
+
+        if (data) {
+          const users: User[] = (
+            data as {
+              id: string;
+              username: string;
+              full_name: string;
+              avatar_url: string;
+              is_verified: boolean;
+            }[]
+          ).map((p) => ({
+            id: p.id,
+            username: p.username,
+            name: p.full_name || p.username,
+            avatar: p.avatar_url || "",
+            isVerified: p.is_verified || false,
+          }));
+          setSearchResults(users);
+        }
+        setIsSearching(false);
+      } else {
+        setSearchResults([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   // Fetch conversations
   const { data: conversations = [] } = useGetConversations(user?.id);
@@ -173,7 +216,7 @@ const MessagesView: React.FC = () => {
             <div className="flex items-center gap-2">
               <div
                 className="md:hidden cursor-pointer -ml-2 p-1"
-                onClick={() => navigate('/')}
+                onClick={() => navigate("/")}
               >
                 <ChevronLeft size={28} />
               </div>
@@ -193,37 +236,92 @@ const MessagesView: React.FC = () => {
               <input
                 type="text"
                 placeholder="অনুসন্ধান"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm w-full placeholder-[#8e8e8e]"
               />
+              {searchQuery && (
+                <X
+                  size={16}
+                  className="cursor-pointer text-[#8e8e8e]"
+                  onClick={() => setSearchQuery("")}
+                />
+              )}
             </div>
           </div>
           <div className="flex-grow overflow-y-auto">
-            {conversations.map((u) => (
-              <div
-                key={u.username}
-                onClick={() => handleSelectUser(u)}
-                className={`flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors ${bgHover} ${selectedUser?.username === u.username ? (theme === "dark" ? "bg-zinc-900" : "bg-gray-100") : ""}`}
-              >
-                <div className="relative flex-shrink-0 w-14 h-14 rounded-full overflow-hidden">
-                  <OptimizedImage
-                    src={u.avatar}
-                    className="w-full h-full"
-                    alt={u.username}
-                  />
-                </div>
-                <div className="flex-grow min-w-0">
-                  <div className="text-sm truncate font-bold flex items-center gap-1">
-                    {u.username}
-                    {u.isVerified && <VerifiedBadge />}
+            {searchQuery ? (
+              // Search Results
+              <>
+                {isSearching ? (
+                  <div className="p-4 text-center text-sm text-gray-500">
+                    অনুসন্ধান করা হচ্ছে...
                   </div>
-                  <div
-                    className={`text-xs truncate ${theme === "dark" ? "text-[#a8a8a8]" : "text-gray-500"}`}
-                  >
-                    মেসেজ...
+                ) : searchResults.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-gray-500">
+                    কোনো ফলাফল পাওয়া যায়নি
+                  </div>
+                ) : (
+                  searchResults.map((u) => (
+                    <div
+                      key={u.username}
+                      onClick={() => {
+                        handleSelectUser(u);
+                        setSearchQuery("");
+                      }}
+                      className={`flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors ${bgHover}`}
+                    >
+                      <div className="relative flex-shrink-0 w-14 h-14 rounded-full overflow-hidden">
+                        <OptimizedImage
+                          src={u.avatar}
+                          className="w-full h-full"
+                          alt={u.username}
+                        />
+                      </div>
+                      <div className="flex-grow min-w-0">
+                        <div className="text-sm truncate font-bold flex items-center gap-1">
+                          {u.username}
+                          {u.isVerified && <VerifiedBadge />}
+                        </div>
+                        <div
+                          className={`text-xs truncate ${theme === "dark" ? "text-[#a8a8a8]" : "text-gray-500"}`}
+                        >
+                          {u.name}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </>
+            ) : (
+              // Recent Conversations
+              conversations.map((u) => (
+                <div
+                  key={u.username}
+                  onClick={() => handleSelectUser(u)}
+                  className={`flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors ${bgHover} ${selectedUser?.username === u.username ? (theme === "dark" ? "bg-zinc-900" : "bg-gray-100") : ""}`}
+                >
+                  <div className="relative flex-shrink-0 w-14 h-14 rounded-full overflow-hidden">
+                    <OptimizedImage
+                      src={u.avatar}
+                      className="w-full h-full"
+                      alt={u.username}
+                    />
+                  </div>
+                  <div className="flex-grow min-w-0">
+                    <div className="text-sm truncate font-bold flex items-center gap-1">
+                      {u.username}
+                      {u.isVerified && <VerifiedBadge />}
+                    </div>
+                    <div
+                      className={`text-xs truncate ${theme === "dark" ? "text-[#a8a8a8]" : "text-gray-500"}`}
+                    >
+                      মেসেজ...
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -239,7 +337,7 @@ const MessagesView: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <div
                     className="md:hidden cursor-pointer -ml-2 p-2"
-                    onClick={() => navigate('/messages')}
+                    onClick={() => navigate("/messages")}
                   >
                     <ChevronLeft size={28} />
                   </div>

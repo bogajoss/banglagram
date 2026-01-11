@@ -32,26 +32,40 @@ export const useGetFollows = (
 
       // Map to User type
       const users: User[] = (data || [])
-        .map((row: {
-          follower: { username: string; full_name: string | null; avatar_url: string | null; id: string; is_verified: boolean | null } | null;
-          following: { username: string; full_name: string | null; avatar_url: string | null; id: string; is_verified: boolean | null } | null;
-        }) => {
-          const profile = type === "followers" ? row.follower : row.following;
-          if (!profile) return null;
+        .map(
+          (row: {
+            follower: {
+              username: string;
+              full_name: string | null;
+              avatar_url: string | null;
+              id: string;
+              is_verified: boolean | null;
+            } | null;
+            following: {
+              username: string;
+              full_name: string | null;
+              avatar_url: string | null;
+              id: string;
+              is_verified: boolean | null;
+            } | null;
+          }) => {
+            const profile = type === "followers" ? row.follower : row.following;
+            if (!profile) return null;
 
-          return {
-            username: profile.username,
-            name: profile.full_name || profile.username || "User",
-            avatar: profile.avatar_url || "",
-            id: profile.id, // Ensure we pass ID often needed for follow actions
-            isVerified: profile.is_verified || false,
-            // Default stats, not fetched here usually
-            stats: { posts: 0, followers: 0, following: 0 },
-            // We can't easily know if WE follow THEM in this same query without complex logic or auth context
-            // For now, isFollowing false or handled by UserListModal if it checks individually
-            isFollowing: false,
-          };
-        })
+            return {
+              username: profile.username,
+              name: profile.full_name || profile.username || "User",
+              avatar: profile.avatar_url || "",
+              id: profile.id, // Ensure we pass ID often needed for follow actions
+              isVerified: profile.is_verified || false,
+              // Default stats, not fetched here usually
+              stats: { posts: 0, followers: 0, following: 0 },
+              // We can't easily know if WE follow THEM in this same query without complex logic or auth context
+              // For now, isFollowing false or handled by UserListModal if it checks individually
+              isFollowing: false,
+            };
+          },
+        )
         .filter(Boolean) as User[];
 
       return users;

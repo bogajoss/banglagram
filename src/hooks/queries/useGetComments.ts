@@ -49,7 +49,11 @@ export const useGetComments = (targetId: string, type: "post" | "reel") => {
 
       type CommentWithProfile =
         Database["public"]["Tables"]["comments"]["Row"] & {
-          profiles: { username: string; avatar_url: string | null; is_verified: boolean | null } | null;
+          profiles: {
+            username: string;
+            avatar_url: string | null;
+            is_verified: boolean | null;
+          } | null;
         };
 
       const comments = data as unknown as CommentWithProfile[];

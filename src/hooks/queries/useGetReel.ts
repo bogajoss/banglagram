@@ -5,7 +5,10 @@ import type { Database } from "../../database.types";
 
 export const REEL_QUERY_KEY = (id: string) => ["reel", id];
 
-export const useGetReel = (reelId: string | undefined, currentUserId?: string) => {
+export const useGetReel = (
+  reelId: string | undefined,
+  currentUserId?: string,
+) => {
   return useQuery({
     queryKey: REEL_QUERY_KEY(reelId || ""),
     enabled: !!reelId,
@@ -50,7 +53,7 @@ export const useGetReel = (reelId: string | undefined, currentUserId?: string) =
           .select("*", { count: "exact", head: true })
           .eq("reel_id", reelId)
           .eq("user_id", currentUserId);
-        
+
         hasLiked = !!likeCount && likeCount > 0;
 
         const { count: followCount } = await supabase
@@ -58,7 +61,7 @@ export const useGetReel = (reelId: string | undefined, currentUserId?: string) =
           .select("*", { count: "exact", head: true })
           .eq("follower_id", currentUserId)
           .eq("following_id", reel.user_id);
-        
+
         isFollowing = !!followCount && followCount > 0;
       }
 

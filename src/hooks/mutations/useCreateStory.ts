@@ -34,11 +34,13 @@ export const useCreateStory = () => {
       expiresAt.setDate(expiresAt.getDate() + 1);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: dbError } = await (supabase.from("stories") as any).insert({
-        user_id: userId,
-        media_url: publicUrl,
-        expires_at: expiresAt.toISOString(),
-      });
+      const { error: dbError } = await (supabase.from("stories") as any).insert(
+        {
+          user_id: userId,
+          media_url: publicUrl,
+          expires_at: expiresAt.toISOString(),
+        },
+      );
 
       if (dbError) throw dbError;
     },

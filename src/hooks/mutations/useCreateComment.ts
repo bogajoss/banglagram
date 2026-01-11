@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, InfiniteData } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import { supabase } from "../../lib/supabaseClient";
 import { FEED_QUERY_KEY } from "../queries/useGetFeed";
 import { REELS_QUERY_KEY } from "../queries/useGetReels";
@@ -36,8 +40,7 @@ export const useCreateComment = () => {
           ? { user_id: userId, post_id: targetId, text }
           : { user_id: userId, reel_id: targetId, text };
 
-      const { data, error } = await supabase
-        .from("comments")
+      const { data, error } = await (supabase.from("comments") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .insert(payload)
         .select()
         .single();
@@ -74,7 +77,7 @@ export const useCreateComment = () => {
       });
 
       // 2. Update comment count in feed/reels
-      queryClient.setQueryData(feedKey, (old: any) => {
+      queryClient.setQueryData(feedKey, (old: unknown) => {
         if (!old) return old;
 
         // Handle Infinite Query (Feed)
@@ -112,7 +115,12 @@ export const useCreateComment = () => {
         return old;
       });
 
-      return { previousComments, previousFeed, commentsKey, feedKey } as MutationContext;
+      return {
+        previousComments,
+        previousFeed,
+        commentsKey,
+        feedKey,
+      } as MutationContext;
     },
     onError: (_err, _variables, context) => {
       const ctx = context as MutationContext;

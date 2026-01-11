@@ -9,6 +9,7 @@ interface UserListModalProps {
   theme: string;
   onUserClick: (user: User) => void;
   glassModal: string;
+  loading?: boolean;
 }
 
 import OptimizedImage from "../OptimizedImage";
@@ -20,6 +21,7 @@ const UserListModal: React.FC<UserListModalProps> = ({
   theme,
   onUserClick,
   glassModal,
+  loading,
 }) => {
   return (
     <div
@@ -40,34 +42,43 @@ const UserListModal: React.FC<UserListModalProps> = ({
           />
         </div>
         <div className="h-80 overflow-y-auto p-2">
-          {users.map((user, idx) => (
-            <div
-              key={idx}
-              className={`flex items-center justify-between p-2 rounded-lg ${theme === "dark" ? "hover:bg-white/5" : "hover:bg-black/5"} cursor-pointer`}
-              onClick={() => onUserClick(user)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full overflow-hidden">
-                  <OptimizedImage
-                    src={user.avatar}
-                    className="w-full h-full"
-                    alt={user.username}
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold">{user.username}</span>
-                  <span className="text-xs opacity-70">
-                    {user.name || user.username}
-                  </span>
-                </div>
-              </div>
-              <button
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#006a4e] text-white hover:bg-[#00523c]`}
-              >
-                ফলো
-              </button>
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="w-8 h-8 border-4 border-[#006a4e] border-t-transparent rounded-full animate-spin"></div>
             </div>
-          ))}
+          ) : (
+            users.map((user, idx) => (
+              <div
+                key={idx}
+                className={`flex items-center justify-between p-2 rounded-lg ${theme === "dark" ? "hover:bg-white/5" : "hover:bg-black/5"} cursor-pointer`}
+                onClick={() => onUserClick(user)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full overflow-hidden">
+                    <OptimizedImage
+                      src={user.avatar}
+                      className="w-full h-full"
+                      alt={user.username}
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold">{user.username}</span>
+                    <span className="text-xs opacity-70">
+                      {user.name || user.username}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  className={`px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#006a4e] text-white hover:bg-[#00523c]`}
+                >
+                  ফলো
+                </button>
+              </div>
+            ))
+          )}
+          {!loading && users.length === 0 && (
+            <div className="text-center py-10 text-sm opacity-60">তালিকা খালি</div>
+          )}
         </div>
       </div>
     </div>

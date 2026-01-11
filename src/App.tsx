@@ -1,14 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, Suspense, lazy } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import Layout from "./components/layout/Layout";
-import HomeView from "./views/HomeView";
-import ProfileView from "./views/ProfileView";
-import MessagesView from "./views/MessagesView";
-import ReelsView from "./views/ReelsView";
-import NotificationsView from "./views/NotificationsView";
-import ExploreView from "./views/ExploreView";
-import AuthView from "./views/AuthView";
+// Lazy load views for optimization
+const HomeView = lazy(() => import("./views/HomeView"));
+const ProfileView = lazy(() => import("./views/ProfileView"));
+const MessagesView = lazy(() => import("./views/MessagesView"));
+const ReelsView = lazy(() => import("./views/ReelsView"));
+const NotificationsView = lazy(() => import("./views/NotificationsView"));
+const ExploreView = lazy(() => import("./views/ExploreView"));
+const AuthView = lazy(() => import("./views/AuthView"));
+
 import CreateModal from "./components/modals/CreateModal";
 import EditProfileModal from "./components/modals/EditProfileModal";
 import StoryViewer from "./components/StoryViewer";
@@ -76,7 +78,19 @@ export default function App() {
   }
 
   if (!user) {
-    return <AuthView />;
+    return (
+      <Suspense fallback={
+        <div className={`min-h-screen flex items-center justify-center ${theme === "dark" ? "bg-black" : "bg-white"}`}>
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
+            className="w-20 h-20 animate-pulse"
+            alt="Loading"
+          />
+        </div>
+      }>
+        <AuthView />
+      </Suspense>
+    );
   }
 
   return (
@@ -102,58 +116,66 @@ export default function App() {
       </AnimatePresence>
 
       <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route element={<Layout />}>
-            <Route
-              path="/"
-              element={
-                <PageWrapper>
-                  <HomeView />
-                </PageWrapper>
-              }
-            />
-            <Route
-              path="/explore"
-              element={
-                <PageWrapper>
-                  <ExploreView />
-                </PageWrapper>
-              }
-            />
-            <Route
-              path="/reels"
-              element={
-                <PageWrapper>
-                  <ReelsView />
-                </PageWrapper>
-              }
-            />
-            <Route
-              path="/messages/:username?"
-              element={
-                <PageWrapper>
-                  <MessagesView />
-                </PageWrapper>
-              }
-            />
-            <Route
-              path="/notifications"
-              element={
-                <PageWrapper>
-                  <NotificationsView />
-                </PageWrapper>
-              }
-            />
-            <Route
-              path="/profile/:username"
-              element={
-                <PageWrapper>
-                  <ProfileView />
-                </PageWrapper>
-              }
-            />
-          </Route>
-        </Routes>
+        <Suspense
+          fallback={
+            <div className={`min-h-screen w-full flex items-center justify-center ${theme === "dark" ? "bg-black" : "bg-white"}`}>
+              <div className="w-8 h-8 border-4 border-[#006a4e] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          }
+        >
+          <Routes location={location} key={location.pathname}>
+            <Route element={<Layout />}>
+              <Route
+                path="/"
+                element={
+                  <PageWrapper>
+                    <HomeView />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/explore"
+                element={
+                  <PageWrapper>
+                    <ExploreView />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/reels"
+                element={
+                  <PageWrapper>
+                    <ReelsView />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/messages/:username?"
+                element={
+                  <PageWrapper>
+                    <MessagesView />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <PageWrapper>
+                    <NotificationsView />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/profile/:username"
+                element={
+                  <PageWrapper>
+                    <ProfileView />
+                  </PageWrapper>
+                }
+              />
+            </Route>
+          </Routes>
+        </Suspense>
       </AnimatePresence>
     </>
   );

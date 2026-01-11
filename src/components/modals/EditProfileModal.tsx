@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { motion } from "framer-motion";
+import { useUpdateProfile } from "../../hooks/mutations/useUpdateProfile";
+import { useAuth } from "../../hooks/useAuth";
 
 import OptimizedImage from "../OptimizedImage";
 
 const EditProfileModal: React.FC = () => {
-  const { currentUser, theme, updateProfile, setEditProfileOpen } =
-    useAppStore();
+  const { currentUser, theme, setEditProfileOpen } = useAppStore();
+  const { user } = useAuth();
+  const { mutate: updateProfileMutation, isPending } = useUpdateProfile();
   const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
   const glassModal =
     theme === "dark"
@@ -29,8 +32,17 @@ const EditProfileModal: React.FC = () => {
   const onClose = () => setEditProfileOpen(false);
 
   const handleSave = () => {
-    updateProfile(name, bio || "", avatar);
-    onClose();
+    if (!user) return;
+    updateProfileMutation({
+      userId: user.id,
+      name,
+      bio: bio || "",
+      avatar,
+    }, {
+      onSuccess: () => {
+        onClose();
+      }
+    });
   };
 
   return (
@@ -101,9 +113,10 @@ const EditProfileModal: React.FC = () => {
 
           <button
             onClick={handleSave}
-            className={`w-full py-2 rounded-lg text-white font-bold ${buttonBg} mt-2`}
+            disabled={isPending}
+            className={`w-full py-2 rounded-lg text-white font-bold ${buttonBg} mt-2 disabled:opacity-50`}
           >
-            সেভ করুন
+            {isPending ? "সেভ হচ্ছে..." : "সেভ করুন"}
           </button>
         </div>
       </motion.div>

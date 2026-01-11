@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Mail } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useAppStore } from "../store/useAppStore";
 
@@ -12,6 +13,7 @@ export default function AuthView() {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isRegistrationSuccess, setIsRegistrationSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,8 +30,8 @@ export default function AuthView() {
           avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=${username}`,
         });
         if (signUpError) throw signUpError;
-        showToast("অ্যাকাউন্ট তৈরি হয়েছে! দয়া করে লগইন করুন।");
-        setIsLogin(true);
+        // showToast("অ্যাকাউন্ট তৈরি হয়েছে! দয়া করে লগইন করুন।");
+        setIsRegistrationSuccess(true);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
@@ -42,6 +44,34 @@ export default function AuthView() {
   const cardBg = theme === "dark" ? "bg-zinc-900 border border-zinc-800" : "bg-white shadow";
   const labelColor = theme === "dark" ? "text-zinc-400" : "text-gray-600";
   const inputBg = theme === "dark" ? "bg-zinc-800 border-zinc-700 text-white" : "bg-white border-gray-300 text-gray-900";
+
+  if (isRegistrationSuccess) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 ${containerBg}`}>
+        <div className={`relative w-full max-w-md p-8 sm:p-10 rounded-3xl transition-colors duration-300 ${cardBg} text-center`}>
+          <div className="mx-auto w-16 h-16 bg-[#006a4e]/10 rounded-full flex items-center justify-center mb-6">
+            <Mail size={32} className="text-[#006a4e]" />
+          </div>
+          <h2 className={`text-2xl font-bold mb-2 ${theme === "dark" ? "text-white" : "text-gray-900"}`}>
+            Check your email
+          </h2>
+          <p className={`text-sm mb-8 ${labelColor}`}>
+            We have sent a verification link to <span className="font-semibold text-[#006a4e]">{email}</span>. Please verify your email to continue.
+          </p>
+
+          <button
+            onClick={() => {
+              setIsRegistrationSuccess(false);
+              setIsLogin(true);
+            }}
+            className="w-full py-3 bg-[#006a4e] hover:bg-[#00523c] text-white rounded-xl font-bold text-base shadow-lg transform transition-all active:scale-[0.98]"
+          >
+            Back to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 ${containerBg}`}>

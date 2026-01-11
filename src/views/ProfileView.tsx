@@ -21,6 +21,7 @@ import type { User } from "../types";
 import { useGetProfile } from "../hooks/queries/useGetProfile";
 import { useAuth } from "../hooks/useAuth";
 import { useFollowUser } from "../hooks/mutations/useFollowUser";
+import { useGetFollows } from "../hooks/queries/useGetFollows";
 
 import OptimizedImage from "../components/OptimizedImage";
 
@@ -48,6 +49,11 @@ const ProfileView: React.FC = () => {
 
   const { data, isLoading, isError } = useGetProfile(targetUsername, authUser?.id);
   const { mutate: followUser } = useFollowUser();
+
+  const { data: followsList = [], isLoading: followsLoading } = useGetFollows(
+    data?.user?.id || "",
+    listModalType
+  );
 
   const profileUser = data?.user;
   const userPosts = data?.posts || [];
@@ -120,7 +126,8 @@ const ProfileView: React.FC = () => {
       {listModalType && (
         <UserListModal
           title={listModalType === "followers" ? "ফলোয়ার" : "ফলোইং"}
-          users={[]}
+          users={followsList}
+          loading={followsLoading}
           onClose={handleCloseList}
           theme={theme}
           onUserClick={(u) => {

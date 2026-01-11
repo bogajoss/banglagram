@@ -23,11 +23,13 @@ import OptimizedImage from "../OptimizedImage";
 const PostDetailsModal: React.FC = () => {
   const {
     viewingPost,
+    viewingReel,
     theme,
     showToast,
     savedPostIds,
     toggleSave,
     setViewingPost,
+    setViewingReel
   } = useAppStore();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -37,17 +39,21 @@ const PostDetailsModal: React.FC = () => {
 
   const [newComment, setNewComment] = useState("");
 
-  const postId = viewingPost ? String(viewingPost.id) : "";
-  const { data: comments, isLoading: loadingComments } = useGetComments(postId, 'post');
+  const activeItem = viewingPost || viewingReel;
+  const isReel = !!viewingReel;
+  const type = isReel ? 'reel' : 'post';
+  const itemId = activeItem ? String(activeItem.id) : "";
 
-  if (!viewingPost) return null;
-  const post = viewingPost;
-  const isSaved = savedPostIds.has(post.id);
-  const liked = post.hasLiked || false;
+  const { data: comments, isLoading: loadingComments } = useGetComments(itemId, type);
+
+  if (!activeItem) return null;
+
+  const isSaved = savedPostIds.has(activeItem.id);
+  const liked = activeItem.hasLiked || false;
 
   const handleLike = () => {
     if (!user) return;
-    toggleLike({ targetId: String(post.id), type: 'post', userId: user.id, hasLiked: liked });
+    toggleLike({ targetId: String(activeItem.id), type, userId: user.id, hasLiked: liked });
   };
 
   const handleAddComment = (e: React.FormEvent) => {
@@ -55,8 +61,8 @@ const PostDetailsModal: React.FC = () => {
     if (!newComment.trim() || !user) return;
 
     createComment({
-      targetId: String(post.id),
-      type: 'post',
+      targetId: String(activeItem.id),
+      type,
       text: newComment,
       userId: user.id
     }, {
@@ -68,7 +74,10 @@ const PostDetailsModal: React.FC = () => {
     });
   };
 
-  const onClose = () => setViewingPost(null);
+  const onClose = () => {
+    if (viewingPost) setViewingPost(null);
+    if (viewingReel) setViewingReel(null);
+  };
 
   const onUserClick = (user: User) => {
     onClose();
@@ -97,12 +106,22 @@ const PostDetailsModal: React.FC = () => {
       >
         {/* Media Section */}
         <div className="flex-1 bg-black flex items-center justify-center min-h-[300px] md:h-auto border-r border-zinc-800 relative">
-          <OptimizedImage
-            src={post.content.src || post.content.poster}
-            className="max-h-full max-w-full"
-            imgClassName="object-contain"
-            alt="post detail"
-          />
+          {isReel ? (
+            <video
+              src={(activeItem as any).src}
+              className="max-h-full max-w-full"
+              controls
+              autoPlay
+              loop
+            />
+          ) : (
+            <OptimizedImage
+              src={(activeItem as any).content?.src || (activeItem as any).content?.poster}
+              className="max-h-full max-w-full"
+              imgClassName="object-contain"
+              alt="post detail"
+            />
+          )}
         </div>
 
         {/* Details Section */}
@@ -112,17 +131,17 @@ const PostDetailsModal: React.FC = () => {
           >
             <div
               className="flex items-center gap-3"
-              onClick={() => onUserClick(post.user)}
+              onClick={() => onUserClick(activeItem.user)}
             >
               <div className="w-8 h-8 rounded-full border border-zinc-700 overflow-hidden cursor-pointer">
                 <OptimizedImage
-                  src={post.user.avatar}
+                  src={activeItem.user.avatar}
                   className="w-full h-full"
-                  alt={post.user.username}
+                  alt={activeItem.user.username}
                 />
               </div>
               <span className="font-semibold text-sm hover:opacity-70 cursor-pointer">
-                {post.user.username}
+                {activeItem.user.username}
               </span>
             </div>
             <MoreHorizontal
@@ -135,10 +154,10 @@ const PostDetailsModal: React.FC = () => {
             <div className="flex gap-3">
               <div
                 className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden cursor-pointer"
-                onClick={() => onUserClick(post.user)}
+                onClick={() => onUserClick(activeItem.user)}
               >
                 <OptimizedImage
-                  src={post.user.avatar}
+                  src={activeItem.user.avatar}
                   className="w-full h-full"
                   alt="user"
                 />
@@ -146,12 +165,12 @@ const PostDetailsModal: React.FC = () => {
               <div className="text-sm">
                 <span
                   className="font-semibold mr-2 cursor-pointer"
-                  onClick={() => onUserClick(post.user)}
+                  onClick={() => onUserClick(activeItem.user)}
                 >
-                  {post.user.username}
+                  {activeItem.user.username}
                 </span>
-                <span>{post.caption}</span>
-                <div className="text-xs text-zinc-500 mt-1">{post.time}</div>
+                <span>{activeItem.caption}</span>
+                <div className="text-xs text-zinc-500 mt-1">{(activeItem as any).time}</div>
               </div>
             </div>
 
@@ -159,35 +178,35 @@ const PostDetailsModal: React.FC = () => {
               <div className="text-center py-4 text-zinc-500 text-sm">लोड হচ্ছে...</div>
             ) : comments && comments.length > 0 ? (
               comments.map((c: any) => (
-                  <div key={c.id} className="flex gap-3">
-                    <div 
-                      className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+                <div key={c.id} className="flex gap-3">
+                  <div
+                    className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+                    onClick={() => onUserClick({
+                      username: c.user.username,
+                      name: c.user.username,
+                      avatar: c.user.avatar_url
+                    } as User)}
+                  >
+                    <OptimizedImage
+                      src={c.user.avatar_url}
+                      className="w-full h-full"
+                      alt={c.user.username}
+                    />
+                  </div>
+                  <div className="text-sm">
+                    <span
+                      className="font-semibold mr-2 cursor-pointer hover:opacity-70"
                       onClick={() => onUserClick({
-                          username: c.user.username,
-                          name: c.user.username,
-                          avatar: c.user.avatar_url
+                        username: c.user.username,
+                        name: c.user.username,
+                        avatar: c.user.avatar_url
                       } as User)}
                     >
-                      <OptimizedImage
-                        src={c.user.avatar_url}
-                        className="w-full h-full"
-                        alt={c.user.username}
-                      />
-                    </div>
-                    <div className="text-sm">
-                      <span 
-                        className="font-semibold mr-2 cursor-pointer hover:opacity-70"
-                        onClick={() => onUserClick({
-                            username: c.user.username,
-                            name: c.user.username,
-                            avatar: c.user.avatar_url
-                        } as User)}
-                      >
-                        {c.user.username}
-                      </span>
-                      <span>{c.text}</span>
-                    </div>
+                      {c.user.username}
+                    </span>
+                    <span>{c.text}</span>
                   </div>
+                </div>
               ))
             ) : (
               <div className="text-center py-10 text-zinc-500 text-sm">কোনো কমেন্ট নেই</div>
@@ -217,14 +236,14 @@ const PostDetailsModal: React.FC = () => {
               <Bookmark
                 size={24}
                 className={`cursor-pointer hover:opacity-70 ${isSaved ? "fill-current" : ""}`}
-                onClick={() => toggleSave(post.id)}
+                onClick={() => toggleSave(String(activeItem.id))}
               />
             </div>
             <div className="font-semibold text-sm mb-2">
-              {post.likes + " লাইক"}
+              {activeItem.likes + " লাইক"}
             </div>
             <div className="text-xs text-zinc-500 uppercase mb-3">
-              {post.time} আগে
+              {(activeItem as any).time && (activeItem as any).time + " আগে"}
             </div>
 
             <form

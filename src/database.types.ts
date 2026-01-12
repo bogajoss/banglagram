@@ -18,6 +18,7 @@ export interface Database {
           bio: string | null;
           website: string | null;
           is_verified: boolean;
+          role: string;
           updated_at: string;
         };
         Insert: {
@@ -28,6 +29,7 @@ export interface Database {
           bio?: string | null;
           website?: string | null;
           is_verified?: boolean;
+          role?: string;
           updated_at?: string;
         };
         Update: {
@@ -38,8 +40,10 @@ export interface Database {
           bio?: string | null;
           website?: string | null;
           is_verified?: boolean;
+          role?: string;
           updated_at?: string;
         };
+
       };
       posts: {
         Row: {

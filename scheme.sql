@@ -22,8 +22,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   bio text,
   website text,
   is_verified boolean DEFAULT false,
+  role text DEFAULT 'user' NOT NULL,
   updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
+
 
 CREATE TABLE IF NOT EXISTS public.posts (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -244,15 +246,27 @@ BEGIN
     CREATE POLICY "Public profiles are viewable by everyone." ON public.profiles FOR SELECT USING (true);
     CREATE POLICY "Users can insert their own profile." ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
     CREATE POLICY "Users can update their own profile." ON public.profiles FOR UPDATE USING (auth.uid() = id);
+    CREATE POLICY "Admins can update any profile." ON public.profiles FOR UPDATE USING (
+      auth.uid() IN (SELECT id FROM public.profiles WHERE role = 'admin')
+    );
+
 
     CREATE POLICY "Posts are viewable by everyone." ON public.posts FOR SELECT USING (true);
     CREATE POLICY "Users can insert their own posts." ON public.posts FOR INSERT WITH CHECK (auth.uid() = user_id);
     CREATE POLICY "Users can update their own posts." ON public.posts FOR UPDATE USING (auth.uid() = user_id);
-    CREATE POLICY "Users can delete their own posts." ON public.posts FOR DELETE USING (auth.uid() = user_id);
+    CREATE POLICY "Users can delete their own posts." ON public.posts FOR DELETE USING (
+      auth.uid() = user_id OR 
+      auth.uid() IN (SELECT id FROM public.profiles WHERE role = 'admin')
+    );
+
 
     CREATE POLICY "Reels are viewable by everyone." ON public.reels FOR SELECT USING (true);
     CREATE POLICY "Users can insert their own reels." ON public.reels FOR INSERT WITH CHECK (auth.uid() = user_id);
-    CREATE POLICY "Users can delete their own reels." ON public.reels FOR DELETE USING (auth.uid() = user_id);
+    CREATE POLICY "Users can delete their own reels." ON public.reels FOR DELETE USING (
+      auth.uid() = user_id OR 
+      auth.uid() IN (SELECT id FROM public.profiles WHERE role = 'admin')
+    );
+
 
     CREATE POLICY "Likes are viewable by everyone." ON public.likes FOR SELECT USING (true);
     CREATE POLICY "Users can insert their own likes." ON public.likes FOR INSERT WITH CHECK (auth.uid() = user_id);
@@ -260,7 +274,11 @@ BEGIN
 
     CREATE POLICY "Comments are viewable by everyone." ON public.comments FOR SELECT USING (true);
     CREATE POLICY "Users can insert their own comments." ON public.comments FOR INSERT WITH CHECK (auth.uid() = user_id);
-    CREATE POLICY "Users can delete their own comments." ON public.comments FOR DELETE USING (auth.uid() = user_id);
+    CREATE POLICY "Users can delete their own comments." ON public.comments FOR DELETE USING (
+      auth.uid() = user_id OR 
+      auth.uid() IN (SELECT id FROM public.profiles WHERE role = 'admin')
+    );
+
 
     CREATE POLICY "Follows are viewable by everyone." ON public.follows FOR SELECT USING (true);
     CREATE POLICY "Users can follow others." ON public.follows FOR INSERT WITH CHECK (auth.uid() = follower_id);

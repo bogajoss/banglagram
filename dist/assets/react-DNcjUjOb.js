@@ -1,1 +1,0 @@
-import{c as e}from"./vendor-BGsbkvy4.js";import"./libs-D8PgcjEw.js";export{e as default};

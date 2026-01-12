@@ -11,7 +11,9 @@ export interface User {
     following: number;
   };
   isFollowing?: boolean;
+  role?: string;
 }
+
 
 export interface Comment {
   id: string; // Add ID

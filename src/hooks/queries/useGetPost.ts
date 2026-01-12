@@ -73,6 +73,7 @@ export const useGetPost = (
       return {
         id: postData.id,
         user: {
+          id: postData.user_id,
           username: postData.profiles?.username || "Unknown",
           name: postData.profiles?.full_name || "Unknown",
           avatar: postData.profiles?.avatar_url || "",

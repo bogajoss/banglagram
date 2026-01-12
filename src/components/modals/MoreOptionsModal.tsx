@@ -6,6 +6,8 @@ interface MoreOptionsModalProps {
   theme: string;
   glassModal: string;
   shareUrl?: string;
+  isOwner?: boolean;
+  onEdit?: () => void;
 }
 
 const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
@@ -14,6 +16,8 @@ const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
   theme,
   glassModal,
   shareUrl,
+  isOwner,
+  onEdit,
 }) => {
   return (
     <div
@@ -25,6 +29,17 @@ const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col text-sm font-semibold">
+          {isOwner && (
+            <button
+              className="py-3.5 border-b border-zinc-700/30 hover:bg-white/5 transition-colors"
+              onClick={() => {
+                onEdit && onEdit();
+                onClose();
+              }}
+            >
+              এডিট করুন
+            </button>
+          )}
           <button
             className="py-3.5 text-[#f42a41] border-b border-zinc-700/30 hover:bg-white/5 transition-colors"
             onClick={() => {

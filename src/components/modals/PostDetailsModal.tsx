@@ -27,6 +27,7 @@ import VerifiedBadge from "../VerifiedBadge";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/bn";
+import RichText from "../RichText";
 
 dayjs.extend(relativeTime);
 dayjs.locale("bn");
@@ -223,11 +224,10 @@ const PostDetailsModal: React.FC = () => {
                     >
                       {activeItem.user.username}
                     </span>
-                    {activeItem.user.isVerified && <VerifiedBadge />}
-                  </div>
-                  <span>{activeItem.caption}</span>
-                  <div className="text-xs text-zinc-500 mt-1">
-                    {(activeItem as any).createdAt ? dayjs((activeItem as any).createdAt).fromNow() : (activeItem as any).time}
+                                        {activeItem.user.isVerified && <VerifiedBadge />}
+                                    </div>
+                                    <RichText text={activeItem.caption} />
+                                    <div className="text-xs text-zinc-500 mt-1">                    {(activeItem as any).createdAt ? dayjs((activeItem as any).createdAt).fromNow() : (activeItem as any).time}
                   </div>
                 </div>
               </div>
@@ -275,12 +275,11 @@ const PostDetailsModal: React.FC = () => {
                               >
                                 {c.user.username}
                               </span>
-                              {c.user.isVerified && <VerifiedBadge />}
-                            </div>
-                            <span>{c.text}</span>
-                          </div>
-                          <div className="flex items-center gap-4 text-xs text-zinc-500 font-semibold mt-1.5">
-                            <span>{dayjs(c.created_at).fromNow(true)}</span>
+                                                          {c.user.isVerified && <VerifiedBadge />}
+                                                        </div>
+                                                        <RichText text={c.text} />
+                                                      </div>
+                                                      <div className="flex items-center gap-4 text-xs text-zinc-500 font-semibold mt-1.5">                            <span>{dayjs(c.created_at).fromNow(true)}</span>
                             <span className="cursor-pointer hover:text-zinc-400">
                               0 লাইক
                             </span>

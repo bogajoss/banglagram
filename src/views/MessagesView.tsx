@@ -10,7 +10,9 @@ import {
   X,
   Check,
   CheckCheck,
+  Smile,
 } from "lucide-react";
+import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import { useAppStore } from "../store/useAppStore";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../hooks/useAuth";
@@ -55,11 +57,27 @@ const MessagesView: React.FC = () => {
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const bgHover = theme === "dark" ? "hover:bg-zinc-900" : "hover:bg-gray-100";
+
+  // Handle clicking outside emoji picker to close it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Search logic
   useEffect(() => {
@@ -177,6 +195,10 @@ const MessagesView: React.FC = () => {
     };
   }, [user, selectedUserId, queryClient]);
 
+  const handleEmojiClick = (emojiData: any) => {
+    setNewMessage((prev) => prev + emojiData.emoji);
+  };
+
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedUserId || !user) return;
     sendMessage({
@@ -186,6 +208,7 @@ const MessagesView: React.FC = () => {
     });
     setNewMessage("");
     setTyping(false);
+    setShowEmojiPicker(false);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -435,7 +458,23 @@ const MessagesView: React.FC = () => {
                     </div>
                 )}
               </div>
-              <div className="p-4 shrink-0">
+              <div className="p-4 shrink-0 relative">
+                {/* Emoji Picker */}
+                {showEmojiPicker && (
+                    <div 
+                        ref={emojiPickerRef}
+                        className="absolute bottom-20 left-4 z-50 shadow-2xl"
+                    >
+                        <EmojiPicker 
+                            theme={theme === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT}
+                            onEmojiClick={handleEmojiClick}
+                            lazyLoadEmojis={true}
+                            skinTonesDisabled={true}
+                            searchDisabled={false}
+                        />
+                    </div>
+                )}
+
                 <form
                   className={`border ${borderClass} rounded-full px-2 h-11 flex items-center gap-2 ${theme === "dark" ? "bg-black" : "bg-white"}`}
                   onSubmit={(e) => {
@@ -443,10 +482,19 @@ const MessagesView: React.FC = () => {
                     handleSendMessage();
                   }}
                 >
-                  <div
-                    className={`${buttonBg} rounded-full p-2 cursor-pointer ml-1 text-white relative overflow-hidden`}
+                  {/* Emoji Button */}
+                  <div 
+                    className={`p-2 cursor-pointer transition-colors rounded-full ${theme === "dark" ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-gray-100 text-zinc-500"}`}
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                   >
-                    <Camera size={16} fill="currentColor" />
+                    <Smile size={24} />
+                  </div>
+
+                  {/* Media Upload (No BG) */}
+                  <div
+                    className={`p-2 cursor-pointer transition-colors rounded-full relative overflow-hidden ${theme === "dark" ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-gray-100 text-zinc-500"}`}
+                  >
+                    <Camera size={24} />
                     <input 
                         type="file" 
                         ref={fileInputRef}
@@ -456,16 +504,18 @@ const MessagesView: React.FC = () => {
                         disabled={isUploading}
                     />
                   </div>
+
                   <input
                     type="text"
                     placeholder="মেসেজ..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
+                    onFocus={() => setShowEmojiPicker(false)}
                     className={`bg-transparent border-none outline-none text-sm flex-grow px-2 ${theme === "dark" ? "text-white placeholder-[#a8a8a8]" : "text-black placeholder-gray-500"}`}
                   />
                   <button
                     type="submit"
-                    className="text-blue-500 font-bold px-2 cursor-pointer hover:text-blue-600 disabled:opacity-50"
+                    className="text-blue-500 font-bold px-4 py-2 cursor-pointer hover:text-blue-600 disabled:opacity-50 transition-colors"
                     disabled={(!newMessage.trim() && !isUploading) || isUploading}
                   >
                     {isUploading ? "পাঠানো হচ্ছে..." : "পাঠান"}

@@ -41,37 +41,8 @@ export const useToggleLike = () => {
         );
         if (error) throw error;
 
-        // Manual Notification Trigger (since DB trigger for likes might be missing)
-        try {
-          let ownerId: string | null = null;
-          if (type === "post") {
-            const { data: p } = await (supabase.from("posts") as any)
-              .select("user_id")
-              .eq("id", targetId)
-              .single();
-            ownerId = p?.user_id || null;
-          } else {
-            const { data: r } = await (supabase.from("reels") as any)
-              .select("user_id")
-              .eq("id", targetId)
-              .single();
-            ownerId = r?.user_id || null;
-          }
+        // Notification is handled by DB trigger on_like_created
 
-          if (ownerId && ownerId !== userId) {
-            await (supabase.from("notifications") as any).insert({
-              user_id: ownerId,
-              actor_id: userId,
-              type: "like",
-              post_id: type === "post" ? targetId : null,
-              reel_id: type === "reel" ? targetId : null,
-              is_read: false,
-            });
-          }
-        } catch (notifError) {
-          console.error("Failed to create notification", notifError);
-          // Don't fail the like action if notification fails
-        }
       }
     },
     onMutate: async ({ targetId, type, hasLiked }) => {

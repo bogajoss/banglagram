@@ -60,22 +60,30 @@ export const useGetComments = (targetId: string, type: "post" | "reel") => {
 
       const comments = data as unknown as CommentWithProfile[];
 
-      return comments?.map((comment) => ({
-        id: comment.id,
-        created_at: comment.created_at,
-        text: comment.text,
-        user_id: comment.user_id,
-        post_id: comment.post_id || undefined,
-        reel_id: comment.reel_id || undefined,
-        audioUrl: comment.audio_url || undefined,
-        user: {
-          username: comment.profiles?.username || "Guest",
-          avatar_url:
-            comment.profiles?.avatar_url ||
-            "https://api.dicebear.com/9.x/avataaars/svg?seed=guest",
-          isVerified: comment.profiles?.is_verified || false,
-        },
-      })) as Comment[];
+      return comments?.map((comment) => {
+        let audioUrl = comment.audio_url || undefined;
+        // Fix for missing /public/ in storage URLs
+        if (audioUrl && audioUrl.includes("/storage/v1/object/audio-messages/") && !audioUrl.includes("/storage/v1/object/public/")) {
+            audioUrl = audioUrl.replace("/storage/v1/object/audio-messages/", "/storage/v1/object/public/audio-messages/");
+        }
+
+        return {
+          id: comment.id,
+          created_at: comment.created_at,
+          text: comment.text,
+          user_id: comment.user_id,
+          post_id: comment.post_id || undefined,
+          reel_id: comment.reel_id || undefined,
+          audioUrl: audioUrl,
+          user: {
+            username: comment.profiles?.username || "Guest",
+            avatar_url:
+              comment.profiles?.avatar_url ||
+              "https://api.dicebear.com/9.x/avataaars/svg?seed=guest",
+            isVerified: comment.profiles?.is_verified || false,
+          },
+        };
+      }) as Comment[];
     },
     enabled: !!targetId, // Only fetch if we have a target ID
   });

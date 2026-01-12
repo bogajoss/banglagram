@@ -81,7 +81,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                             ফটো বা ভিডিও এখানে টেনে আনুন
                         </p>
                         <button className="bg-[#0095f6] hover:bg-[#1877f2] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors mt-4">
-                            কম্পিউটার থেকে নির্বাচন করুন
+                            নির্বাচন করুন
                         </button>
                     </>
                 )}

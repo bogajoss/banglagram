@@ -100,22 +100,6 @@ const ProfileView: React.FC = () => {
 
   const handleFollow = () => {
     if (!profileUser?.username || !authUser?.id || !profileUser.id) return;
-    // Note: useGetProfile needs to return ID.
-    // Currently User type doesn't have ID. But we fetch 'profiles' row which has ID.
-    // We need to make sure useGetProfile gives us the ID.
-    // Actually useGetProfile logic accesses profile.id internally but maps to User type which MIGHT NOT have ID.
-    // Let's check User type again. User type does NOT have ID.
-    // Wait, useFollowUser needs targetUserId.
-    // I need to ensure User type has ID or useGetProfile returns it separately.
-    // To avoid massive type refactor, I can perhaps fetch ID or assume username map?
-    // No, ID is needed for DB.
-    // I should add id to User type. It is useful.
-
-    // TEMPORARY FIX: we will assume useGetProfile returns a customized object or we add ID to User type.
-    // I already added isFollowing to User. I should add id to User type too.
-
-    // wait, ProfileView line 51: const profileUser = data?.user;
-    // data?.user is of type User.
 
     followUser({
       targetUserId: data?.user?.id || "",
@@ -123,6 +107,7 @@ const ProfileView: React.FC = () => {
       isFollowing: userIsFollowing,
       targetUsername: profileUser.username,
     });
+
   };
 
   const handleStoryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

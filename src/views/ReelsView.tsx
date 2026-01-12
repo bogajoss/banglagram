@@ -24,9 +24,19 @@ const ReelsView: React.FC = () => {
     id,
     user?.id,
   );
-  const { data: allReels = [], isLoading: isLoadingAll } = useGetReels(
-    user?.id,
-  );
+  const {
+    data: allReelsData,
+    isLoading: isLoadingAll,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useGetReels(user?.id);
+
+  const allReels = React.useMemo(() => {
+    if (!allReelsData) return [];
+    return allReelsData.pages.flat();
+  }, [allReelsData]);
+
 
   const onUserClick = (user: User) => {
     navigate(`/profile/${user.username}`);
@@ -72,6 +82,19 @@ const ReelsView: React.FC = () => {
             glassModal={glassModal}
           />
         ))}
+
+        {hasNextPage && !id && (
+          <div className="h-screen w-full flex items-center justify-center snap-start bg-black">
+            <button
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-full border border-white/20 transition-colors"
+            >
+              {isFetchingNextPage ? "লোড হচ্ছে..." : "আরও ভিডিও দেখুন"}
+            </button>
+          </div>
+        )}
+
       </div>
     </div>
   );

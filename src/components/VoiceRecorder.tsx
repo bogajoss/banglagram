@@ -23,14 +23,16 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    startRecording();
-    return () => {
-      stopRecordingCleanup();
-    };
+  const stopRecordingCleanup = React.useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+    }
   }, []);
 
-  const startRecording = async () => {
+  const startRecording = React.useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -59,21 +61,22 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       console.error("Error accessing microphone:", error);
       onCancel();
     }
-  };
+  }, [onCancel, stopRecordingCleanup]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      startRecording();
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      stopRecordingCleanup();
+    };
+  }, [startRecording, stopRecordingCleanup]);
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-    }
-  };
-
-  const stopRecordingCleanup = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
     }
   };
 

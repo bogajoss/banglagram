@@ -63,7 +63,11 @@ async function runSqlFile(filePath: string) {
       stmt = stmt.slice(0, -1);
     }
 
-    const { error } = await supabase.rpc("exec_sql", { query: stmt });
+    const { data, error } = await supabase.rpc("exec_sql", { query: stmt });
+
+    if (data !== undefined && data !== null) {
+        console.log(`Result of statement ${i + 1}:`, JSON.stringify(data, null, 2));
+    }
 
     if (error) {
       // If error is "already exists", permission, or duplicate key, we might want to continue
@@ -91,6 +95,9 @@ async function runSqlFile(filePath: string) {
 }
 
 async function main() {
+  // Check for command line argument
+  const specificFile = process.argv[2];
+
   // Test RPC connection
   console.log(`Testing RPC connection...`);
   const testDdl = await supabase.rpc("exec_sql", { query: "SELECT 1" });
@@ -103,43 +110,20 @@ async function main() {
   }
   console.log("RPC Test successful.");
 
-  const schemaPath = path.resolve(process.cwd(), "supabase_schema.sql");
-  const storagePath = path.resolve(process.cwd(), "storage_setup.sql");
-  const triggersPath = path.resolve(
-    process.cwd(),
-    "notifications_triggers.sql",
-  );
-  const reelsUpdatePath = path.resolve(
-    process.cwd(),
-    "update_schema_reels.sql",
-  );
-  const missingFeaturesPath = path.resolve(
-    process.cwd(),
-    "missing_features_schema.sql",
-  );
-  const optimizationPath = path.resolve(
-    process.cwd(),
-    "optimization_schema.sql",
-  );
-  const messagesBucketPath = path.resolve(
-    process.cwd(),
-    "update_messages_bucket_public.sql",
-  );
-  const voiceCommentsPath = path.resolve(
-    process.cwd(),
-    "update_schema_voice_comments.sql",
-  );
+  if (specificFile) {
+    const filePath = path.resolve(process.cwd(), specificFile);
+    if (!fs.existsSync(filePath)) {
+      console.error(`Error: File not found: ${filePath}`);
+      process.exit(1);
+    }
+    if (!(await runSqlFile(filePath))) process.exit(1);
+  } else {
+    const schemaPath = path.resolve(process.cwd(), "scheme.sql");
 
-  if (!(await runSqlFile(schemaPath))) process.exit(1);
-  if (!(await runSqlFile(storagePath))) process.exit(1);
-  if (!(await runSqlFile(triggersPath))) process.exit(1);
-  if (!(await runSqlFile(reelsUpdatePath))) process.exit(1);
-  if (!(await runSqlFile(missingFeaturesPath))) process.exit(1);
-  if (!(await runSqlFile(optimizationPath))) process.exit(1);
-  if (!(await runSqlFile(messagesBucketPath))) process.exit(1);
-  if (!(await runSqlFile(voiceCommentsPath))) process.exit(1);
+    if (!(await runSqlFile(schemaPath))) process.exit(1);
 
-  console.log("All migrations completed.");
+    console.log("Migration completed using scheme.sql.");
+  }
 }
 
 main();

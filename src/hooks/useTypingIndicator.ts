@@ -28,7 +28,7 @@ export const useTypingIndicator = (roomId: string) => {
         
         Object.keys(state).forEach(key => {
             if (key === user.id) return;
-            const presence = state[key] as any[];
+            const presence = state[key] as Array<{ isTyping?: boolean; username?: string }>;
             presence.forEach(p => {
                 if (p.isTyping && p.username) {
                     typing.push(p.username);

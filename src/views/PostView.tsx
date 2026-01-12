@@ -4,12 +4,16 @@ import { useGetPost } from "../hooks/queries/useGetPost";
 import { useAuth } from "../hooks/useAuth";
 import PostItem from "../components/PostItem";
 import { useAppStore } from "../store/useAppStore";
+import { useToggleSave } from "../hooks/mutations/useToggleSave";
+
 import { ChevronLeft } from "lucide-react";
 
 const PostView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const { theme, toggleSave, setViewingPost } = useAppStore();
+  const { theme, setViewingPost } = useAppStore();
+  const { mutate: toggleSaveMutation } = useToggleSave();
+
   const navigate = useNavigate();
 
   const { data: post, isLoading, error } = useGetPost(id, user?.id);
@@ -26,7 +30,7 @@ const PostView: React.FC = () => {
     return (
       <div className={`min-h-screen w-full flex flex-col items-center justify-center ${theme === "dark" ? "bg-black text-white" : "bg-white text-black"}`}>
         <h2 className="text-xl font-bold mb-4">পোস্টটি খুঁজে পাওয়া যায়নি</h2>
-        <button 
+        <button
           onClick={() => navigate("/")}
           className="bg-[#006a4e] text-white px-4 py-2 rounded-lg font-semibold"
         >
@@ -40,7 +44,7 @@ const PostView: React.FC = () => {
     <div className={`min-h-screen w-full ${theme === "dark" ? "bg-black" : "bg-white"} pt-4 md:pt-8`}>
       <div className="max-w-[600px] mx-auto px-4">
         <div className="flex items-center gap-4 mb-6">
-          <button 
+          <button
             onClick={() => navigate(-1)}
             className={`p-2 rounded-full ${theme === "dark" ? "hover:bg-zinc-800" : "hover:bg-gray-100"}`}
           >
@@ -48,11 +52,20 @@ const PostView: React.FC = () => {
           </button>
           <h1 className="text-xl font-bold">পোস্ট</h1>
         </div>
-        
-        <PostItem 
+
+        <PostItem
           post={post}
           isSaved={post.hasSaved || false}
-          onToggleSave={() => toggleSave(post.id)}
+          onToggleSave={() => {
+            if (user) {
+              toggleSaveMutation({
+                postId: post.id,
+                userId: user.id,
+                hasSaved: post.hasSaved || false,
+              });
+            }
+          }}
+
           onUserClick={(user) => navigate(`/profile/${user.username}`)}
           onPostClick={(p) => setViewingPost(p)}
         />

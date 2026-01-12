@@ -6,7 +6,10 @@ import {
   Bookmark,
   MoreHorizontal,
   Smile,
+  Mic,
 } from "lucide-react";
+import VoiceRecorder from "./VoiceRecorder";
+
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import MoreOptionsModal from "./modals/MoreOptionsModal";
 import ShareModal from "./modals/ShareModal";
@@ -51,26 +54,28 @@ const PostItem: React.FC<PostItemProps> = memo(
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [showRecorder, setShowRecorder] = useState(false);
+
     const emojiPickerRef = React.useRef<HTMLDivElement>(null);
 
     const liked = post.hasLiked || false;
 
     // Handle clicking outside emoji picker to close it
     React.useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                emojiPickerRef.current &&
-                !emojiPickerRef.current.contains(event.target as Node)
-            ) {
-                setShowEmojiPicker(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+      const handleClickOutside = (event: MouseEvent) => {
+        if (
+          emojiPickerRef.current &&
+          !emojiPickerRef.current.contains(event.target as Node)
+        ) {
+          setShowEmojiPicker(false);
+        }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleEmojiClick = (emojiData: any) => {
-        setNewComment((prev) => prev + emojiData.emoji);
+    const handleEmojiClick = (emojiData: { emoji: string }) => {
+      setNewComment((prev) => prev + emojiData.emoji);
     };
 
     const shareUrl = `${window.location.origin}/post/${post.id}`;
@@ -95,26 +100,30 @@ const PostItem: React.FC<PostItemProps> = memo(
       setTimeout(() => setShowHeart(false), 1000);
     };
 
-    const handleAddComment = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!newComment.trim() || !user) return;
+    const handleAddComment = (e?: React.FormEvent, audioBlob?: Blob) => {
+      if (e) e.preventDefault();
+      if (!user) return;
+      if (!newComment.trim() && !audioBlob) return;
 
       createComment(
         {
           targetId: String(post.id),
           type: "post",
-          text: newComment,
+          text: audioBlob ? "Voice Message" : newComment,
           userId: user.id,
+          audioBlob,
         },
         {
           onSuccess: () => {
             showToast("কমেন্ট যোগ করা হয়েছে");
             setNewComment("");
+            setShowRecorder(false);
           },
           onError: () => showToast("কমেন্ট যোগ করতে সমস্যা হয়েছে"),
         },
       );
     };
+
 
     const borderClass =
       theme === "dark" ? "border-zinc-800" : "border-zinc-200";
@@ -290,47 +299,66 @@ const PostItem: React.FC<PostItemProps> = memo(
             ))}
           </div>
 
-          <form onSubmit={handleAddComment} className="flex gap-2 mt-2 items-center relative">
-            {/* Emoji Picker */}
-            {showEmojiPicker && (
-                <div 
-                    ref={emojiPickerRef}
-                    className="absolute bottom-full left-0 z-50 shadow-2xl mb-2"
+          {showRecorder ? (
+            <div className="mt-2 bg-zinc-900/50 p-2 rounded-xl">
+              <VoiceRecorder
+                onRecordingComplete={(blob) => handleAddComment(undefined, blob)}
+                onCancel={() => setShowRecorder(false)}
+              />
+            </div>
+          ) : (
+            <form onSubmit={handleAddComment} className="flex gap-2 mt-2 items-center relative">
+              {/* Emoji Picker */}
+              {showEmojiPicker && (
+                <div
+                  ref={emojiPickerRef}
+                  className="absolute bottom-full left-0 z-50 shadow-2xl mb-2"
                 >
-                    <EmojiPicker 
-                        theme={theme === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT}
-                        onEmojiClick={handleEmojiClick}
-                        lazyLoadEmojis={true}
-                        skinTonesDisabled={true}
-                        searchDisabled={false}
-                        width={280}
-                        height={350}
-                    />
+                  <EmojiPicker
+                    theme={theme === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT}
+                    onEmojiClick={handleEmojiClick}
+                    lazyLoadEmojis={true}
+                    skinTonesDisabled={true}
+                    searchDisabled={false}
+                    width={280}
+                    height={350}
+                  />
                 </div>
-            )}
+              )}
 
-            <Smile
-              size={20}
-              className={`cursor-pointer transition-colors ${showEmojiPicker ? "text-[#006a4e]" : "text-zinc-500 hover:text-zinc-300"}`}
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            />
-            <input
-              type="text"
-              placeholder="কমেন্ট যোগ করুন..."
-              className={`bg-transparent text-sm w-full outline-none ${theme === "dark" ? "text-white" : "text-black"}`}
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              onFocus={() => setShowEmojiPicker(false)}
-              disabled={isCommenting}
-            />
-            <button
-              type="submit"
-              className="text-[#006a4e] text-sm font-semibold disabled:opacity-50 hover:text-[#004d39]"
-              disabled={!newComment || isCommenting}
-            >
-              পোস্ট
-            </button>
-          </form>
+              <Smile
+                size={20}
+                className={`cursor-pointer transition-colors ${showEmojiPicker ? "text-[#006a4e]" : "text-zinc-500 hover:text-zinc-300"}`}
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              />
+              <input
+                type="text"
+                placeholder="কমেন্ট যোগ করুন..."
+                className={`bg-transparent text-sm w-full outline-none ${theme === "dark" ? "text-white" : "text-black"}`}
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                onFocus={() => setShowEmojiPicker(false)}
+                disabled={isCommenting}
+              />
+
+              {!newComment && (
+                <Mic
+                  size={20}
+                  className="text-zinc-500 cursor-pointer hover:text-zinc-300"
+                  onClick={() => setShowRecorder(true)}
+                />
+              )}
+
+              <button
+                type="submit"
+                className="text-[#006a4e] text-sm font-semibold disabled:opacity-50 hover:text-[#004d39]"
+                disabled={!newComment || isCommenting}
+              >
+                পোস্ট
+              </button>
+            </form>
+          )}
+
         </div>
       </motion.div>
     );

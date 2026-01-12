@@ -11,7 +11,11 @@ import {
   Check,
   CheckCheck,
   Smile,
+  Mic,
 } from "lucide-react";
+import VoiceRecorder from "../components/VoiceRecorder";
+import AudioPlayer from "../components/AudioPlayer";
+
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import { useAppStore } from "../store/useAppStore";
 import { supabase } from "../lib/supabaseClient";
@@ -21,7 +25,8 @@ import {
   useGetMessages,
   MESSAGES_QUERY_KEY,
 } from "../hooks/queries/useGetMessages";
-import { useGetConversations } from "../hooks/queries/useGetConversations";
+import { useGetConversations, getUniqueConversations } from "../hooks/queries/useGetConversations";
+
 import { useSendMessage } from "../hooks/mutations/useSendMessage";
 import { useMarkMessagesRead } from "../hooks/mutations/useMarkMessagesRead";
 import { useTypingIndicator } from "../hooks/useTypingIndicator";
@@ -61,6 +66,8 @@ const MessagesView: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const [showRecorder, setShowRecorder] = useState(false);
+
 
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const bgHover = theme === "dark" ? "hover:bg-zinc-900" : "hover:bg-gray-100";
@@ -118,16 +125,38 @@ const MessagesView: React.FC = () => {
   }, [searchQuery]);
 
   // Fetch conversations
-  const { data: conversations = [] } = useGetConversations(user?.id);
+  const {
+    data: conversationsData,
+    fetchNextPage: fetchNextConvos,
+    hasNextPage: hasNextConvos,
+  } = useGetConversations(user?.id);
+
+  const conversations = React.useMemo(() => {
+    if (!conversationsData || !user?.id) return [];
+    return getUniqueConversations(conversationsData.pages, user.id);
+  }, [conversationsData, user?.id]);
 
   // Derive selectedUserId
   const selectedUserId =
     selectedUser?.id ||
     conversations.find((c) => c.username === selectedUser?.username)?.id;
 
-  // Use Hooks
-  const { data: messagesData } = useGetMessages(user?.id, selectedUserId);
-  const messages = (messagesData as DbMessage[]) || [];
+
+  // Use Hooks for Infinite Scroll
+  const {
+    data: messagesData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useGetMessages(user?.id, selectedUserId);
+
+  const messages = React.useMemo<DbMessage[]>(() => {
+    if (!messagesData) return [];
+    const allMsgs = messagesData.pages.flat() as DbMessage[];
+    return [...allMsgs].reverse();
+  }, [messagesData]);
+
+
   const { mutate: sendMessage } = useSendMessage();
   const { mutate: markRead } = useMarkMessagesRead();
   const { typingUsers, setTyping } = useTypingIndicator(selectedUserId ? [user?.id, selectedUserId].sort().join("-") : "");
@@ -136,9 +165,10 @@ const MessagesView: React.FC = () => {
   useEffect(() => {
     if (user?.id && selectedUserId && messages.length > 0) {
       // Check if there are unread messages from the other user
-      const hasUnread = messages.some(
-        (m) => m.sender_id === selectedUserId && !m.is_read
+      const hasUnread = (messages as DbMessage[]).some(
+        (m: DbMessage) => m.sender_id === selectedUserId && !m.is_read
       );
+
       if (hasUnread) {
         markRead({ senderId: selectedUserId, receiverId: user.id });
       }
@@ -148,11 +178,11 @@ const MessagesView: React.FC = () => {
   // Typing indicator logic
   useEffect(() => {
     if (selectedUserId) {
-        if (newMessage.length > 0) {
-            setTyping(true);
-        } else {
-            setTyping(false);
-        }
+      if (newMessage.length > 0) {
+        setTyping(true);
+      } else {
+        setTyping(false);
+      }
     }
   }, [newMessage, selectedUserId, setTyping]);
 
@@ -170,6 +200,7 @@ const MessagesView: React.FC = () => {
           table: "messages",
         },
         (payload) => {
+          if (!payload.new) return;
           const msg = payload.new as DbMessage;
 
           // Invalidate conversations to update last message/unread count
@@ -181,8 +212,9 @@ const MessagesView: React.FC = () => {
             (msg.sender_id === selectedUserId && msg.receiver_id === user.id) ||
             (msg.sender_id === user.id && msg.receiver_id === selectedUserId);
 
+
           if (isRelevant) {
-             queryClient.invalidateQueries({
+            queryClient.invalidateQueries({
               queryKey: MESSAGES_QUERY_KEY(selectedUserId),
             });
           }
@@ -195,7 +227,7 @@ const MessagesView: React.FC = () => {
     };
   }, [user, selectedUserId, queryClient]);
 
-  const handleEmojiClick = (emojiData: any) => {
+  const handleEmojiClick = (emojiData: { emoji: string }) => {
     setNewMessage((prev) => prev + emojiData.emoji);
   };
 
@@ -211,43 +243,86 @@ const MessagesView: React.FC = () => {
     setShowEmojiPicker(false);
   };
 
+  const handleSendVoiceMessage = async (blob: Blob) => {
+    if (!user || !selectedUserId) return;
+
+    setIsUploading(true);
+    try {
+      const fileName = `${user.id}-${Date.now()}.webm`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("messages")
+        .upload(filePath, blob);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("messages")
+        .getPublicUrl(filePath);
+
+      sendMessage({
+        senderId: user.id,
+        receiverId: selectedUserId,
+        mediaUrl: publicUrl,
+      });
+      setShowRecorder(false);
+    } catch (error) {
+      showToast("ভয়েস মেসেজ পাঠাতে সমস্যা হয়েছে");
+      console.error(error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user || !selectedUserId) return;
 
     setIsUploading(true);
     try {
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`;
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
-            .from("messages") 
-            .upload(filePath, file);
+      const { error: uploadError } = await supabase.storage
+        .from("messages")
+        .upload(filePath, file);
 
-        if (uploadError) throw uploadError;
+      if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-            .from("messages")
-            .getPublicUrl(filePath);
+      const { data: { publicUrl } } = supabase.storage
+        .from("messages")
+        .getPublicUrl(filePath);
 
-        sendMessage({
-            senderId: user.id,
-            receiverId: selectedUserId,
-            mediaUrl: publicUrl,
-        });
+      sendMessage({
+        senderId: user.id,
+        receiverId: selectedUserId,
+        mediaUrl: publicUrl,
+      });
     } catch (error) {
-        showToast("ছবি পাঠাতে সমস্যা হয়েছে");
-        console.error(error);
+      showToast("ছবি পাঠাতে সমস্যা হয়েছে");
+      console.error(error);
     } finally {
-        setIsUploading(false);
-        if (fileInputRef.current) fileInputRef.current.value = "";
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
+  const prevMessagesLength = useRef(0);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, typingUsers]);
+    // Only scroll to bottom if we have new messages (length increased) 
+    // AND the last message is from the user or it's a very short list (initial load)
+    if (messages.length > prevMessagesLength.current) {
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg?.sender_id === user?.id || messages.length < 25) {
+        messagesEndRef.current?.scrollIntoView({ behavior: prevMessagesLength.current === 0 ? "auto" : "smooth" });
+      }
+    }
+    prevMessagesLength.current = messages.length;
+  }, [messages, typingUsers, user?.id]);
+
 
   const handleSelectUser = (user: User) => {
     navigate(`/messages/${user.username}`, { state: { user } });
@@ -374,7 +449,18 @@ const MessagesView: React.FC = () => {
                 </div>
               ))
             )}
+            {hasNextConvos && (
+              <div className="p-4 text-center">
+                <button
+                  onClick={() => fetchNextConvos()}
+                  className="text-xs text-[#006a4e] font-bold hover:underline"
+                >
+                  পুরানো চ্যাট লোড করুন
+                </button>
+              </div>
+            )}
           </div>
+
         </div>
 
         {/* Chat Area */}
@@ -420,107 +506,160 @@ const MessagesView: React.FC = () => {
                 </div>
               </div>
               <div className="flex-grow flex flex-col p-4 gap-4 overflow-y-auto">
+                {hasNextPage && (
+                  <div className="flex justify-center py-2">
+                    <button
+                      onClick={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                      className="text-xs text-[#006a4e] font-bold py-1 px-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                    >
+                      {isFetchingNextPage ? "লোড হচ্ছে..." : "পুরানো মেসেজ দেখুন"}
+                    </button>
+                  </div>
+                )}
+
                 {messages.map((msg: DbMessage, idx: number) => (
+
                   <div
                     key={msg.id || idx}
                     className={`flex flex-col gap-1 max-w-[85%] ${msg.sender_id === user?.id ? "self-end items-end" : "self-start items-start"}`}
                   >
                     {msg.media_url && (
-                        <div className="rounded-2xl overflow-hidden mb-1 border border-zinc-800">
-                            <OptimizedImage 
-                                src={msg.media_url} 
-                                width={300}
-                                className="max-w-full h-auto max-h-[300px] object-cover" 
-                                alt="Shared image"
-                            />
-                        </div>
+                      <div className="rounded-2xl overflow-hidden mb-1 border border-zinc-800">
+                        {msg.media_url.endsWith(".webm") ? (
+                          <AudioPlayer src={msg.media_url.includes("/storage/v1/object/messages/") && !msg.media_url.includes("/storage/v1/object/public/")
+                            ? msg.media_url.replace("/storage/v1/object/messages/", "/storage/v1/object/public/messages/")
+                            : msg.media_url}
+                            theme={theme}
+                          />
+                        ) : (
+                          <OptimizedImage
+                            src={msg.media_url.includes("/storage/v1/object/messages/") && !msg.media_url.includes("/storage/v1/object/public/")
+                              ? msg.media_url.replace("/storage/v1/object/messages/", "/storage/v1/object/public/messages/")
+                              : msg.media_url}
+                            width={300}
+                            className="max-w-full h-auto max-h-[300px] object-cover"
+                            alt="Shared image"
+                          />
+                        )}
+                      </div>
                     )}
+
                     {msg.content && (
-                        <div
-                          className={`rounded-2xl px-4 py-2 text-sm ${msg.sender_id === user?.id ? "bg-[#006a4e] text-white" : theme === "dark" ? "bg-[#262626] text-white" : "bg-gray-200 text-black"}`}
-                        >
-                          {msg.content}
-                        </div>
+                      <div
+                        className={`rounded-2xl px-4 py-2 text-sm ${msg.sender_id === user?.id ? "bg-[#006a4e] text-white" : theme === "dark" ? "bg-[#262626] text-white" : "bg-gray-200 text-black"}`}
+                      >
+                        {msg.content}
+                      </div>
                     )}
                     {msg.sender_id === user?.id && (
-                        <div className="text-[10px] text-gray-500 flex items-center gap-1">
-                            {msg.is_read ? <CheckCheck size={12} className="text-blue-500" /> : <Check size={12} />}
-                        </div>
+                      <div className="text-[10px] text-gray-500 flex items-center gap-1">
+                        {msg.is_read ? <CheckCheck size={12} className="text-blue-500" /> : <Check size={12} />}
+                      </div>
                     )}
                   </div>
                 ))}
                 <div ref={messagesEndRef} />
-                
+
                 {/* Typing Indicator */}
                 {typingUsers.length > 0 && (
-                    <div className="text-xs text-gray-500 px-4 pb-2 animate-pulse">
-                        {typingUsers.join(", ")} টাইপ করছে...
-                    </div>
+                  <div className="text-xs text-gray-500 px-4 pb-2 animate-pulse">
+                    {typingUsers.join(", ")} টাইপ করছে...
+                  </div>
                 )}
               </div>
               <div className="p-4 shrink-0 relative">
                 {/* Emoji Picker */}
                 {showEmojiPicker && (
-                    <div 
-                        ref={emojiPickerRef}
-                        className="absolute bottom-20 left-4 z-50 shadow-2xl"
-                    >
-                        <EmojiPicker 
-                            theme={theme === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT}
-                            onEmojiClick={handleEmojiClick}
-                            lazyLoadEmojis={true}
-                            skinTonesDisabled={true}
-                            searchDisabled={false}
-                        />
-                    </div>
-                )}
-
-                <form
-                  className={`border ${borderClass} rounded-full px-2 h-11 flex items-center gap-2 ${theme === "dark" ? "bg-black" : "bg-white"}`}
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }}
-                >
-                  {/* Emoji Button */}
-                  <div 
-                    className={`p-2 cursor-pointer transition-colors rounded-full ${theme === "dark" ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-gray-100 text-zinc-500"}`}
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  >
-                    <Smile size={24} />
-                  </div>
-
-                  {/* Media Upload (No BG) */}
                   <div
-                    className={`p-2 cursor-pointer transition-colors rounded-full relative overflow-hidden ${theme === "dark" ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-gray-100 text-zinc-500"}`}
+                    ref={emojiPickerRef}
+                    className="absolute bottom-20 left-4 z-50 shadow-2xl"
                   >
-                    <Camera size={24} />
-                    <input 
-                        type="file" 
-                        ref={fileInputRef}
-                        accept="image/*"
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                        onChange={handleImageUpload}
-                        disabled={isUploading}
+                    <EmojiPicker
+                      theme={theme === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT}
+                      onEmojiClick={handleEmojiClick}
+                      lazyLoadEmojis={true}
+                      skinTonesDisabled={true}
+                      searchDisabled={false}
                     />
                   </div>
+                )}
 
-                  <input
-                    type="text"
-                    placeholder="মেসেজ..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onFocus={() => setShowEmojiPicker(false)}
-                    className={`bg-transparent border-none outline-none text-sm flex-grow px-2 ${theme === "dark" ? "text-white placeholder-[#a8a8a8]" : "text-black placeholder-gray-500"}`}
-                  />
-                  <button
-                    type="submit"
-                    className="text-blue-500 font-bold px-4 py-2 cursor-pointer hover:text-blue-600 disabled:opacity-50 transition-colors"
-                    disabled={(!newMessage.trim() && !isUploading) || isUploading}
+                {showRecorder ? (
+                  <div className={`p-2 border ${borderClass} rounded-[24px] ${theme === "dark" ? "bg-black" : "bg-white"}`}>
+                    <VoiceRecorder
+                      onRecordingComplete={handleSendVoiceMessage}
+                      onCancel={() => setShowRecorder(false)}
+                    />
+                  </div>
+                ) : (
+
+                  <form
+                    className={`border ${borderClass} rounded-[24px] min-h-[44px] flex items-end gap-1 p-1 ${theme === "dark" ? "bg-black" : "bg-white"}`}
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }}
                   >
-                    {isUploading ? "পাঠানো হচ্ছে..." : "পাঠান"}
-                  </button>
-                </form>
+                    {/* Emoji Button */}
+                    <div
+                      className={`p-2 shrink-0 cursor-pointer transition-colors rounded-full ${theme === "dark" ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-gray-100 text-zinc-500"}`}
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    >
+                      <Smile size={24} />
+                    </div>
+
+                    {!newMessage.trim() && (
+                      <>
+                        {/* Media Upload */}
+                        <div
+                          className={`p-2 shrink-0 cursor-pointer transition-colors rounded-full relative overflow-hidden ${theme === "dark" ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-gray-100 text-zinc-500"}`}
+                        >
+                          <Camera size={24} />
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            accept="image/*"
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                            onChange={handleImageUpload}
+                            disabled={isUploading}
+                          />
+                        </div>
+
+                        {/* Voice Mic */}
+                        <div
+                          className={`p-2 shrink-0 cursor-pointer transition-colors rounded-full ${theme === "dark" ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-gray-100 text-zinc-500"}`}
+                          onClick={() => setShowRecorder(true)}
+                        >
+                          <Mic size={24} />
+                        </div>
+                      </>
+                    )}
+
+                    <div className="flex-grow flex items-center min-w-0 h-full py-1">
+                      <input
+                        type="text"
+                        placeholder="মেসেজ..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onFocus={() => setShowEmojiPicker(false)}
+                        className={`bg-transparent border-none outline-none text-sm w-full px-2 py-1 ${theme === "dark" ? "text-white placeholder-[#a8a8a8]" : "text-black placeholder-gray-500"}`}
+                      />
+                    </div>
+
+                    {newMessage.trim() || isUploading ? (
+                      <button
+                        type="submit"
+                        className="text-blue-500 font-bold px-3 py-2 shrink-0 cursor-pointer hover:text-blue-600 disabled:opacity-50 transition-colors"
+                        disabled={(!newMessage.trim() && !isUploading) || isUploading}
+                      >
+                        {isUploading ? "..." : "পাঠান"}
+                      </button>
+                    ) : null}
+                  </form>
+
+                )}
+
               </div>
             </>
           ) : (

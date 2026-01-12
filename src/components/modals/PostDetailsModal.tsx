@@ -10,25 +10,28 @@ import {
   MoreHorizontal,
   Loader2,
   Mic,
-  Play,
-  Pause,
 } from "lucide-react";
+
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import { useAppStore } from "../../store/useAppStore";
 import { useNavigate } from "react-router-dom";
 import type { User } from "../../types";
+import { useAuth } from "../../hooks/useAuth";
 import { motion } from "framer-motion";
 import { useToggleLike } from "../../hooks/mutations/useToggleLike";
 import { useCreateComment } from "../../hooks/mutations/useCreateComment";
 import { useGetComments } from "../../hooks/queries/useGetComments";
-import { useAuth } from "../../hooks/useAuth";
+import { useToggleSave } from "../../hooks/mutations/useToggleSave";
 import { Button } from "@/components/ui/button";
+
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import VoiceRecorder from "../VoiceRecorder";
 
 import OptimizedImage from "../OptimizedImage";
+import AudioPlayer from "../AudioPlayer";
 import VerifiedBadge from "../VerifiedBadge";
+
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/bn";
@@ -37,41 +40,8 @@ import RichText from "../RichText";
 dayjs.extend(relativeTime);
 dayjs.locale("bn");
 
-// Audio Player Component for Comments
-const CommentAudioPlayer = ({ src }: { src: string }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+// Audio Player moved to standalone component
 
-  const togglePlay = () => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio(src);
-      audioRef.current.onended = () => setIsPlaying(false);
-    }
-
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
-
-  return (
-    <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-full px-3 py-1 mt-1 w-fit">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-6 w-6"
-        onClick={togglePlay}
-      >
-        {isPlaying ? <Pause size={14} /> : <Play size={14} />}
-      </Button>
-      <div className="h-1 w-16 bg-zinc-300 dark:bg-zinc-600 rounded-full">
-         <div className={`h-full bg-blue-500 rounded-full ${isPlaying ? 'animate-pulse' : ''} w-full`} />
-      </div>
-    </div>
-  );
-};
 
 const PostDetailsModal: React.FC = () => {
   const {
@@ -80,10 +50,11 @@ const PostDetailsModal: React.FC = () => {
     theme,
     showToast,
     savedPostIds,
-    toggleSave,
     setViewingPost,
     setViewingReel,
   } = useAppStore();
+  const { mutate: toggleSaveMutation } = useToggleSave();
+
   const navigate = useNavigate();
 
   const { user } = useAuth();
@@ -145,7 +116,7 @@ const PostDetailsModal: React.FC = () => {
 
   const handleAddComment = (e?: React.FormEvent, audioBlob?: Blob) => {
     if (e) e.preventDefault();
-    
+
     if (!user) {
       showToast("কমেন্ট করতে লগ ইন করুন");
       return;
@@ -200,7 +171,7 @@ const PostDetailsModal: React.FC = () => {
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className={`w-full max-w-5xl h-[80vh] md:h-auto md:max-h-[90vh] rounded-t-xl md:rounded-lg overflow-hidden flex flex-col md:flex-row shadow-2xl ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
+        className={`w-full max-w-5xl h-[95vh] md:h-auto md:max-h-[90vh] rounded-t-[20px] md:rounded-lg overflow-hidden flex flex-col md:flex-row shadow-2xl ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
         onClick={(event) => event.stopPropagation()}
       >
         {/* Media Section */}
@@ -291,10 +262,10 @@ const PostDetailsModal: React.FC = () => {
                     >
                       {activeItem.user.username}
                     </span>
-                                        {activeItem.user.isVerified && <VerifiedBadge />}
-                                    </div>
-                                    <RichText text={activeItem.caption} />
-                                    <div className="text-xs text-zinc-500 mt-1">                    {(activeItem as any).createdAt ? dayjs((activeItem as any).createdAt).fromNow() : (activeItem as any).time}
+                    {activeItem.user.isVerified && <VerifiedBadge />}
+                  </div>
+                  <RichText text={activeItem.caption} />
+                  <div className="text-xs text-zinc-500 mt-1">                    {(activeItem as any).createdAt ? dayjs((activeItem as any).createdAt).fromNow() : (activeItem as any).time}
                   </div>
                 </div>
               </div>
@@ -342,15 +313,15 @@ const PostDetailsModal: React.FC = () => {
                               >
                                 {c.user.username}
                               </span>
-                                                          {c.user.isVerified && <VerifiedBadge />}
-                                                        </div>
-                                                        {c.audio_url || c.audioUrl ? (
-                                                            <CommentAudioPlayer src={c.audio_url || c.audioUrl} />
-                                                        ) : (
-                                                            <RichText text={c.text} />
-                                                        )}
-                                                      </div>
-                                                      <div className="flex items-center gap-4 text-xs text-zinc-500 font-semibold mt-1.5">                            <span>{dayjs(c.created_at).fromNow(true)}</span>
+                              {c.user.isVerified && <VerifiedBadge />}
+                            </div>
+                            {c.audio_url || c.audioUrl ? (
+                              <AudioPlayer src={c.audio_url || c.audioUrl} theme={theme} />
+                            ) : (
+                              <RichText text={c.text} />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-zinc-500 font-semibold mt-1.5">                            <span>{dayjs(c.created_at).fromNow(true)}</span>
                             <span className="cursor-pointer hover:text-zinc-400">
                               0 লাইক
                             </span>
@@ -380,20 +351,20 @@ const PostDetailsModal: React.FC = () => {
           >
             {/* Emoji Picker */}
             {showEmojiPicker && (
-                <div 
-                    ref={emojiPickerRef}
-                    className="absolute bottom-full left-0 z-50 shadow-2xl mb-2"
-                >
-                    <EmojiPicker 
-                        theme={theme === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT}
-                        onEmojiClick={handleEmojiClick}
-                        lazyLoadEmojis={true}
-                        skinTonesDisabled={true}
-                        searchDisabled={false}
-                        width={300}
-                        height={400}
-                    />
-                </div>
+              <div
+                ref={emojiPickerRef}
+                className="absolute bottom-full left-0 z-50 shadow-2xl mb-2"
+              >
+                <EmojiPicker
+                  theme={theme === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT}
+                  onEmojiClick={handleEmojiClick}
+                  lazyLoadEmojis={true}
+                  skinTonesDisabled={true}
+                  searchDisabled={false}
+                  width={300}
+                  height={400}
+                />
+              </div>
             )}
 
             <div className="flex items-center justify-between mb-3">
@@ -416,7 +387,15 @@ const PostDetailsModal: React.FC = () => {
               <Bookmark
                 size={24}
                 className={`cursor-pointer hover:opacity-70 ${isSaved ? "fill-current" : ""}`}
-                onClick={() => toggleSave(String(activeItem.id))}
+                onClick={() => {
+                  if (user && activeItem) {
+                    toggleSaveMutation({
+                      postId: String(activeItem.id),
+                      userId: user.id,
+                      hasSaved: isSaved,
+                    });
+                  }
+                }}
               />
             </div>
             <div className="font-semibold text-sm mb-2">
@@ -428,36 +407,36 @@ const PostDetailsModal: React.FC = () => {
 
             {/* Quick Emojis */}
             {!showRecorder && (
-                <div className="flex justify-between px-2 mb-3 mt-1 overflow-x-auto gap-4 scrollbar-hide">
+              <div className="flex justify-between px-2 mb-3 mt-1 overflow-x-auto gap-4 scrollbar-hide">
                 {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😮", "😂"].map((emoji) => (
-                    <span
+                  <span
                     key={emoji}
                     className="text-2xl cursor-pointer hover:scale-125 transition-transform"
                     onClick={() => setNewComment((prev) => prev + emoji)}
-                    >
+                  >
                     {emoji}
-                    </span>
+                  </span>
                 ))}
-                </div>
+              </div>
             )}
 
             <div className="flex items-center gap-2 border-t pt-3 border-zinc-800">
-               {showRecorder ? (
-                   <VoiceRecorder 
-                        onRecordingComplete={(blob) => handleAddComment(undefined, blob)}
-                        onCancel={() => setShowRecorder(false)}
-                   />
-               ) : (
+              {showRecorder ? (
+                <VoiceRecorder
+                  onRecordingComplete={(blob) => handleAddComment(undefined, blob)}
+                  onCancel={() => setShowRecorder(false)}
+                />
+              ) : (
                 <form
-                onSubmit={(e) => handleAddComment(e)}
-                className="flex items-center gap-2 w-full"
+                  onSubmit={(e) => handleAddComment(e)}
+                  className="flex items-center gap-2 w-full"
                 >
-                <Smile
+                  <Smile
                     size={24}
                     className={`cursor-pointer transition-colors ${showEmojiPicker ? "text-[#006a4e]" : "text-zinc-400 hover:text-zinc-200"}`}
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                />
-                <Input
+                  />
+                  <Input
                     type="text"
                     placeholder="কমেন্ট যোগ করুন..."
                     className="bg-transparent text-sm w-full border-none focus-visible:ring-0 p-0 h-auto"
@@ -465,28 +444,28 @@ const PostDetailsModal: React.FC = () => {
                     onChange={(e) => setNewComment(e.target.value)}
                     onFocus={() => setShowEmojiPicker(false)}
                     disabled={isCommenting}
-                />
-                
-                {!newComment && (
-                    <Mic 
-                        size={24} 
-                        className="cursor-pointer text-zinc-400 hover:text-zinc-200" 
-                        onClick={() => setShowRecorder(true)}
+                  />
+
+                  {!newComment && (
+                    <Mic
+                      size={24}
+                      className="cursor-pointer text-zinc-400 hover:text-zinc-200"
+                      onClick={() => setShowRecorder(true)}
                     />
-                )}
-                
-                {newComment && (
+                  )}
+
+                  {newComment && (
                     <Button
-                        type="submit"
-                        variant="ghost"
-                        className="text-[#006a4e] font-bold hover:text-[#004d39] hover:bg-transparent p-0 h-auto"
-                        disabled={isCommenting}
+                      type="submit"
+                      variant="ghost"
+                      className="text-[#006a4e] font-bold hover:text-[#004d39] hover:bg-transparent p-0 h-auto"
+                      disabled={isCommenting}
                     >
-                        {isCommenting ? <Loader2 className="h-4 w-4 animate-spin" /> : "পোস্ট"}
+                      {isCommenting ? <Loader2 className="h-4 w-4 animate-spin" /> : "পোস্ট"}
                     </Button>
-                )}
+                  )}
                 </form>
-               )}
+              )}
             </div>
           </div>
         </div>

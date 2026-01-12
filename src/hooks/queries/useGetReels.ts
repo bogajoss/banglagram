@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabaseClient";
 import type { Reel } from "../../types";
 import type { Database } from "../../database.types";
@@ -6,9 +6,13 @@ import type { Database } from "../../database.types";
 export const REELS_QUERY_KEY = ["reels"];
 
 export const useGetReels = (currentUserId?: string) => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: REELS_QUERY_KEY,
-    queryFn: async () => {
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const from = pageParam * 5;
+      const to = from + 4;
+
       const { data, error } = await supabase
         .from("reels")
         .select(
@@ -19,7 +23,9 @@ export const useGetReels = (currentUserId?: string) => {
           comments (count)
         `,
         )
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
 
       if (error) throw error;
 
@@ -94,5 +100,9 @@ export const useGetReels = (currentUserId?: string) => {
         hasLiked: likedReelIds.has(reel.id),
       })) as Reel[];
     },
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length === 5 ? allPages.length : undefined;
+    },
   });
 };
+

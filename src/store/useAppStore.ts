@@ -1,11 +1,10 @@
 import { create } from "zustand";
-import dayjs from "dayjs";
 import type { User, Post, Story, Reel } from "../types";
 import { toast } from "sonner";
 
 interface AppState {
   // State
-  currentUser: User; // We'll keep this typed but it gets overwritten by AuthContext usually
+  currentUser: User;
   stories: Story[];
   posts: Post[];
   savedPostIds: Set<number | string>;
@@ -33,12 +32,8 @@ interface AppState {
   toggleSidebar: () => void;
   setUnreadNotificationsCount: (count: number) => void;
   setUnreadMessagesCount: (count: number) => void;
-  toggleSave: (postId: string) => void;
-  toggleFollow: (username: string) => void;
-  updateProfile: (name: string, bio: string, avatar: string) => void;
   setCurrentUser: (user: User) => void;
   addStory: (img: string) => void;
-  createPost: (postData: { image: string; caption: string }) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -51,7 +46,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   stories: [],
   posts: [],
-  savedPostIds: new Set<string>(), // Standardize on string
+  savedPostIds: new Set<string>(),
   followedUsers: new Set(),
   theme: "dark",
   toastMessage: null,
@@ -85,60 +80,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   setViewingStory: (id) => set({ viewingStory: id }),
   setViewingPost: (post) => set({ viewingPost: post }),
   setViewingReel: (reel) => set({ viewingReel: reel }),
-
-  toggleSave: (postId) =>
-    set((state) => {
-      const newSaved = new Set<string>(
-        state.savedPostIds as unknown as Iterable<string>,
-      );
-      if (newSaved.has(postId)) {
-        newSaved.delete(postId);
-        get().showToast("সেভ থেকে সরানো হয়েছে");
-      } else {
-        newSaved.add(postId);
-        get().showToast("সেভ করা হয়েছে");
-      }
-      return { savedPostIds: newSaved };
-    }),
-
-  toggleFollow: (username) =>
-    set((state) => {
-      const newFollowed = new Set(state.followedUsers);
-      const newStats = { ...state.currentUser.stats } as {
-        posts: number;
-        followers: number;
-        following: number;
-      };
-
-      if (newFollowed.has(username)) {
-        newFollowed.delete(username);
-        get().showToast(`${username}-কে আনফলো করা হয়েছে`);
-        newStats.following = Math.max(0, newStats.following - 1);
-      } else {
-        newFollowed.add(username);
-        get().showToast(`${username}-কে ফলো করা হচ্ছে`);
-        newStats.following = newStats.following + 1;
-      }
-
-      return {
-        followedUsers: newFollowed,
-        currentUser: { ...state.currentUser, stats: newStats },
-      };
-    }),
-
-  updateProfile: (name, bio, avatar) =>
-    set((state) => {
-      get().showToast("প্রোফাইল আপডেট করা হয়েছে");
-      return {
-        currentUser: { ...state.currentUser, name, bio, avatar },
-      };
-    }),
-
   setCurrentUser: (user) => set({ currentUser: user }),
 
   addStory: (img) =>
     set((state) => {
-      // Optimistic update for stories - though real app would upload
       const newStory: Story = {
         id: String(Date.now()),
         username: state.currentUser.username,
@@ -149,23 +94,5 @@ export const useAppStore = create<AppState>((set, get) => ({
       return {
         stories: [newStory, ...state.stories.filter((s) => !s.isUser)],
       };
-    }),
-
-  createPost: ({ image, caption }) =>
-    set((state) => {
-      // This is now largely handled by React Query mutation, but keeping for compatibility if needed
-      const newPost: Post = {
-        id: String(dayjs().valueOf()),
-        user: state.currentUser,
-        content: { type: "image", src: image, poster: image },
-        likes: 0,
-        caption,
-        comments: 0,
-        time: "এইমাত্র",
-        commentList: [],
-        hasLiked: false,
-      };
-      // get().showToast("পোস্ট শেয়ার করা হয়েছে");
-      return { posts: [newPost, ...state.posts] };
     }),
 }));

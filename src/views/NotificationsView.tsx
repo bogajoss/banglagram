@@ -7,14 +7,17 @@ import { useGetNotifications } from "../hooks/queries/useGetNotifications";
 import type { Database } from "../database.types";
 import { useGetSuggestedUsers } from "../hooks/queries/useGetSuggestedUsers";
 import { useAuth } from "../hooks/useAuth";
+import { useFollowUser } from "../hooks/mutations/useFollowUser";
 
 import { supabase } from "../lib/supabaseClient";
 import OptimizedImage from "../components/OptimizedImage";
 import VerifiedBadge from "../components/VerifiedBadge";
 
 const NotificationsView: React.FC = () => {
-  const { theme, followedUsers, toggleFollow, setUnreadNotificationsCount } =
+  const { theme, setUnreadNotificationsCount } =
     useAppStore();
+  const { mutate: followUser } = useFollowUser();
+
   const navigate = useNavigate();
   const { user } = useAuth();
   const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
@@ -284,10 +287,17 @@ const NotificationsView: React.FC = () => {
                     className={`${buttonBg} text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap active:scale-95`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleFollow(u.username);
+                      if (user && u.id) {
+                        followUser({
+                          targetUserId: u.id,
+                          currentUserId: user.id,
+                          isFollowing: false,
+                          targetUsername: u.username,
+                        });
+                      }
                     }}
                   >
-                    {followedUsers.has(u.username) ? "ফলো করছেন" : "ফলো"}
+                    ফলো
                   </button>
                 </div>
               );

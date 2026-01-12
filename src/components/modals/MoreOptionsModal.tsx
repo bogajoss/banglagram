@@ -33,7 +33,7 @@ const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
             <button
               className="py-3.5 border-b border-zinc-700/30 hover:bg-white/5 transition-colors"
               onClick={() => {
-                onEdit && onEdit();
+                onEdit?.();
                 onClose();
               }}
             >

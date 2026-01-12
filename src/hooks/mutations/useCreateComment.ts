@@ -85,12 +85,12 @@ export const useCreateComment = () => {
         user_id: userId,
         post_id: type === "post" ? targetId : undefined,
         reel_id: type === "reel" ? targetId : undefined,
-        audio_url: audioBlob ? URL.createObjectURL(audioBlob) : undefined,
+        audioUrl: audioBlob ? URL.createObjectURL(audioBlob) : undefined,
         user: {
           username: profile?.username || "You",
           avatar_url: profile?.avatar_url || "",
         },
-      } as any; // Cast to any to avoid strict type checks for optimistic update matching
+      };
 
       // 1. Update comments list
       queryClient.setQueryData(commentsKey, (old: Comment[] = []) => {

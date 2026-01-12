@@ -139,9 +139,10 @@ const CreateModal: React.FC = () => {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className={`w-full max-w-4xl h-[70vh] md:h-[80vh] rounded-xl overflow-hidden shadow-2xl flex flex-col ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
+        className={`w-full max-w-4xl h-full md:h-[80vh] md:rounded-xl overflow-hidden shadow-2xl flex flex-col ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
         onClick={(e) => e.stopPropagation()}
       >
+
         {/* Header */}
         <div
           className={`p-3 border-b text-center font-bold relative flex items-center justify-between ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}

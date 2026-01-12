@@ -5,7 +5,9 @@ import {
   Send,
   Bookmark,
   MoreHorizontal,
+  Smile,
 } from "lucide-react";
+import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import MoreOptionsModal from "./modals/MoreOptionsModal";
 import ShareModal from "./modals/ShareModal";
 import EditPostModal from "./modals/EditPostModal";
@@ -48,8 +50,29 @@ const PostItem: React.FC<PostItemProps> = memo(
     const [isOptionsOpen, setIsOptionsOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const emojiPickerRef = React.useRef<HTMLDivElement>(null);
 
     const liked = post.hasLiked || false;
+
+    // Handle clicking outside emoji picker to close it
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                emojiPickerRef.current &&
+                !emojiPickerRef.current.contains(event.target as Node)
+            ) {
+                setShowEmojiPicker(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleEmojiClick = (emojiData: any) => {
+        setNewComment((prev) => prev + emojiData.emoji);
+    };
+
     const shareUrl = `${window.location.origin}/post/${post.id}`;
     const isOwner = user?.id === post.user.id;
 
@@ -254,13 +277,50 @@ const PostItem: React.FC<PostItemProps> = memo(
             {post.createdAt ? dayjs(post.createdAt).fromNow() : post.time}
           </div>
 
-          <form onSubmit={handleAddComment} className="flex gap-2 mt-2">
+          {/* Quick Emojis */}
+          <div className="flex gap-4 mt-2 mb-1 overflow-x-auto scrollbar-hide py-1">
+            {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😮", "😂"].map((emoji) => (
+              <span
+                key={emoji}
+                className="text-xl cursor-pointer hover:scale-125 transition-transform"
+                onClick={() => setNewComment((prev) => prev + emoji)}
+              >
+                {emoji}
+              </span>
+            ))}
+          </div>
+
+          <form onSubmit={handleAddComment} className="flex gap-2 mt-2 items-center relative">
+            {/* Emoji Picker */}
+            {showEmojiPicker && (
+                <div 
+                    ref={emojiPickerRef}
+                    className="absolute bottom-full left-0 z-50 shadow-2xl mb-2"
+                >
+                    <EmojiPicker 
+                        theme={theme === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT}
+                        onEmojiClick={handleEmojiClick}
+                        lazyLoadEmojis={true}
+                        skinTonesDisabled={true}
+                        searchDisabled={false}
+                        width={280}
+                        height={350}
+                    />
+                </div>
+            )}
+
+            <Smile
+              size={20}
+              className={`cursor-pointer transition-colors ${showEmojiPicker ? "text-[#006a4e]" : "text-zinc-500 hover:text-zinc-300"}`}
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            />
             <input
               type="text"
               placeholder="কমেন্ট যোগ করুন..."
               className={`bg-transparent text-sm w-full outline-none ${theme === "dark" ? "text-white" : "text-black"}`}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
+              onFocus={() => setShowEmojiPicker(false)}
               disabled={isCommenting}
             />
             <button

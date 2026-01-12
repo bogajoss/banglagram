@@ -10,6 +10,7 @@ import {
   MoreHorizontal,
   Loader2,
 } from "lucide-react";
+import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import { useAppStore } from "../../store/useAppStore";
 import { useNavigate } from "react-router-dom";
 import type { User } from "../../types";
@@ -51,8 +52,29 @@ const PostDetailsModal: React.FC = () => {
   const { mutate: createComment, isPending: isCommenting } = useCreateComment();
 
   const [newComment, setNewComment] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = React.useRef<HTMLDivElement>(null);
 
   const activeItem = viewingPost || viewingReel;
+
+  // Handle clicking outside emoji picker to close it
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleEmojiClick = (emojiData: any) => {
+    setNewComment((prev) => prev + emojiData.emoji);
+  };
+
   const isReel = !!viewingReel;
   const type = isReel ? "reel" : "post";
   const itemId = activeItem ? String(activeItem.id) : "";
@@ -305,8 +327,26 @@ const PostDetailsModal: React.FC = () => {
           </ScrollArea>
 
           <div
-            className={`p-4 border-t ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
+            className={`p-4 border-t ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"} relative`}
           >
+            {/* Emoji Picker */}
+            {showEmojiPicker && (
+                <div 
+                    ref={emojiPickerRef}
+                    className="absolute bottom-full left-0 z-50 shadow-2xl mb-2"
+                >
+                    <EmojiPicker 
+                        theme={theme === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT}
+                        onEmojiClick={handleEmojiClick}
+                        lazyLoadEmojis={true}
+                        skinTonesDisabled={true}
+                        searchDisabled={false}
+                        width={300}
+                        height={400}
+                    />
+                </div>
+            )}
+
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-4">
                 <Heart
@@ -356,7 +396,8 @@ const PostDetailsModal: React.FC = () => {
             >
               <Smile
                 size={24}
-                className="text-zinc-400 cursor-pointer hover:text-zinc-200"
+                className={`cursor-pointer transition-colors ${showEmojiPicker ? "text-[#006a4e]" : "text-zinc-400 hover:text-zinc-200"}`}
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
               />
               <Input
                 type="text"
@@ -364,6 +405,7 @@ const PostDetailsModal: React.FC = () => {
                 className="bg-transparent text-sm w-full border-none focus-visible:ring-0 p-0 h-auto"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
+                onFocus={() => setShowEmojiPicker(false)}
                 disabled={isCommenting}
               />
               <Button

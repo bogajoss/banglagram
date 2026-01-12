@@ -7,9 +7,10 @@ import type { Database } from "../../database.types";
 type DbMessage = Database["public"]["Tables"]["messages"]["Row"];
 
 interface SendMessageVariables {
-  content: string;
+  content?: string;
   senderId: string;
   receiverId: string;
+  mediaUrl?: string;
 }
 
 export const useSendMessage = () => {
@@ -20,12 +21,14 @@ export const useSendMessage = () => {
       content,
       senderId,
       receiverId,
+      mediaUrl,
     }: SendMessageVariables) => {
       const { data, error } = await (supabase.from("messages") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .insert({
           sender_id: senderId,
           receiver_id: receiverId,
-          content,
+          content: content || null,
+          media_url: mediaUrl || null,
         })
         .select()
         .single();
@@ -47,8 +50,8 @@ export const useSendMessage = () => {
             id: "optimistic-" + dayjs().valueOf(),
             sender_id: newMsg.senderId,
             receiver_id: newMsg.receiverId,
-            content: newMsg.content,
-            media_url: null,
+            content: newMsg.content || null,
+            media_url: newMsg.mediaUrl || null,
             is_read: false,
             created_at: dayjs().toISOString(),
           },

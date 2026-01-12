@@ -121,6 +121,10 @@ async function main() {
     process.cwd(),
     "optimization_schema.sql",
   );
+  const messagesBucketPath = path.resolve(
+    process.cwd(),
+    "update_messages_bucket_public.sql",
+  );
 
   if (!(await runSqlFile(schemaPath))) process.exit(1);
   if (!(await runSqlFile(storagePath))) process.exit(1);
@@ -128,6 +132,7 @@ async function main() {
   if (!(await runSqlFile(reelsUpdatePath))) process.exit(1);
   if (!(await runSqlFile(missingFeaturesPath))) process.exit(1);
   if (!(await runSqlFile(optimizationPath))) process.exit(1);
+  if (!(await runSqlFile(messagesBucketPath))) process.exit(1);
 
   console.log("All migrations completed.");
 }

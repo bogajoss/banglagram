@@ -8,6 +8,8 @@ import {
   Camera,
   MessageCircle,
   X,
+  Check,
+  CheckCheck,
 } from "lucide-react";
 import { useAppStore } from "../store/useAppStore";
 import { supabase } from "../lib/supabaseClient";
@@ -19,6 +21,8 @@ import {
 } from "../hooks/queries/useGetMessages";
 import { useGetConversations } from "../hooks/queries/useGetConversations";
 import { useSendMessage } from "../hooks/mutations/useSendMessage";
+import { useMarkMessagesRead } from "../hooks/mutations/useMarkMessagesRead";
+import { useTypingIndicator } from "../hooks/useTypingIndicator";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Database } from "../database.types";
 
@@ -39,10 +43,10 @@ const MessagesView: React.FC = () => {
   const { username } = useParams<{ username: string }>();
   const buttonBg = "bg-[#006a4e] hover:bg-[#00523c]";
 
-  // Fetch profile if username is in param but not in state (direct link access)
+  // Fetch profile if username is in param but not in state
   const { data: profileData } = useGetProfile(username || "", user?.id);
 
-  // Derive selectedUser from location state or fetched profile data
+  // Derive selectedUser
   const selectedUser =
     (location.state?.user as User) || (profileData?.user as User) || null;
 
@@ -50,7 +54,9 @@ const MessagesView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const bgHover = theme === "dark" ? "hover:bg-zinc-900" : "hover:bg-gray-100";
@@ -96,14 +102,41 @@ const MessagesView: React.FC = () => {
   // Fetch conversations
   const { data: conversations = [] } = useGetConversations(user?.id);
 
-  // Derive selectedUserId from selectedUser
+  // Derive selectedUserId
   const selectedUserId =
     selectedUser?.id ||
     conversations.find((c) => c.username === selectedUser?.username)?.id;
 
   // Use Hooks
-  const { data: messages = [] } = useGetMessages(user?.id, selectedUserId);
+  const { data: messagesData } = useGetMessages(user?.id, selectedUserId);
+  const messages = (messagesData as DbMessage[]) || [];
   const { mutate: sendMessage } = useSendMessage();
+  const { mutate: markRead } = useMarkMessagesRead();
+  const { typingUsers, setTyping } = useTypingIndicator(selectedUserId ? [user?.id, selectedUserId].sort().join("-") : "");
+
+  // Mark messages as read when viewing
+  useEffect(() => {
+    if (user?.id && selectedUserId && messages.length > 0) {
+      // Check if there are unread messages from the other user
+      const hasUnread = messages.some(
+        (m) => m.sender_id === selectedUserId && !m.is_read
+      );
+      if (hasUnread) {
+        markRead({ senderId: selectedUserId, receiverId: user.id });
+      }
+    }
+  }, [messages, selectedUserId, user?.id, markRead]);
+
+  // Typing indicator logic
+  useEffect(() => {
+    if (selectedUserId) {
+        if (newMessage.length > 0) {
+            setTyping(true);
+        } else {
+            setTyping(false);
+        }
+    }
+  }, [newMessage, selectedUserId, setTyping]);
 
   // Realtime Subscription
   useEffect(() => {
@@ -114,51 +147,28 @@ const MessagesView: React.FC = () => {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*", // Listen to all events (INSERT, UPDATE)
           schema: "public",
           table: "messages",
         },
         (payload) => {
-          const newMsg = payload.new as DbMessage;
+          const msg = payload.new as DbMessage;
 
-          if (newMsg.receiver_id !== user.id && newMsg.sender_id !== user.id) {
-            return;
-          }
-
+          // Invalidate conversations to update last message/unread count
           queryClient.invalidateQueries({ queryKey: ["conversations"] });
 
-          // Debug log
-          console.log("Realtime msg:", newMsg, "Selected:", selectedUserId);
+          if (!selectedUserId) return;
 
           const isRelevant =
-            (newMsg.sender_id === selectedUserId &&
-              newMsg.receiver_id === user.id) ||
-            (newMsg.sender_id === user.id &&
-              newMsg.receiver_id === selectedUserId);
+            (msg.sender_id === selectedUserId && msg.receiver_id === user.id) ||
+            (msg.sender_id === user.id && msg.receiver_id === selectedUserId);
 
-          if (selectedUserId && isRelevant) {
-            queryClient.setQueryData(
-              MESSAGES_QUERY_KEY(selectedUserId),
-              (old: DbMessage[] | undefined) => {
-                // Check if we already have this message (dedup against optimistic or double-fire)
-                if (old && old.some((m) => m.id === newMsg.id)) return old;
-
-                // If we have "optimistic" messages, we might want to replace them or intelligent merge.
-                // For simplicity, just appending if not present.
-                // Optimistic usually has 'optimistic-' prefix id. Real one has UUID.
-                // If we just append, we might show duplicates if optimistic one isn't removed.
-                // useSendMessage's onSettled invalidates.
-                // If invalidation happens, useGetMessages refetches and replaces everything.
-                // So this manual update is for instant feedback BEFORE refetch completes.
-                return old ? [...old, newMsg] : [newMsg];
-              },
-            );
-            // Also invalidate to be sure
-            queryClient.invalidateQueries({
+          if (isRelevant) {
+             queryClient.invalidateQueries({
               queryKey: MESSAGES_QUERY_KEY(selectedUserId),
             });
           }
-        },
+        }
       )
       .subscribe();
 
@@ -168,36 +178,55 @@ const MessagesView: React.FC = () => {
   }, [user, selectedUserId, queryClient]);
 
   const handleSendMessage = () => {
-    console.log(
-      "Attempting to send message:",
-      newMessage,
-      selectedUserId,
-      user?.id,
-      selectedUser,
-    );
-    if (!newMessage.trim() || !selectedUserId || !user) {
-      console.warn("Send aborted: Missing data", {
-        msg: newMessage,
-        target: selectedUserId,
-        user: user?.id,
-        selectedObject: selectedUser,
-      });
-      return;
-    }
+    if (!newMessage.trim() || !selectedUserId || !user) return;
     sendMessage({
       content: newMessage,
       senderId: user.id,
       receiverId: selectedUserId,
     });
     setNewMessage("");
+    setTyping(false);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !selectedUserId) return;
+
+    setIsUploading(true);
+    try {
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from("messages") 
+            .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from("messages")
+            .getPublicUrl(filePath);
+
+        sendMessage({
+            senderId: user.id,
+            receiverId: selectedUserId,
+            mediaUrl: publicUrl,
+        });
+    } catch (error) {
+        showToast("ছবি পাঠাতে সমস্যা হয়েছে");
+        console.error(error);
+    } finally {
+        setIsUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, typingUsers]);
 
   const handleSelectUser = (user: User) => {
-    // Navigate to the user's specific route, passing user object in state to avoid fetch
     navigate(`/messages/${user.username}`, { state: { user } });
   };
 
@@ -371,20 +400,40 @@ const MessagesView: React.FC = () => {
                 {messages.map((msg: DbMessage, idx: number) => (
                   <div
                     key={msg.id || idx}
-                    className={`flex gap-2 max-w-[85%] items-end ${msg.sender_id === user?.id ? "self-end justify-end" : "self-start"}`}
+                    className={`flex flex-col gap-1 max-w-[85%] ${msg.sender_id === user?.id ? "self-end items-end" : "self-start items-start"}`}
                   >
-                    <>
-                      {msg.content && (
+                    {msg.media_url && (
+                        <div className="rounded-2xl overflow-hidden mb-1 border border-zinc-800">
+                            <OptimizedImage 
+                                src={msg.media_url} 
+                                width={300}
+                                className="max-w-full h-auto max-h-[300px] object-cover" 
+                                alt="Shared image"
+                            />
+                        </div>
+                    )}
+                    {msg.content && (
                         <div
                           className={`rounded-2xl px-4 py-2 text-sm ${msg.sender_id === user?.id ? "bg-[#006a4e] text-white" : theme === "dark" ? "bg-[#262626] text-white" : "bg-gray-200 text-black"}`}
                         >
                           {msg.content}
                         </div>
-                      )}
-                    </>
+                    )}
+                    {msg.sender_id === user?.id && (
+                        <div className="text-[10px] text-gray-500 flex items-center gap-1">
+                            {msg.is_read ? <CheckCheck size={12} className="text-blue-500" /> : <Check size={12} />}
+                        </div>
+                    )}
                   </div>
                 ))}
                 <div ref={messagesEndRef} />
+                
+                {/* Typing Indicator */}
+                {typingUsers.length > 0 && (
+                    <div className="text-xs text-gray-500 px-4 pb-2 animate-pulse">
+                        {typingUsers.join(", ")} টাইপ করছে...
+                    </div>
+                )}
               </div>
               <div className="p-4 shrink-0">
                 <form
@@ -395,9 +444,17 @@ const MessagesView: React.FC = () => {
                   }}
                 >
                   <div
-                    className={`${buttonBg} rounded-full p-2 cursor-pointer ml-1 text-white`}
+                    className={`${buttonBg} rounded-full p-2 cursor-pointer ml-1 text-white relative overflow-hidden`}
                   >
                     <Camera size={16} fill="currentColor" />
+                    <input 
+                        type="file" 
+                        ref={fileInputRef}
+                        accept="image/*"
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        onChange={handleImageUpload}
+                        disabled={isUploading}
+                    />
                   </div>
                   <input
                     type="text"
@@ -409,9 +466,9 @@ const MessagesView: React.FC = () => {
                   <button
                     type="submit"
                     className="text-blue-500 font-bold px-2 cursor-pointer hover:text-blue-600 disabled:opacity-50"
-                    disabled={!newMessage.trim()}
+                    disabled={(!newMessage.trim() && !isUploading) || isUploading}
                   >
-                    পাঠান
+                    {isUploading ? "পাঠানো হচ্ছে..." : "পাঠান"}
                   </button>
                 </form>
               </div>

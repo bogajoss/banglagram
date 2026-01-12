@@ -16,6 +16,7 @@ interface CreateCommentVariables {
   type: "post" | "reel";
   text: string;
   userId: string;
+  audioBlob?: Blob;
 }
 
 interface MutationContext {
@@ -35,11 +36,29 @@ export const useCreateComment = () => {
       type,
       text,
       userId,
+      audioBlob,
     }: CreateCommentVariables) => {
+      let audioUrl = null;
+
+      if (audioBlob) {
+        const filename = `${userId}/${Date.now()}.webm`;
+        const { error: uploadError } = await supabase.storage
+          .from("audio-messages")
+          .upload(filename, audioBlob);
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from("audio-messages")
+          .getPublicUrl(filename);
+        
+        audioUrl = publicUrlData.publicUrl;
+      }
+
       const payload =
         type === "post"
-          ? { user_id: userId, post_id: targetId, text }
-          : { user_id: userId, reel_id: targetId, text };
+          ? { user_id: userId, post_id: targetId, text, audio_url: audioUrl }
+          : { user_id: userId, reel_id: targetId, text, audio_url: audioUrl };
 
       const { data, error } = await (supabase.from("comments") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .insert(payload)
@@ -49,7 +68,7 @@ export const useCreateComment = () => {
       if (error) throw error;
       return data;
     },
-    onMutate: async ({ targetId, type, text, userId }) => {
+    onMutate: async ({ targetId, type, text, userId, audioBlob }) => {
       const commentsKey = ["comments", type, targetId];
       const feedKey = type === "post" ? FEED_QUERY_KEY : REELS_QUERY_KEY;
 
@@ -66,11 +85,12 @@ export const useCreateComment = () => {
         user_id: userId,
         post_id: type === "post" ? targetId : undefined,
         reel_id: type === "reel" ? targetId : undefined,
+        audio_url: audioBlob ? URL.createObjectURL(audioBlob) : undefined,
         user: {
           username: profile?.username || "You",
           avatar_url: profile?.avatar_url || "",
         },
-      };
+      } as any; // Cast to any to avoid strict type checks for optimistic update matching
 
       // 1. Update comments list
       queryClient.setQueryData(commentsKey, (old: Comment[] = []) => {

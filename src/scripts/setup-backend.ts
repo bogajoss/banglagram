@@ -125,6 +125,10 @@ async function main() {
     process.cwd(),
     "update_messages_bucket_public.sql",
   );
+  const voiceCommentsPath = path.resolve(
+    process.cwd(),
+    "update_schema_voice_comments.sql",
+  );
 
   if (!(await runSqlFile(schemaPath))) process.exit(1);
   if (!(await runSqlFile(storagePath))) process.exit(1);
@@ -133,6 +137,7 @@ async function main() {
   if (!(await runSqlFile(missingFeaturesPath))) process.exit(1);
   if (!(await runSqlFile(optimizationPath))) process.exit(1);
   if (!(await runSqlFile(messagesBucketPath))) process.exit(1);
+  if (!(await runSqlFile(voiceCommentsPath))) process.exit(1);
 
   console.log("All migrations completed.");
 }

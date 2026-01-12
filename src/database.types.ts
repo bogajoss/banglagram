@@ -97,6 +97,7 @@ export interface Database {
           post_id: string | null;
           reel_id: string | null;
           text: string;
+          audio_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -105,6 +106,7 @@ export interface Database {
           post_id?: string | null;
           reel_id?: string | null;
           text: string;
+          audio_url?: string | null;
           created_at?: string;
         };
         Update: {
@@ -113,6 +115,7 @@ export interface Database {
           post_id?: string | null;
           reel_id?: string | null;
           text?: string;
+          audio_url?: string | null;
           created_at?: string;
         };
       };

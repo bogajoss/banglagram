@@ -9,6 +9,9 @@ import {
   Smile,
   MoreHorizontal,
   Loader2,
+  Mic,
+  Play,
+  Pause,
 } from "lucide-react";
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import { useAppStore } from "../../store/useAppStore";
@@ -22,6 +25,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import VoiceRecorder from "../VoiceRecorder";
 
 import OptimizedImage from "../OptimizedImage";
 import VerifiedBadge from "../VerifiedBadge";
@@ -32,6 +36,42 @@ import RichText from "../RichText";
 
 dayjs.extend(relativeTime);
 dayjs.locale("bn");
+
+// Audio Player Component for Comments
+const CommentAudioPlayer = ({ src }: { src: string }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
+  const togglePlay = () => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio(src);
+      audioRef.current.onended = () => setIsPlaying(false);
+    }
+
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  return (
+    <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-full px-3 py-1 mt-1 w-fit">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6"
+        onClick={togglePlay}
+      >
+        {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+      </Button>
+      <div className="h-1 w-16 bg-zinc-300 dark:bg-zinc-600 rounded-full">
+         <div className={`h-full bg-blue-500 rounded-full ${isPlaying ? 'animate-pulse' : ''} w-full`} />
+      </div>
+    </div>
+  );
+};
 
 const PostDetailsModal: React.FC = () => {
   const {
@@ -53,6 +93,7 @@ const PostDetailsModal: React.FC = () => {
 
   const [newComment, setNewComment] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showRecorder, setShowRecorder] = useState(false);
   const emojiPickerRef = React.useRef<HTMLDivElement>(null);
 
   const activeItem = viewingPost || viewingReel;
@@ -102,25 +143,29 @@ const PostDetailsModal: React.FC = () => {
     });
   };
 
-  const handleAddComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
+  const handleAddComment = (e?: React.FormEvent, audioBlob?: Blob) => {
+    if (e) e.preventDefault();
+    
     if (!user) {
       showToast("কমেন্ট করতে লগ ইন করুন");
       return;
     }
 
+    if (!audioBlob && !newComment.trim()) return;
+
     createComment(
       {
         targetId: String(activeItem.id),
         type,
-        text: newComment,
+        text: audioBlob ? "Voice Message" : newComment,
         userId: user.id,
+        audioBlob,
       },
       {
         onSuccess: () => {
           showToast("কমেন্ট যোগ করা হয়েছে");
           setNewComment("");
+          setShowRecorder(false);
         },
         onError: () => showToast("কমেন্ট যোগ করতে সমস্যা হয়েছে"),
       },
@@ -299,7 +344,11 @@ const PostDetailsModal: React.FC = () => {
                               </span>
                                                           {c.user.isVerified && <VerifiedBadge />}
                                                         </div>
-                                                        <RichText text={c.text} />
+                                                        {c.audio_url || c.audioUrl ? (
+                                                            <CommentAudioPlayer src={c.audio_url || c.audioUrl} />
+                                                        ) : (
+                                                            <RichText text={c.text} />
+                                                        )}
                                                       </div>
                                                       <div className="flex items-center gap-4 text-xs text-zinc-500 font-semibold mt-1.5">                            <span>{dayjs(c.created_at).fromNow(true)}</span>
                             <span className="cursor-pointer hover:text-zinc-400">
@@ -378,45 +427,67 @@ const PostDetailsModal: React.FC = () => {
             </div>
 
             {/* Quick Emojis */}
-            <div className="flex justify-between px-2 mb-3 mt-1 overflow-x-auto gap-4 scrollbar-hide">
-              {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😮", "😂"].map((emoji) => (
-                <span
-                  key={emoji}
-                  className="text-2xl cursor-pointer hover:scale-125 transition-transform"
-                  onClick={() => setNewComment((prev) => prev + emoji)}
-                >
-                  {emoji}
-                </span>
-              ))}
-            </div>
+            {!showRecorder && (
+                <div className="flex justify-between px-2 mb-3 mt-1 overflow-x-auto gap-4 scrollbar-hide">
+                {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😮", "😂"].map((emoji) => (
+                    <span
+                    key={emoji}
+                    className="text-2xl cursor-pointer hover:scale-125 transition-transform"
+                    onClick={() => setNewComment((prev) => prev + emoji)}
+                    >
+                    {emoji}
+                    </span>
+                ))}
+                </div>
+            )}
 
-            <form
-              onSubmit={handleAddComment}
-              className="flex items-center gap-2 border-t pt-3 border-zinc-800"
-            >
-              <Smile
-                size={24}
-                className={`cursor-pointer transition-colors ${showEmojiPicker ? "text-[#006a4e]" : "text-zinc-400 hover:text-zinc-200"}`}
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              />
-              <Input
-                type="text"
-                placeholder="কমেন্ট যোগ করুন..."
-                className="bg-transparent text-sm w-full border-none focus-visible:ring-0 p-0 h-auto"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                onFocus={() => setShowEmojiPicker(false)}
-                disabled={isCommenting}
-              />
-              <Button
-                type="submit"
-                variant="ghost"
-                className="text-[#006a4e] font-bold hover:text-[#004d39] hover:bg-transparent p-0 h-auto"
-                disabled={!newComment || isCommenting}
-              >
-                {isCommenting ? <Loader2 className="h-4 w-4 animate-spin" /> : "পোস্ট"}
-              </Button>
-            </form>
+            <div className="flex items-center gap-2 border-t pt-3 border-zinc-800">
+               {showRecorder ? (
+                   <VoiceRecorder 
+                        onRecordingComplete={(blob) => handleAddComment(undefined, blob)}
+                        onCancel={() => setShowRecorder(false)}
+                   />
+               ) : (
+                <form
+                onSubmit={(e) => handleAddComment(e)}
+                className="flex items-center gap-2 w-full"
+                >
+                <Smile
+                    size={24}
+                    className={`cursor-pointer transition-colors ${showEmojiPicker ? "text-[#006a4e]" : "text-zinc-400 hover:text-zinc-200"}`}
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                />
+                <Input
+                    type="text"
+                    placeholder="কমেন্ট যোগ করুন..."
+                    className="bg-transparent text-sm w-full border-none focus-visible:ring-0 p-0 h-auto"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    onFocus={() => setShowEmojiPicker(false)}
+                    disabled={isCommenting}
+                />
+                
+                {!newComment && (
+                    <Mic 
+                        size={24} 
+                        className="cursor-pointer text-zinc-400 hover:text-zinc-200" 
+                        onClick={() => setShowRecorder(true)}
+                    />
+                )}
+                
+                {newComment && (
+                    <Button
+                        type="submit"
+                        variant="ghost"
+                        className="text-[#006a4e] font-bold hover:text-[#004d39] hover:bg-transparent p-0 h-auto"
+                        disabled={isCommenting}
+                    >
+                        {isCommenting ? <Loader2 className="h-4 w-4 animate-spin" /> : "পোস্ট"}
+                    </Button>
+                )}
+                </form>
+               )}
+            </div>
           </div>
         </div>
       </motion.div>

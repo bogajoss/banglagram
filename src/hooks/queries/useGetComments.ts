@@ -9,6 +9,7 @@ export interface Comment {
   user_id: string;
   post_id?: string;
   reel_id?: string;
+  audioUrl?: string;
   user: {
     username: string;
     avatar_url: string;
@@ -33,6 +34,7 @@ export const useGetComments = (targetId: string, type: "post" | "reel") => {
           user_id,
           post_id,
           reel_id,
+          audio_url,
           profiles:user_id (
             username,
             avatar_url,
@@ -65,6 +67,7 @@ export const useGetComments = (targetId: string, type: "post" | "reel") => {
         user_id: comment.user_id,
         post_id: comment.post_id || undefined,
         reel_id: comment.reel_id || undefined,
+        audioUrl: comment.audio_url || undefined,
         user: {
           username: comment.profiles?.username || "Guest",
           avatar_url:

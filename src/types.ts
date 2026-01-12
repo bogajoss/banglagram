@@ -22,6 +22,7 @@ export interface Comment {
     name?: string;
   };
   text: string;
+  audioUrl?: string;
 }
 
 export interface Post {

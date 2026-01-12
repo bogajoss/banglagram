@@ -6,11 +6,12 @@ import { useAppStore } from "../../store/useAppStore";
 import { useAuth } from "../../hooks/useAuth";
 
 const Layout: React.FC = () => {
-  const { theme, isSidebarExpanded } = useAppStore();
+  const { isSidebarExpanded } = useAppStore();
+
   const { user } = useAuth();
   const location = useLocation();
-  const themeClasses =
-    theme === "dark" ? "bg-black text-white" : "bg-white text-black";
+  const themeClasses = "bg-background text-foreground";
+
 
   const isMessagesPage = location.pathname.startsWith("/messages");
   const isReelsPage = location.pathname.startsWith("/reels");

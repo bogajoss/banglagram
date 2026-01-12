@@ -57,7 +57,17 @@ export default function App() {
     (location.pathname.startsWith("/post/") &&
       location.pathname.split("/").length === 3);
 
+  // Theme Management
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme]);
+
   // Realtime Notifications Subscription
+
   useEffect(() => {
     if (!user) return;
 
@@ -122,8 +132,9 @@ export default function App() {
   if (authLoading) {
     return (
       <div
-        className={`min-h-screen flex items-center justify-center ${theme === "dark" ? "bg-black" : "bg-white"}`}
+        className="min-h-screen flex items-center justify-center bg-background"
       >
+
         <img
           src="/icon.png"
           className="w-20 h-20 animate-pulse"
@@ -138,8 +149,9 @@ export default function App() {
       <Suspense
         fallback={
           <div
-            className={`min-h-screen flex items-center justify-center ${theme === "dark" ? "bg-black" : "bg-white"}`}
+            className="min-h-screen flex items-center justify-center bg-background"
           >
+
             <img
               src="/icon.png"
               className="w-20 h-20 animate-pulse"
@@ -175,8 +187,9 @@ export default function App() {
         <Suspense
           fallback={
             <div
-              className={`min-h-screen w-full flex items-center justify-center ${theme === "dark" ? "bg-black" : "bg-white"}`}
+              className="min-h-screen w-full flex items-center justify-center bg-background"
             >
+
               <div className="w-8 h-8 border-4 border-[#006a4e] border-t-transparent rounded-full animate-spin"></div>
             </div>
           }

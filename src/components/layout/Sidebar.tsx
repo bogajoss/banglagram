@@ -32,9 +32,9 @@ const Sidebar: React.FC = () => {
     unreadMessagesCount,
   } = useAppStore();
   const { signOut } = useAuth();
-  const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
-  const themeClasses =
-    theme === "dark" ? "bg-black text-white" : "bg-white text-black";
+  const borderClass = "border-border";
+  const themeClasses = "bg-background text-foreground";
+
 
   const menuItems = [
     { icon: <Home size={24} />, label: "Home", path: "/" },
@@ -98,7 +98,8 @@ const Sidebar: React.FC = () => {
                 <motion.div
                   whileHover={{ scale: 1.02, x: isSidebarExpanded ? 5 : 0 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                  className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg hover:bg-muted`}
+
                 >
                   <div className="relative">
                     <div className={isActive ? "text-[#006a4e]" : ""}>
@@ -135,9 +136,9 @@ const Sidebar: React.FC = () => {
             variant="ghost"
             onClick={() => setCreateModalOpen(true)}
             className={cn(
-              "flex items-center justify-start w-full gap-4 px-3 py-6 rounded-lg transition-colors cursor-pointer group hover:bg-transparent",
-              theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5",
+              "flex items-center justify-start w-full gap-4 px-3 py-6 rounded-lg transition-colors cursor-pointer group hover:bg-muted",
               !isSidebarExpanded && "justify-center px-0"
+
             )}
             asChild
           >
@@ -166,7 +167,8 @@ const Sidebar: React.FC = () => {
               <motion.div
                 whileHover={{ scale: 1.02, x: isSidebarExpanded ? 5 : 0 }}
                 whileTap={{ scale: 0.98 }}
-                className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg hover:bg-muted`}
+
               >
                 <OptimizedImage
                   src={currentUser.avatar}
@@ -187,9 +189,9 @@ const Sidebar: React.FC = () => {
           variant="ghost"
           onClick={toggleTheme}
           className={cn(
-            "flex items-center justify-start w-full gap-4 px-3 py-6 rounded-lg transition-colors cursor-pointer group hover:bg-transparent",
-            theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5",
+            "flex items-center justify-start w-full gap-4 px-3 py-6 rounded-lg transition-colors cursor-pointer group hover:bg-muted",
             !isSidebarExpanded && "justify-center px-0"
+
           )}
           asChild
         >
@@ -207,9 +209,9 @@ const Sidebar: React.FC = () => {
           variant="ghost"
           onClick={toggleSidebar}
           className={cn(
-            "flex items-center justify-start w-full gap-4 px-3 py-6 rounded-lg transition-colors cursor-pointer group hover:bg-transparent",
-            theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5",
+            "flex items-center justify-start w-full gap-4 px-3 py-6 rounded-lg transition-colors cursor-pointer group hover:bg-muted",
             !isSidebarExpanded && "justify-center px-0"
+
           )}
           asChild
         >
@@ -231,9 +233,9 @@ const Sidebar: React.FC = () => {
           variant="ghost"
           onClick={() => signOut()}
           className={cn(
-            "flex items-center justify-start w-full gap-4 px-3 py-6 rounded-lg transition-colors cursor-pointer group hover:bg-transparent text-red-500 hover:text-red-600",
-            theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5",
+            "flex items-center justify-start w-full gap-4 px-3 py-6 rounded-lg transition-colors cursor-pointer group hover:bg-muted text-destructive hover:text-destructive/80",
             !isSidebarExpanded && "justify-center px-0"
+
           )}
           asChild
         >

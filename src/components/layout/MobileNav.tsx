@@ -12,10 +12,11 @@ import { motion } from "framer-motion";
 import OptimizedImage from "../OptimizedImage";
 
 const MobileNav: React.FC = () => {
-  const { theme, currentUser, setCreateModalOpen } = useAppStore();
-  const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
-  const themeClasses =
-    theme === "dark" ? "bg-black text-white" : "bg-white text-black";
+  const { currentUser, setCreateModalOpen } = useAppStore();
+
+  const borderClass = "border-border";
+  const themeClasses = "bg-background/90 text-foreground";
+
 
   const navItems = [
     { icon: <Home size={24} />, label: "Home", path: "/" },

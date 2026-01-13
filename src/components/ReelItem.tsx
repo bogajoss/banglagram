@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, memo } from "react";
 import ReactPlayer from "react-player";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Player = ReactPlayer as any;
 import {
   Heart,

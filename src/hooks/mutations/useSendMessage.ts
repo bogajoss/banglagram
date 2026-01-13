@@ -24,7 +24,7 @@ export const useSendMessage = () => {
       receiverId,
       mediaUrl,
     }: SendMessageVariables) => {
-      const { data, error } = await (supabase.from("messages") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase.from("messages") as any)
         .insert({
           sender_id: senderId,
           receiver_id: receiverId,

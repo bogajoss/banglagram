@@ -12,7 +12,7 @@ interface ImageCropperProps {
 const ImageCropper: React.FC<ImageCropperProps> = ({
     imageSrc,
     onCropComplete,
-    aspect = 4 / 5, // Default Portrait aspect ratio
+    aspect = 4 / 5,
 }) => {
     const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);

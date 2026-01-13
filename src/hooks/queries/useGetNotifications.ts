@@ -55,11 +55,7 @@ export const useGetNotifications = (userId?: string) => {
           user: {
             id: n.actor_id || "",
             username: n.actor?.username || "Unknown",
-            name: n.actor?.username || "Unknown", // Fallback as full_name might not be in the join if not selected. Wait, I selected username, avatar_url.
-            // In step 122 I added full_name to the select list?
-            // Checking previous file content... line 16 selects 'username, avatar_url'.
-            // I should add full_name to the query to be safe or just use username.
-            // Let's stick to what is selected: username.
+            name: n.actor?.username || "Unknown",
             avatar: n.actor?.avatar_url || "",
             isVerified: n.actor?.is_verified || false,
           },

@@ -16,7 +16,6 @@ export const useMarkMessagesRead = () => {
       if (error) throw error;
     },
     onSuccess: (_, { senderId }) => {
-        // Invalidate the conversation with this sender so unread counts update
         queryClient.invalidateQueries({ queryKey: MESSAGES_QUERY_KEY(senderId) });
         queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },

@@ -72,7 +72,6 @@ const MessagesView: React.FC = () => {
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const bgHover = theme === "dark" ? "hover:bg-zinc-900" : "hover:bg-gray-100";
 
-  // Handle clicking outside emoji picker to close it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (

@@ -21,7 +21,6 @@ export const useGetComments = (targetId: string, type: "post" | "reel") => {
   return useQuery({
     queryKey: ["comments", type, targetId],
     queryFn: async () => {
-      // Determine the column to filter by based on type
       const column = type === "post" ? "post_id" : "reel_id";
 
       const { data, error } = await supabase

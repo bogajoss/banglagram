@@ -5,7 +5,6 @@ import { AnimatePresence } from "framer-motion";
 import Layout from "./components/layout/Layout";
 import { supabase } from "./lib/supabaseClient";
 import { useQueryClient } from "@tanstack/react-query";
-// Lazy load views for optimization
 const HomeView = lazy(() => import("./views/HomeView"));
 const ProfileView = lazy(() => import("./views/ProfileView"));
 const MessagesView = lazy(() => import("./views/MessagesView"));
@@ -50,14 +49,12 @@ export default function App() {
   const queryClient = useQueryClient();
   const { data: notifications = [] } = useGetNotifications(user?.id);
 
-  // Define public routes that don't require authentication
   const isPublicRoute =
     (location.pathname.startsWith("/reels/") &&
       location.pathname.split("/").length === 3) ||
     (location.pathname.startsWith("/post/") &&
       location.pathname.split("/").length === 3);
 
-  // Theme Management
   useEffect(() => {
     if (theme === "dark") {
       document.documentElement.classList.add("dark");
@@ -65,8 +62,6 @@ export default function App() {
       document.documentElement.classList.remove("dark");
     }
   }, [theme]);
-
-  // Realtime Notifications Subscription
 
   useEffect(() => {
     if (!user) return;
@@ -105,7 +100,6 @@ export default function App() {
 
   useEffect(() => {
     if (profile && user) {
-      // Map Supabase profile to App User type
       const appUser: AppUser = {
         id: user.id,
         username: profile.username,
@@ -116,13 +110,12 @@ export default function App() {
         bio: profile.bio || "",
         isVerified: profile.is_verified || false,
         stats: {
-          // These would ideally come from the DB too, simple default for now or fetch via hook
           posts: 0,
           followers: 0,
           following: 0,
         },
 
-        role: profile.role, // Pass role
+        role: profile.role,
       };
       setCurrentUser(appUser);
 
@@ -169,7 +162,6 @@ export default function App() {
     <>
       <Toaster />
 
-      {/* Modals with AnimatePresence */}
       <AnimatePresence>{isCreateModalOpen && <CreateModal />}</AnimatePresence>
       <AnimatePresence>
         {isEditProfileOpen && <EditProfileModal />}

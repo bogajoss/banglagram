@@ -25,9 +25,8 @@ export const useTypingIndicator = (roomId: string) => {
       .on("presence", { event: "sync" }, () => {
         const state = channel.presenceState();
         const typing: string[] = [];
-        
+
         Object.keys(state).forEach(key => {
-            if (key === user.id) return;
             const presence = state[key] as Array<{ isTyping?: boolean; username?: string }>;
             presence.forEach(p => {
                 if (p.isTyping && p.username) {

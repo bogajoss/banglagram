@@ -70,8 +70,8 @@ export const useGetSavedPosts = (userId: string | undefined) => {
               caption: p.caption || "",
               comments: p.comments?.[0]?.count || 0,
               time: dayjs(p.created_at).fromNow(),
-              hasLiked: false, // We don't check liked status here for now, can be improved.
-              hasSaved: true, // Obviously true
+              hasLiked: false,
+              hasSaved: true,
               isVerified: p.user?.is_verified || false,
             };
           },

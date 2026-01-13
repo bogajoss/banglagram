@@ -13,7 +13,6 @@ export const useCreateStory = () => {
 
   return useMutation({
     mutationFn: async ({ file, userId }: CreateStoryVariables) => {
-      // 1. Upload Image
       const fileExt = file.name.split(".").pop();
       const fileName = `${userId}-${dayjs().valueOf()}.${fileExt}`;
       const filePath = `${fileName}`;

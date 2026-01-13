@@ -6,7 +6,7 @@ import { useAppStore } from "../store/useAppStore";
 interface FileUploaderProps {
     onFileSelect: (file: File) => void;
     accept?: Record<string, string[]>;
-    maxSize?: number; // in bytes
+    maxSize?: number;
 }
 
 const FileUploader: React.FC<FileUploaderProps> = ({
@@ -15,7 +15,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         "image/*": [],
         "video/*": [],
     },
-    maxSize = 100 * 1024 * 1024, // 100MB default
+    maxSize = 100 * 1024 * 1024,
 }) => {
     const { theme } = useAppStore();
 

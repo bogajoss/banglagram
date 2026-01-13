@@ -22,7 +22,6 @@ export const useCreatePost = () => {
       location,
       userId,
     }: CreatePostVariables) => {
-      // 1. Upload
       const fileExt = file.name.split(".").pop();
       const fileName = `${userId}/${dayjs().valueOf()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage

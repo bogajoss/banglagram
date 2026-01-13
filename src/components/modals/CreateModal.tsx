@@ -208,7 +208,6 @@ const CreateModal: React.FC = () => {
                     <ImageCropper
                       imageSrc={preview}
                       onCropComplete={setCroppedAreaPixels}
-                    // Optional: pass aspect ratio based on user choice if we add that feature
                     />
                   ) : (
                     <OptimizedImage

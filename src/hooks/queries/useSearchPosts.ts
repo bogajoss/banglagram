@@ -11,7 +11,6 @@ export const useSearchPosts = (searchQuery: string) => {
     queryKey: SEARCH_POSTS_QUERY_KEY(searchQuery),
     enabled: !!searchQuery && searchQuery.length > 0,
     queryFn: async () => {
-      // Search in captions
       const { data, error } = await supabase
         .from("posts")
         .select(

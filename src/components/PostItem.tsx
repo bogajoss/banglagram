@@ -60,7 +60,6 @@ const PostItem: React.FC<PostItemProps> = memo(
 
     const liked = post.hasLiked || false;
 
-    // Handle clicking outside emoji picker to close it
     React.useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (

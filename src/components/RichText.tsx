@@ -18,17 +18,13 @@ const RichText: React.FC<RichTextProps> = ({
 }) => {
   if (!text) return null;
 
-  // Determine text to show
   let displayText = text;
   const shouldTruncate = truncateLength && text.length > truncateLength && !expanded;
-  
+
   if (shouldTruncate) {
     displayText = text.slice(0, truncateLength);
   }
 
-  // Regex to match #hashtag and @mention
-  // \B matches a position where the previous character is not a word character (like space or start of string)
-  // This prevents matching inside words like email@address.com or match#text
   const regex = /(\B#[a-zA-Z0-9_\u0980-\u09FF]+|\B@[a-zA-Z0-9_]+)/g;
 
   const parts = displayText.split(regex);

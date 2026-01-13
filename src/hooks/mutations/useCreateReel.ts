@@ -15,7 +15,6 @@ export const useCreateReel = () => {
 
   return useMutation({
     mutationFn: async ({ file, caption, userId }: CreateReelVariables) => {
-      // 1. Upload
       const fileExt = file.name.split(".").pop();
       const fileName = `${userId}/${dayjs().valueOf()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage

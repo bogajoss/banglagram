@@ -30,7 +30,6 @@ export const useGetTaggedPosts = (userId: string | undefined) => {
         .order("created_at", { ascending: false });
 
       if (error) {
-        // If table doesn't exist, return empty (graceful degradation)
         if (error.code === "42P01") return [];
         throw error;
       }

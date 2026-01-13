@@ -5,13 +5,10 @@ import { supabase } from "../../lib/supabaseClient";
 export const useAdminActions = () => {
     const queryClient = useQueryClient();
 
-    // --- USER ACTIONS ---
-
     const { mutate: verifyUser, isPending: isVerifying } = useMutation({
         mutationFn: async ({ userId, status }: { userId: string; status: boolean }) => {
             const { error } = await supabase
                 .from("profiles")
-                // @ts-expect-error Supabase update type inference failing
                 .update({ is_verified: status })
 
                 .eq("id", userId);

@@ -19,10 +19,8 @@ export const useGetFollows = (
       `);
 
       if (type === "followers") {
-        // Who follows ME? Me = following_id. I want the follower.
         query = query.eq("following_id", userId);
       } else {
-        // Who do I follow? Me = follower_id. I want the following.
         query = query.eq("follower_id", userId);
       }
 

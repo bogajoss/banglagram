@@ -29,7 +29,6 @@ const StoryViewer: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [progress, setProgress] = useState(0);
 
-  // Sync currentIndex with initialStoryIndex when data loads
   if (initialStoryIndex !== -1 && currentIndex === -1) {
     setCurrentIndex(initialStoryIndex);
   }

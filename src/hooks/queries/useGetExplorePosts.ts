@@ -12,7 +12,6 @@ export const useGetExplorePosts = () => {
       const from = pageParam * 15;
       const to = from + 14;
 
-      // Fetch posts with pagination
       const { data, error } = await supabase
         .from("posts")
         .select(

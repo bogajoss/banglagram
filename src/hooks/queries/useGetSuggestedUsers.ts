@@ -9,9 +9,6 @@ export const useGetSuggestedUsers = (currentUserId?: string) => {
   return useQuery({
     queryKey: SUGGESTED_USERS_QUERY_KEY,
     queryFn: async () => {
-      // Simple logic: Fetch random users.
-      // Better logic: Fetch users NOT in 'follows' table where follower_id = currentUserId.
-
       const excludeIds: string[] = [];
       if (currentUserId) {
         excludeIds.push(currentUserId);

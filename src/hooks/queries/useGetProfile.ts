@@ -16,7 +16,6 @@ export const useGetProfile = (
     queryFn: async () => {
       if (!username) throw new Error("Username required");
 
-      // 1. Fetch Profile
       const { data: profileData, error } = await supabase
         .from("profiles")
         .select("id, username, full_name, avatar_url, bio, is_verified")
@@ -27,7 +26,6 @@ export const useGetProfile = (
       const profile =
         profileData as Database["public"]["Tables"]["profiles"]["Row"];
 
-      // 2. Fetch Stats
       const { count: postsCount } = await supabase
         .from("posts")
         .select("*", { count: "exact", head: true })

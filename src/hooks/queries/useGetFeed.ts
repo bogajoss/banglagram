@@ -12,7 +12,6 @@ export const useGetFeed = (userId?: string) => {
       const from = pageParam * 10;
       const to = from + 9;
 
-      // 1. Fetch Posts
       const { data: postsData, error: postsError } = await supabase
         .from("posts")
         .select(

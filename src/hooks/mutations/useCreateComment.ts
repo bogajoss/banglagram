@@ -60,7 +60,7 @@ export const useCreateComment = () => {
           ? { user_id: userId, post_id: targetId, text, audio_url: audioUrl }
           : { user_id: userId, reel_id: targetId, text, audio_url: audioUrl };
 
-      const { data, error } = await (supabase.from("comments") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase.from("comments") as any)
         .insert(payload)
         .select()
         .single();
@@ -92,12 +92,10 @@ export const useCreateComment = () => {
         },
       };
 
-      // 1. Update comments list
       queryClient.setQueryData(commentsKey, (old: Comment[] = []) => {
         return [optimisticComment, ...old];
       });
 
-      // 2. Update comment count in feed/reels
       queryClient.setQueryData(feedKey, (old: unknown) => {
         if (!old) return old;
 

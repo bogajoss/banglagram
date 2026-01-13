@@ -8,10 +8,6 @@ export const useGetStories = (currentUserId: string | undefined) => {
   return useQuery({
     queryKey: STORIES_QUERY_KEY,
     queryFn: async () => {
-      // Fetch active stories (expires_at > now)
-      // Note: Supabase/Postgres might need timezone awareness.
-      // We'll filter client side if needed, or simple comparison.
-
       const { data, error } = await supabase
         .from("stories")
         .select(

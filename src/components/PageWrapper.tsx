@@ -8,14 +8,12 @@ interface PageWrapperProps {
 const PageWrapper: React.FC<PageWrapperProps> = ({ children }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       transition={{
-        type: "spring",
-        stiffness: 260,
-        damping: 20,
-        opacity: { duration: 0.2 },
+        duration: 0.15,
+        ease: "easeOut"
       }}
       className="w-full flex justify-center"
     >

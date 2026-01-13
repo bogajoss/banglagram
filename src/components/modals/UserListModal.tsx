@@ -1,8 +1,8 @@
 import React from "react";
 import { X } from "lucide-react";
 import type { User } from "../../types";
-import OptimizedImage from "../OptimizedImage";
 import VerifiedBadge from "../VerifiedBadge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface UserListModalProps {
   title: string;
@@ -54,13 +54,10 @@ const UserListModal: React.FC<UserListModalProps> = ({
                 onClick={() => onUserClick(user)}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full overflow-hidden">
-                    <OptimizedImage
-                      src={user.avatar}
-                      className="w-full h-full"
-                      alt={user.username}
-                    />
-                  </div>
+                  <Avatar className="w-12 h-12">
+                    <AvatarImage src={user.avatar} />
+                    <AvatarFallback>{user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                  </Avatar>
                   <div className="flex flex-col">
                     <div className="flex items-center gap-1">
                       <span className="text-sm font-semibold">

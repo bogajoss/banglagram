@@ -14,16 +14,16 @@ import {
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import { useAppStore } from "../../store/useAppStore";
 import { useNavigate } from "react-router-dom";
-import type { User } from "../../types";
+import type { User, Post, Reel } from "../../types";
 import { useAuth } from "../../hooks/useAuth";
 import { motion } from "framer-motion";
 import { useToggleLike } from "../../hooks/mutations/useToggleLike";
 import { useCreateComment } from "../../hooks/mutations/useCreateComment";
 import { useGetComments } from "../../hooks/queries/useGetComments";
 import { useToggleSave } from "../../hooks/mutations/useToggleSave";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import VoiceRecorder from "../VoiceRecorder";
 
@@ -82,7 +82,7 @@ const PostDetailsModal: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleEmojiClick = (emojiData: any) => {
+  const handleEmojiClick = (emojiData: { emoji: string }) => {
     setNewComment((prev) => prev + emojiData.emoji);
   };
 
@@ -170,14 +170,14 @@ const PostDetailsModal: React.FC = () => {
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className={`w-full max-w-5xl h-[95vh] md:h-auto md:max-h-[90vh] rounded-t-[20px] md:rounded-lg overflow-hidden flex flex-col md:flex-row shadow-2xl ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
+        className={`w-full max-w-5xl h-[95vh] md:h-[650px] md:max-h-[90vh] rounded-t-[20px] md:rounded-lg overflow-hidden flex flex-col md:flex-row shadow-2xl ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
         onClick={(event) => event.stopPropagation()}
       >
         {/* Media Section */}
-        <div className="hidden md:flex flex-1 bg-black items-center justify-center min-h-[300px] md:h-auto border-r border-zinc-800 relative">
+        <div className="hidden md:flex flex-1 bg-black items-center justify-center h-full border-r border-zinc-800 relative">
           {isReel ? (
             <video
-              src={(activeItem as any).src}
+              src={(activeItem as Reel).src}
               className="max-h-full max-w-full"
               controls
               autoPlay
@@ -186,8 +186,8 @@ const PostDetailsModal: React.FC = () => {
           ) : (
             <OptimizedImage
               src={
-                (activeItem as any).content?.src ||
-                (activeItem as any).content?.poster
+                (activeItem as Post).content?.src ||
+                (activeItem as Post).content?.poster || ""
               }
               className="max-h-full max-w-full"
               imgClassName="object-contain"
@@ -197,9 +197,9 @@ const PostDetailsModal: React.FC = () => {
         </div>
 
         {/* Details Section */}
-        <div className="w-full md:w-[400px] flex flex-col h-full">
+        <div className="w-full md:w-[400px] flex flex-col h-full overflow-hidden bg-inherit">
           <div
-            className={`p-4 border-b ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"} flex items-center justify-between shrink-0`}
+            className={`p-4 flex items-center justify-between shrink-0`}
           >
             {/* Mobile Header: Comments Title */}
             <div className="md:hidden w-full text-center font-bold text-sm">
@@ -208,18 +208,15 @@ const PostDetailsModal: React.FC = () => {
 
             {/* Desktop Header: User Profile */}
             <div
-              className="hidden md:flex items-center gap-3"
+              className="hidden md:flex items-center gap-3 cursor-pointer"
               onClick={() => onUserClick(activeItem.user)}
             >
-              <div className="w-8 h-8 rounded-full border border-zinc-700 overflow-hidden cursor-pointer">
-                <OptimizedImage
-                  src={activeItem.user.avatar}
-                  className="w-full h-full"
-                  alt={activeItem.user.username}
-                />
-              </div>
+              <Avatar className="w-8 h-8 border border-zinc-700">
+                <AvatarImage src={activeItem.user.avatar} />
+                <AvatarFallback>{activeItem.user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+              </Avatar>
               <div className="flex items-center">
-                <span className="font-semibold text-sm hover:opacity-70 cursor-pointer">
+                <span className="font-semibold text-sm hover:opacity-70">
                   {activeItem.user.username}
                 </span>
                 {activeItem.user.isVerified && <VerifiedBadge />}
@@ -227,9 +224,13 @@ const PostDetailsModal: React.FC = () => {
             </div>
 
             {/* Desktop Options Icon */}
-            <Button variant="ghost" size="icon" className="hidden md:flex">
-              <MoreHorizontal size={20} />
-            </Button>
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="hidden md:flex"
+            >
+              <MoreHorizontal size={20} className="cursor-pointer hover:opacity-70" />
+            </motion.div>
 
             {/* Mobile Close Button */}
             <div
@@ -240,115 +241,111 @@ const PostDetailsModal: React.FC = () => {
             </div>
           </div>
 
-          <ScrollArea className="flex-grow p-4">
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <div
-                  className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden cursor-pointer"
-                  onClick={() => onUserClick(activeItem.user)}
-                >
-                  <OptimizedImage
-                    src={activeItem.user.avatar}
-                    className="w-full h-full"
-                    alt="user"
-                  />
-                </div>
-                <div className="text-sm">
-                  <div className="flex items-center">
-                    <span
-                      className="font-semibold mr-2 cursor-pointer"
-                      onClick={() => onUserClick(activeItem.user)}
-                    >
-                      {activeItem.user.username}
-                    </span>
-                    {activeItem.user.isVerified && <VerifiedBadge />}
-                  </div>
-                  <RichText text={activeItem.caption} />
-                  <div className="text-xs text-zinc-500 mt-1">                    {(activeItem as any).createdAt ? dayjs((activeItem as any).createdAt).fromNow() : (activeItem as any).time}
-                  </div>
-                </div>
-              </div>
+          <Separator />
 
-              {loadingComments ? (
-                <div className="text-center py-4 text-zinc-500 text-sm">
-                  लोड হচ্ছে...
-                </div>
-              ) : comments && comments.length > 0 ? (
-                comments.map((c: any) => {
-                  return (
-                    <div
-                      key={c.id}
-                      className="flex gap-3 justify-between items-start group"
-                    >
-                      <div className="flex gap-3">
-                        <div
-                          className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
-                          onClick={() =>
-                            onUserClick({
-                              username: c.user.username,
-                              name: c.user.username,
-                              avatar: c.user.avatar_url,
-                            } as User)
-                          }
-                        >
-                          <OptimizedImage
-                            src={c.user.avatar_url}
-                            className="w-full h-full"
-                            alt={c.user.username}
-                          />
-                        </div>
-                        <div className="flex flex-col">
-                          <div className="text-sm leading-tight">
-                            <div className="flex items-center">
-                              <span
-                                className="font-semibold mr-2 cursor-pointer hover:opacity-70"
-                                onClick={() =>
-                                  onUserClick({
-                                    username: c.user.username,
-                                    name: c.user.username,
-                                    avatar: c.user.avatar_url,
-                                  } as User)
-                                }
-                              >
-                                {c.user.username}
-                              </span>
-                              {c.user.isVerified && <VerifiedBadge />}
-                            </div>
-                            {c.audio_url || c.audioUrl ? (
-                              <AudioPlayer src={c.audio_url || c.audioUrl} theme={theme} />
-                            ) : (
-                              <RichText text={c.text} />
-                            )}
-                          </div>
-                          <div className="flex items-center gap-4 text-xs text-zinc-500 font-semibold mt-1.5">                            <span>{dayjs(c.created_at).fromNow(true)}</span>
-                            <span className="cursor-pointer hover:text-zinc-400">
-                              0 লাইক
-                            </span>
-                            <span className="cursor-pointer hover:text-zinc-400">
-                              রিপ্লাই
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <Heart
-                        size={12}
-                        className="cursor-pointer text-zinc-500 hover:opacity-50 mt-2"
-                      />
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <ScrollArea className="h-full w-full">
+              <div className="p-4 space-y-4">
+                <div className="flex gap-3">
+                  <Avatar
+                    className="w-8 h-8 cursor-pointer flex-shrink-0"
+                    onClick={() => onUserClick(activeItem.user)}
+                  >
+                    <AvatarImage src={activeItem.user.avatar} />
+                    <AvatarFallback>{activeItem.user.username[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="text-sm">
+                    <div className="flex items-center">
+                      <span
+                        className="font-semibold mr-2 cursor-pointer"
+                        onClick={() => onUserClick(activeItem.user)}
+                      >
+                        {activeItem.user.username}
+                      </span>
+                      {activeItem.user.isVerified && <VerifiedBadge />}
                     </div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-10 text-zinc-500 text-sm">
-                  কোনো কমেন্ট নেই
+                    <RichText text={activeItem.caption} />
+                    <div className="text-xs text-zinc-500 mt-1">
+                      {"createdAt" in activeItem && activeItem.createdAt ? dayjs(activeItem.createdAt).fromNow() : "time" in activeItem ? activeItem.time : ""}
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          </ScrollArea>
+
+                {loadingComments ? (
+                  <div className="text-center py-4 text-zinc-500 text-sm">
+                    লোড হচ্ছে...
+                  </div>
+                ) : comments && comments.length > 0 ? (
+                  comments.map((c: { id: string; user_id: string; user: { username: string; avatar_url: string; is_verified?: boolean }; text: string; audio_url?: string; audioUrl?: string; created_at: string }) => {
+                    const commentUser: User = {
+                      id: c.user_id,
+                      username: c.user.username,
+                      name: c.user.username,
+                      avatar: c.user.avatar_url,
+                      isVerified: c.user.is_verified,
+                    };
+                    return (
+                      <div
+                        key={c.id}
+                        className="flex gap-3 justify-between items-start group"
+                      >
+                        <div className="flex gap-3">
+                          <Avatar
+                            className="w-8 h-8 cursor-pointer flex-shrink-0"
+                            onClick={() => onUserClick(commentUser)}
+                          >
+                            <AvatarImage src={c.user.avatar_url} />
+                            <AvatarFallback>{c.user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <div className="text-sm leading-tight">
+                              <div className="flex items-center">
+                                <span
+                                  className="font-semibold mr-2 cursor-pointer hover:opacity-70"
+                                  onClick={() => onUserClick(commentUser)}
+                                >
+                                  {c.user.username}
+                                </span>
+                                {c.user.is_verified && <VerifiedBadge />}
+                              </div>
+                              {c.audio_url || c.audioUrl ? (
+                                <AudioPlayer src={(c.audio_url || c.audioUrl) as string} theme={theme} />
+                              ) : (
+                                <RichText text={c.text} />
+                              )}
+                            </div>
+                            <div className="flex items-center gap-4 text-xs text-zinc-500 font-semibold mt-1.5">
+                              <span>{dayjs(c.created_at).fromNow(true)}</span>
+                              <span className="cursor-pointer hover:text-zinc-400">
+                                0 লাইক
+                              </span>
+                              <span className="cursor-pointer hover:text-zinc-400">
+                                রিপ্লাই
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <Heart
+                          size={12}
+                          className="cursor-pointer text-zinc-500 hover:opacity-50 mt-2"
+                        />
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-10 text-zinc-500 text-sm">
+                    কোনো কমেন্ট নেই
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+
+          <Separator />
 
           <div
-            className={`p-4 border-t ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"} relative`}
-          >
-            {/* Emoji Picker */}
+            className={`px-4 py-3 relative shrink-0 bg-inherit`}
+          >            {/* Emoji Picker */}
             {showEmojiPicker && (
               <div
                 ref={emojiPickerRef}
@@ -366,7 +363,7 @@ const PostDetailsModal: React.FC = () => {
               </div>
             )}
 
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-4">
                 <Heart
                   size={24}
@@ -397,20 +394,23 @@ const PostDetailsModal: React.FC = () => {
                 }}
               />
             </div>
-            <div className="font-semibold text-sm mb-2">
-              {activeItem.likes + " লাইক"}
-            </div>
-            <div className="text-xs text-zinc-500 uppercase mb-3">
-              {(activeItem as any).createdAt ? dayjs((activeItem as any).createdAt).fromNow() : (activeItem as any).time}
+
+            <div className="flex flex-col mb-2">
+              <span className="font-semibold text-sm">
+                {activeItem.likes + " লাইক"}
+              </span>
+              <span className="text-[10px] text-zinc-500 uppercase">
+                {"createdAt" in activeItem && activeItem.createdAt ? dayjs(activeItem.createdAt).fromNow() : "time" in activeItem ? activeItem.time : ""}
+              </span>
             </div>
 
             {/* Quick Emojis */}
             {!showRecorder && (
-              <div className="flex justify-between px-2 mb-3 mt-1 overflow-x-auto gap-4 scrollbar-hide">
+              <div className="flex gap-4 mt-2 mb-1 overflow-x-auto scrollbar-hide py-1">
                 {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😮", "😂"].map((emoji) => (
                   <span
                     key={emoji}
-                    className="text-2xl cursor-pointer hover:scale-125 transition-transform"
+                    className="text-xl cursor-pointer hover:scale-125 transition-transform"
                     onClick={() => setNewComment((prev) => prev + emoji)}
                   >
                     {emoji}
@@ -419,7 +419,7 @@ const PostDetailsModal: React.FC = () => {
               </div>
             )}
 
-            <div className="flex items-center gap-2 border-t pt-3 border-zinc-800">
+            <div className="flex items-center gap-2 pt-2 border-t border-zinc-800">
               {showRecorder ? (
                 <VoiceRecorder
                   onRecordingComplete={(blob) => handleAddComment(undefined, blob)}
@@ -428,17 +428,17 @@ const PostDetailsModal: React.FC = () => {
               ) : (
                 <form
                   onSubmit={(e) => handleAddComment(e)}
-                  className="flex items-center gap-2 w-full"
+                  className="flex items-center gap-2 w-full relative"
                 >
                   <Smile
-                    size={24}
-                    className={`cursor-pointer transition-colors ${showEmojiPicker ? "text-[#006a4e]" : "text-zinc-400 hover:text-zinc-200"}`}
+                    size={20}
+                    className={`cursor-pointer transition-colors flex-shrink-0 ${showEmojiPicker ? "text-[#006a4e]" : "text-zinc-500 hover:text-zinc-300"}`}
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                   />
-                  <Input
+                  <input
                     type="text"
                     placeholder="কমেন্ট যোগ করুন..."
-                    className="bg-transparent text-sm w-full border-none focus-visible:ring-0 p-0 h-auto"
+                    className={`bg-transparent text-sm w-full outline-none ${theme === "dark" ? "text-white" : "text-black"}`}
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     onFocus={() => setShowEmojiPicker(false)}
@@ -447,22 +447,19 @@ const PostDetailsModal: React.FC = () => {
 
                   {!newComment && (
                     <Mic
-                      size={24}
-                      className="cursor-pointer text-zinc-400 hover:text-zinc-200"
+                      size={20}
+                      className="text-zinc-500 cursor-pointer hover:text-zinc-300 flex-shrink-0"
                       onClick={() => setShowRecorder(true)}
                     />
                   )}
 
-                  {newComment && (
-                    <Button
-                      type="submit"
-                      variant="ghost"
-                      className="text-[#006a4e] font-bold hover:text-[#004d39] hover:bg-transparent p-0 h-auto"
-                      disabled={isCommenting}
-                    >
-                      {isCommenting ? <Loader2 className="h-4 w-4 animate-spin" /> : "পোস্ট"}
-                    </Button>
-                  )}
+                  <button
+                    type="submit"
+                    className="text-[#006a4e] text-sm font-semibold disabled:opacity-50 hover:text-[#004d39] flex-shrink-0"
+                    disabled={!newComment || isCommenting}
+                  >
+                    {isCommenting ? <Loader2 className="h-4 w-4 animate-spin" /> : "পোস্ট"}
+                  </button>
                 </form>
               )}
             </div>

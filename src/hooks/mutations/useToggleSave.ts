@@ -21,6 +21,7 @@ export const useToggleSave = () => {
           .match({ user_id: userId, post_id: postId });
         if (error) throw error;
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase.from("saves") as any).insert({
           user_id: userId,
           post_id: postId,

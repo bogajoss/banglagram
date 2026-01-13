@@ -51,7 +51,7 @@ export const useCreateComment = () => {
         const { data: publicUrlData } = supabase.storage
           .from("audio-messages")
           .getPublicUrl(filename);
-        
+
         audioUrl = publicUrlData.publicUrl;
       }
 
@@ -60,6 +60,7 @@ export const useCreateComment = () => {
           ? { user_id: userId, post_id: targetId, text, audio_url: audioUrl }
           : { user_id: userId, reel_id: targetId, text, audio_url: audioUrl };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from("comments") as any)
         .insert(payload)
         .select()

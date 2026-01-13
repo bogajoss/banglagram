@@ -22,6 +22,7 @@ import { useAuth } from "../hooks/useAuth";
 
 import { motion, AnimatePresence } from "framer-motion";
 
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import OptimizedImage from "./OptimizedImage";
 import VerifiedBadge from "./VerifiedBadge";
 import dayjs from "dayjs";
@@ -31,6 +32,7 @@ import RichText from "./RichText";
 
 dayjs.extend(relativeTime);
 dayjs.locale("bn");
+
 
 interface PostItemProps {
   post: Post;
@@ -173,16 +175,10 @@ const PostItem: React.FC<PostItemProps> = memo(
             className="flex items-center gap-2 cursor-pointer group"
             onClick={() => onUserClick(post.user)}
           >
-            <div
-              className={`w-8 h-8 rounded-full overflow-hidden ${theme === "dark" ? "bg-zinc-800" : "bg-gray-200"} group-hover:scale-105 transition-transform`}
-            >
-              <OptimizedImage
-                src={post.user.avatar}
-                width={100}
-                className="w-full h-full"
-                alt={post.user.username}
-              />
-            </div>
+            <Avatar className="w-8 h-8 group-hover:scale-105 transition-transform">
+              <AvatarImage src={post.user.avatar} />
+              <AvatarFallback>{post.user.username[0].toUpperCase()}</AvatarFallback>
+            </Avatar>
             <div className="flex items-center gap-1 text-sm font-semibold">
               <span className="group-hover:opacity-70 transition-opacity">
                 {post.user.username}

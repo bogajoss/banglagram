@@ -13,7 +13,7 @@ interface ShareModalProps {
   shareUrl?: string;
 }
 
-import OptimizedImage from "../OptimizedImage";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import { useNavigate } from "react-router-dom";
 
@@ -124,43 +124,40 @@ const ShareModal: React.FC<ShareModalProps> = ({
             </div>
           ) : (
             users.map((user, idx) => (
-            <div
-              key={idx}
-              className={`flex items-center justify-between p-2 rounded-lg ${theme === "dark" ? "hover:bg-white/5" : "hover:bg-black/5"} cursor-pointer transition-colors`}
-            >
               <div
-                className="flex items-center gap-3 flex-grow"
-                onClick={() => {
-                  onClose();
-                  navigate(`/profile/${user.username}`);
-                }}
+                key={idx}
+                className={`flex items-center justify-between p-2 rounded-lg ${theme === "dark" ? "hover:bg-white/5" : "hover:bg-black/5"} cursor-pointer transition-colors`}
               >
-                <div className="w-10 h-10 rounded-full overflow-hidden">
-                  <OptimizedImage
-                    src={user.avatar}
-                    className="w-full h-full"
-                    alt={user.username}
-                  />
+                <div
+                  className="flex items-center gap-3 flex-grow"
+                  onClick={() => {
+                    onClose();
+                    navigate(`/profile/${user.username}`);
+                  }}
+                >
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={user.avatar} />
+                    <AvatarFallback>{user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold">{user.username}</span>
+                    <span className="text-xs opacity-70">
+                      {user.name || user.username}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold">{user.username}</span>
-                  <span className="text-xs opacity-70">
-                    {user.name || user.username}
-                  </span>
-                </div>
+                <button
+                  className={`px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#006a4e] text-white hover:bg-[#00523c] transition-colors`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showToast(`${user.username}-কে পাঠানো হয়েছে`);
+                    onClose();
+                  }}
+                >
+                  পাঠান
+                </button>
               </div>
-              <button
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#006a4e] text-white hover:bg-[#00523c] transition-colors`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  showToast(`${user.username}-কে পাঠানো হয়েছে`);
-                  onClose();
-                }}
-              >
-                পাঠান
-              </button>
-            </div>
-          )))}
+            )))}
         </div>
         <div
           className={`p-4 border-t ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"} flex gap-4 overflow-x-auto`}

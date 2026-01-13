@@ -33,6 +33,8 @@ import { useTypingIndicator } from "../hooks/useTypingIndicator";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Database } from "../database.types";
 
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
 import OptimizedImage from "../components/OptimizedImage";
 import VerifiedBadge from "../components/VerifiedBadge";
 
@@ -397,13 +399,10 @@ const MessagesView: React.FC = () => {
                       }}
                       className={`flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors ${bgHover}`}
                     >
-                      <div className="relative flex-shrink-0 w-14 h-14 rounded-full overflow-hidden">
-                        <OptimizedImage
-                          src={u.avatar}
-                          className="w-full h-full"
-                          alt={u.username}
-                        />
-                      </div>
+                      <Avatar className="relative flex-shrink-0 w-14 h-14">
+                        <AvatarImage src={u.avatar} />
+                        <AvatarFallback>{u.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                      </Avatar>
                       <div className="flex-grow min-w-0">
                         <div className="text-sm truncate font-bold flex items-center gap-1">
                           {u.username}
@@ -427,13 +426,10 @@ const MessagesView: React.FC = () => {
                   onClick={() => handleSelectUser(u)}
                   className={`flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors ${bgHover} ${selectedUser?.username === u.username ? (theme === "dark" ? "bg-zinc-900" : "bg-gray-100") : ""}`}
                 >
-                  <div className="relative flex-shrink-0 w-14 h-14 rounded-full overflow-hidden">
-                    <OptimizedImage
-                      src={u.avatar}
-                      className="w-full h-full"
-                      alt={u.username}
-                    />
-                  </div>
+                  <Avatar className="relative flex-shrink-0 w-14 h-14">
+                    <AvatarImage src={u.avatar} />
+                    <AvatarFallback>{u.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                  </Avatar>
                   <div className="flex-grow min-w-0">
                     <div className="text-sm truncate font-bold flex items-center gap-1">
                       {u.username}
@@ -478,18 +474,15 @@ const MessagesView: React.FC = () => {
                   >
                     <ChevronLeft size={28} />
                   </div>
-                  <div
-                    className="w-8 h-8 rounded-full overflow-hidden cursor-pointer"
+                  <Avatar
+                    className="w-8 h-8 cursor-pointer"
                     onClick={() =>
                       navigate(`/profile/${selectedUser.username}`)
                     }
                   >
-                    <OptimizedImage
-                      src={selectedUser.avatar}
-                      className="w-full h-full"
-                      alt="chat user"
-                    />
-                  </div>
+                    <AvatarImage src={selectedUser.avatar} />
+                    <AvatarFallback>{selectedUser.username[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
                   <div
                     className="font-semibold text-base truncate max-w-[150px] cursor-pointer hover:underline flex items-center gap-1"
                     onClick={() =>

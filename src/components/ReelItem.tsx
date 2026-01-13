@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, memo } from "react";
 import ReactPlayer from "react-player";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Player = ReactPlayer as any;
 import {
   Heart,
@@ -31,6 +32,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import OptimizedImage from "./OptimizedImage";
 import { useAppStore } from "../store/useAppStore";
 import VerifiedBadge from "./VerifiedBadge";
+
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const ReelItem: React.FC<ReelItemProps> = memo(
   ({ reel, showToast, theme, onUserClick, glassModal }) => {
@@ -224,14 +227,10 @@ const ReelItem: React.FC<ReelItemProps> = memo(
               className="flex items-center gap-3 mb-3"
               onClick={() => onUserClick(reel.user)}
             >
-              <div className="w-8 h-8 rounded-full border border-white/50 overflow-hidden cursor-pointer">
-                <OptimizedImage
-                  src={reel.user.avatar}
-                  width={100}
-                  className="w-full h-full"
-                  alt="reel user"
-                />
-              </div>
+              <Avatar className="w-8 h-8 border border-white/50 cursor-pointer">
+                <AvatarImage src={reel.user.avatar} />
+                <AvatarFallback>{reel.user.username[0].toUpperCase()}</AvatarFallback>
+              </Avatar>
               <span className="font-semibold text-sm shadow-black drop-shadow-md text-white cursor-pointer hover:opacity-70 transition-opacity">
                 {reel.user.username}
               </span>
@@ -303,18 +302,13 @@ const ReelItem: React.FC<ReelItemProps> = memo(
                 onClick={() => setIsOptionsOpen(true)}
               />
             </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              className="w-6 h-6 border-2 border-white rounded-md overflow-hidden mt-2 cursor-pointer"
+            <Avatar
+              className="w-6 h-6 border-2 border-white cursor-pointer mt-2"
               onClick={() => onUserClick(reel.user)}
             >
-              <OptimizedImage
-                src={reel.user.avatar}
-                width={100}
-                className="w-full h-full"
-                alt="user thumb"
-              />
-            </motion.div>
+              <AvatarImage src={reel.user.avatar} />
+              <AvatarFallback>{reel.user.username[0].toUpperCase()}</AvatarFallback>
+            </Avatar>
           </div>
         </div>
       </motion.div>

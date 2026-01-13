@@ -11,6 +11,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/bn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import { useNavigate } from "react-router-dom";
 
@@ -119,20 +120,17 @@ const StoryViewer: React.FC = () => {
 
         {/* User Info */}
         <div className="absolute top-8 left-4 flex items-center gap-3 z-20 text-white">
-          <div
-            className="w-8 h-8 rounded-full border border-white overflow-hidden cursor-pointer"
+          <Avatar
+            className="w-8 h-8 border border-white cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               setViewingStory(null);
               navigate(`/profile/${currentStory.username}`);
             }}
           >
-            <OptimizedImage
-              src={currentStory.userAvatar || currentStory.img}
-              className="w-full h-full"
-              alt={currentStory.username}
-            />
-          </div>
+            <AvatarImage src={currentStory.userAvatar || currentStory.img} />
+            <AvatarFallback>{currentStory.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+          </Avatar>
           <div className="flex items-center">
             <span
               className="font-semibold text-sm cursor-pointer hover:underline"

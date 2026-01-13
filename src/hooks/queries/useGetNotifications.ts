@@ -47,11 +47,13 @@ export const useGetNotifications = (userId?: string) => {
           text = "liked your " + (n.reel_id ? "reel." : "post.");
         else if (n.type === "comment")
           text = "commented on your " + (n.reel_id ? "reel." : "post.");
+        else if (n.type === "mention")
+          text = "mentioned you in a " + (n.reel_id ? "reel." : "post.");
 
         return {
           id: n.id,
           created_at: n.created_at,
-          type: n.type as "follow" | "like" | "comment" | "system",
+          type: n.type as "follow" | "like" | "comment" | "system" | "mention",
           user: {
             id: n.actor_id || "",
             username: n.actor?.username || "Unknown",

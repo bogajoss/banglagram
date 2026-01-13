@@ -92,7 +92,7 @@ export interface Reel {
 
 export interface Notification {
   id: string; // UUID
-  type: "follow" | "system" | "like" | "comment";
+  type: "follow" | "system" | "like" | "comment" | "mention";
   user?: User;
   text: string;
   time: string;

@@ -9,7 +9,8 @@ import {
 } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { motion } from "framer-motion";
-import OptimizedImage from "../OptimizedImage";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 const MobileNav: React.FC = () => {
   const { currentUser, setCreateModalOpen } = useAppStore();
@@ -70,12 +71,10 @@ const MobileNav: React.FC = () => {
       >
         {({ isActive }) => (
           <motion.div whileTap={{ scale: 0.8 }} className="p-3">
-            <OptimizedImage
-              src={currentUser.avatar}
-              width={100}
-              className={`w-6 h-6 rounded-full ${isActive ? "border-2 border-[#006a4e]" : ""}`}
-              alt="profile"
-            />{" "}
+            <Avatar className={cn("w-6 h-6", isActive && "border-2 border-[#006a4e]")}>
+              <AvatarImage src={currentUser.avatar} />
+              <AvatarFallback>{currentUser.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+            </Avatar>
           </motion.div>
         )}
       </NavLink>

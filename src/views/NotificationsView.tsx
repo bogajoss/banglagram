@@ -13,6 +13,8 @@ import { supabase } from "../lib/supabaseClient";
 import OptimizedImage from "../components/OptimizedImage";
 import VerifiedBadge from "../components/VerifiedBadge";
 
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
 const NotificationsView: React.FC = () => {
   const { theme, setUnreadNotificationsCount } =
     useAppStore();
@@ -184,13 +186,10 @@ const NotificationsView: React.FC = () => {
                       className="relative flex-shrink-0 cursor-pointer"
                       onClick={() => onUserClick(notif.user!)}
                     >
-                      <div className="w-11 h-11 rounded-full overflow-hidden">
-                        <OptimizedImage
-                          src={notif.user.avatar}
-                          className="w-full h-full"
-                          alt="user"
-                        />
-                      </div>
+                      <Avatar className="w-11 h-11">
+                        <AvatarImage src={notif.user.avatar} />
+                        <AvatarFallback>{notif.user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                      </Avatar>
                     </div>
                   )}
                   {notif.type === "system" && (
@@ -259,13 +258,10 @@ const NotificationsView: React.FC = () => {
                   onClick={() => onUserClick(u)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0">
-                      <OptimizedImage
-                        src={u.avatar}
-                        alt={u.username}
-                        className="w-full h-full"
-                      />
-                    </div>
+                    <Avatar className="w-11 h-11 flex-shrink-0">
+                      <AvatarImage src={u.avatar} />
+                      <AvatarFallback>{u.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                    </Avatar>
                     <div className="flex flex-col text-sm overflow-hidden">
                       <div className="flex items-center gap-1">
                         <span

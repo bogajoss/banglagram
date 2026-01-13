@@ -31,6 +31,8 @@ import OptimizedImage from "../components/OptimizedImage";
 import VerifiedBadge from "../components/VerifiedBadge";
 import { Button } from "@/components/ui/button";
 
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
 const ProfileView: React.FC = () => {
   const {
     currentUser,
@@ -183,16 +185,10 @@ const ProfileView: React.FC = () => {
       <header className="flex flex-col md:flex-row gap-6 md:gap-12 mb-4 md:mb-10 items-start md:items-stretch px-4 md:px-0 pt-4 md:pt-0">
         <div className="flex flex-row md:flex-col items-center gap-8 md:gap-0 w-full md:w-auto">
           <div className="flex-shrink-0 md:w-[290px] flex justify-start md:justify-center relative">
-            <div
-              className={`w-[77px] h-[77px] md:w-[150px] md:h-[150px] rounded-full overflow-hidden border ${borderClass} group cursor-pointer relative`}
-            >
-              <OptimizedImage
-                src={profileUser.avatar}
-                width={200}
-                className="w-full h-full"
-                alt="profile"
-              />
-            </div>
+            <Avatar className="w-[77px] h-[77px] md:w-[150px] md:h-[150px] border border-zinc-800 cursor-pointer">
+              <AvatarImage src={profileUser.avatar} />
+              <AvatarFallback className="text-2xl">{profileUser.username[0].toUpperCase()}</AvatarFallback>
+            </Avatar>
             {isMe && (
               <label className="absolute bottom-0 right-10 md:right-16 bg-[#0095f6] rounded-full p-1 border-2 border-black cursor-pointer">
                 <Plus size={16} className="text-white" />

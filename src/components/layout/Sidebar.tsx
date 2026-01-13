@@ -16,7 +16,7 @@ import {
 import { useAppStore } from "../../store/useAppStore";
 import { useAuth } from "../../hooks/useAuth";
 import { motion } from "framer-motion";
-import OptimizedImage from "../OptimizedImage";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -96,10 +96,8 @@ const Sidebar: React.FC = () => {
             >
               {({ isActive }) => (
                 <motion.div
-                  whileHover={{ scale: 1.02, x: isSidebarExpanded ? 5 : 0 }}
                   whileTap={{ scale: 0.98 }}
                   className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg hover:bg-muted`}
-
                 >
                   <div className="relative">
                     <div className={isActive ? "text-[#006a4e]" : ""}>
@@ -143,7 +141,6 @@ const Sidebar: React.FC = () => {
             asChild
           >
             <motion.div
-              whileHover={{ scale: 1.02, x: isSidebarExpanded ? 5 : 0 }}
               whileTap={{ scale: 0.98 }}
               className="w-full h-full flex items-center"
             >
@@ -165,17 +162,13 @@ const Sidebar: React.FC = () => {
           >
             {({ isActive }) => (
               <motion.div
-                whileHover={{ scale: 1.02, x: isSidebarExpanded ? 5 : 0 }}
                 whileTap={{ scale: 0.98 }}
                 className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg hover:bg-muted`}
-
               >
-                <OptimizedImage
-                  src={currentUser.avatar}
-                  alt="Profile"
-                  width={100}
-                  className={`w-6 h-6 rounded-full ${isActive ? "border-2 border-[#006a4e]" : ""}`}
-                />
+                <Avatar className={cn("w-6 h-6", isActive && "border-2 border-[#006a4e]")}>
+                  <AvatarImage src={currentUser.avatar} />
+                  <AvatarFallback>{currentUser.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                </Avatar>
                 {isSidebarExpanded && (
                   <span className="text-base truncate">প্রোফাইল</span>
                 )}
@@ -196,7 +189,6 @@ const Sidebar: React.FC = () => {
           asChild
         >
           <motion.div
-            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="w-full h-full flex items-center"
           >
@@ -216,7 +208,6 @@ const Sidebar: React.FC = () => {
           asChild
         >
           <motion.div
-            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="w-full h-full flex items-center"
           >
@@ -240,7 +231,6 @@ const Sidebar: React.FC = () => {
           asChild
         >
           <motion.div
-            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="w-full h-full flex items-center"
           >

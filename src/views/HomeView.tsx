@@ -13,7 +13,7 @@ import { useInView } from "react-intersection-observer";
 import { useFollowUser } from "../hooks/mutations/useFollowUser";
 import { useToggleSave } from "../hooks/mutations/useToggleSave";
 
-import OptimizedImage from "../components/OptimizedImage";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import "dayjs/locale/bn";
 
 dayjs.extend(relativeTime);
 dayjs.locale("bn");
+
 
 const HomeView: React.FC = () => {
   const {
@@ -111,7 +112,7 @@ const HomeView: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-[630px] pt-0 md:pt-[30px] flex gap-16 flex-col">
+    <div className="w-full max-w-[630px] pt-0 md:pt-[30px] flex flex-col">
       <div
         className={`md:hidden sticky top-0 z-10 border-b ${borderClass} px-4 h-[60px] flex items-center justify-between ${theme === "dark" ? "bg-black" : "bg-white"}`}
       >
@@ -155,12 +156,10 @@ const HomeView: React.FC = () => {
               <div
                 className={`w-full h-full rounded-full p-[2px] ${theme === "dark" ? "bg-black" : "bg-white"}`}
               >
-                <OptimizedImage
-                  src={currentUser.avatar}
-                  width={100}
-                  className="w-full h-full rounded-full"
-                  alt="Your story"
-                />
+                <Avatar className="w-full h-full">
+                  <AvatarImage src={currentUser.avatar} />
+                  <AvatarFallback>{currentUser.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                </Avatar>
               </div>
               {userStories.length === 0 && (
                 <div className="absolute bottom-0 right-0 bg-[#0095f6] border-2 border-white dark:border-black rounded-full p-0.5 text-white">
@@ -187,14 +186,11 @@ const HomeView: React.FC = () => {
                 <div
                   className={`w-full h-full rounded-full p-[2px] ${theme === "dark" ? "bg-black" : "bg-white"}`}
                 >
-                  <OptimizedImage
-                    src={story.userAvatar || story.img}
-                    width={100}
-                    className="w-full h-full rounded-full"
-                    alt={story.username}
-                  />
-                </div>
-              </div>
+                  <Avatar className="w-full h-full">
+                    <AvatarImage src={story.userAvatar || story.img} />
+                    <AvatarFallback>{story.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                  </Avatar>
+                </div>              </div>
               <span
                 className={`text-xs truncate w-full text-center ${theme === "dark" ? "text-[#f5f5f5]" : "text-black"}`}
               >
@@ -242,12 +238,10 @@ const HomeView: React.FC = () => {
           className="flex items-center justify-between mb-6 mt-2"
         >
           <div className="flex items-center gap-3">
-            <OptimizedImage
-              src={currentUser.avatar}
-              width={100}
-              className="w-11 h-11 rounded-full"
-              alt="user"
-            />
+            <Avatar className="w-11 h-11">
+              <AvatarImage src={currentUser.avatar} />
+              <AvatarFallback>{currentUser.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+            </Avatar>
             <div className="text-sm">
               <div className="font-semibold">{currentUser.username}</div>
               <div className={textSecondary}>{currentUser.name}</div>
@@ -278,12 +272,10 @@ const HomeView: React.FC = () => {
               onClick={() => handleUserClick(u as User)}
             >
               <div className="flex items-center gap-3">
-                <OptimizedImage
-                  src={u.avatar}
-                  width={100}
-                  className="w-8 h-8 rounded-full"
-                  alt={u.username}
-                />
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={u.avatar} />
+                  <AvatarFallback>{u.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                </Avatar>
                 <div className="flex flex-col">
                   <span className="text-xs font-semibold">{u.username}</span>
                   <span className={`text-[10px] ${textSecondary}`}>

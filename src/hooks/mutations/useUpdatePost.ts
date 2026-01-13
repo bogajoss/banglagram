@@ -14,6 +14,7 @@ export const useUpdatePost = () => {
 
   return useMutation({
     mutationFn: async ({ postId, caption, location }: UpdatePostVariables) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from("posts") as any)
         .update({ caption, location })
         .eq("id", postId)

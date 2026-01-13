@@ -9,6 +9,7 @@ import { useCreateStory } from "../../hooks/mutations/useCreateStory";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import OptimizedImage from "../OptimizedImage";
 import FileUploader from "../FileUploader";
@@ -256,13 +257,10 @@ const CreateModal: React.FC = () => {
               </div>
 
               <div className="p-4 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full overflow-hidden">
-                  <OptimizedImage
-                    src={profile?.avatar_url || ""}
-                    className="w-full h-full"
-                    alt="user"
-                  />
-                </div>
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={profile?.avatar_url || ""} />
+                  <AvatarFallback>{profile?.username?.[0]?.toUpperCase()}</AvatarFallback>
+                </Avatar>
                 <span className="font-semibold text-sm">
                   {profile?.username}
                 </span>

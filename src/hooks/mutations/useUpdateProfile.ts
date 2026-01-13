@@ -20,6 +20,7 @@ export const useUpdateProfile = () => {
       bio,
       avatar,
     }: UpdateProfileVariables) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from("profiles") as any)
         .update({
           full_name: name,
@@ -33,6 +34,7 @@ export const useUpdateProfile = () => {
       if (error) throw error;
       return data;
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onSuccess: (data: any) => {
       showToast("প্রোফাইল আপডেট করা হয়েছে");
 

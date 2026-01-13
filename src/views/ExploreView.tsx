@@ -13,6 +13,8 @@ import { motion } from "framer-motion";
 import OptimizedImage from "../components/OptimizedImage";
 import VerifiedBadge from "../components/VerifiedBadge";
 
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
 const ExploreView: React.FC = () => {
   const { theme, setViewingPost } = useAppStore();
   const navigate = useNavigate();
@@ -21,7 +23,7 @@ const ExploreView: React.FC = () => {
   const [userResults, setUserResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { ref, inView } = useInView({
-    rootMargin: "1200px", 
+    rootMargin: "1200px",
   });
 
   const {
@@ -46,32 +48,32 @@ const ExploreView: React.FC = () => {
     const delayDebounceFn = setTimeout(async () => {
       if (searchQuery.trim().length > 0) {
         if (searchType === "accounts") {
-            setIsSearching(true);
-            const { data } = await supabase
+          setIsSearching(true);
+          const { data } = await supabase
             .from("profiles")
             .select("id, username, full_name, avatar_url, is_verified")
             .ilike("username", `%${searchQuery}%`)
             .limit(10);
 
-            if (data) {
+          if (data) {
             const users: User[] = (
-                data as {
+              data as {
                 id: string;
                 username: string;
                 full_name: string;
                 avatar_url: string;
                 is_verified: boolean;
-                }[]
+              }[]
             ).map((p) => ({
-                id: p.id,
-                username: p.username,
-                name: p.full_name || p.username,
-                avatar: p.avatar_url || "",
-                isVerified: p.is_verified || false,
+              id: p.id,
+              username: p.username,
+              name: p.full_name || p.username,
+              avatar: p.avatar_url || "",
+              isVerified: p.is_verified || false,
             }));
             setUserResults(users);
-            }
-            setIsSearching(false);
+          }
+          setIsSearching(false);
         }
       } else {
         setUserResults([]);
@@ -124,23 +126,23 @@ const ExploreView: React.FC = () => {
             />
           )}
         </div>
-        
+
         {/* Search Type Tabs */}
         {searchQuery && (
-            <div className="flex mt-2 border-b border-zinc-700">
-                <button
-                    className={`flex-1 py-2 text-sm font-semibold ${searchType === "accounts" ? (theme === "dark" ? "text-white border-b-2 border-white" : "text-black border-b-2 border-black") : "text-zinc-500"}`}
-                    onClick={() => setSearchType("accounts")}
-                >
-                    অ্যাকাউন্ট
-                </button>
-                <button
-                    className={`flex-1 py-2 text-sm font-semibold ${searchType === "posts" ? (theme === "dark" ? "text-white border-b-2 border-white" : "text-black border-b-2 border-black") : "text-zinc-500"}`}
-                    onClick={() => setSearchType("posts")}
-                >
-                    পোস্ট
-                </button>
-            </div>
+          <div className="flex mt-2 border-b border-zinc-700">
+            <button
+              className={`flex-1 py-2 text-sm font-semibold ${searchType === "accounts" ? (theme === "dark" ? "text-white border-b-2 border-white" : "text-black border-b-2 border-black") : "text-zinc-500"}`}
+              onClick={() => setSearchType("accounts")}
+            >
+              অ্যাকাউন্ট
+            </button>
+            <button
+              className={`flex-1 py-2 text-sm font-semibold ${searchType === "posts" ? (theme === "dark" ? "text-white border-b-2 border-white" : "text-black border-b-2 border-black") : "text-zinc-500"}`}
+              onClick={() => setSearchType("posts")}
+            >
+              পোস্ট
+            </button>
+          </div>
         )}
       </div>
 
@@ -148,78 +150,76 @@ const ExploreView: React.FC = () => {
         <div className="flex flex-col gap-2">
           {/* Accounts Results */}
           {searchType === "accounts" && (
-              <>
-                {isSearching && <div className="p-4 text-center">Searching...</div>}
-                {!isSearching && userResults.length === 0 && (
-                    <div className="p-4 text-center text-gray-500">
-                    কোনো অ্যাকাউন্ট পাওয়া যায়নি
+            <>
+              {isSearching && <div className="p-4 text-center">Searching...</div>}
+              {!isSearching && userResults.length === 0 && (
+                <div className="p-4 text-center text-gray-500">
+                  কোনো অ্যাকাউন্ট পাওয়া যায়নি
+                </div>
+              )}
+              {userResults.map((user) => (
+                <div
+                  key={user.username}
+                  onClick={() => navigate(`/profile/${user.username}`)}
+                  className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-gray-100"}`}
+                >
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={user.avatar} />
+                    <AvatarFallback>{user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold text-sm">{user.username}</span>
+                      {user.isVerified && <VerifiedBadge />}
                     </div>
-                )}
-                {userResults.map((user) => (
-                    <div
-                    key={user.username}
-                    onClick={() => navigate(`/profile/${user.username}`)}
-                    className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-gray-100"}`}
-                    >
-                    <OptimizedImage
-                        src={user.avatar}
-                        width={100}
-                        className="w-10 h-10 rounded-full"
-                        alt={user.username}
-                    />
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-1">
-                        <span className="font-semibold text-sm">{user.username}</span>
-                        {user.isVerified && <VerifiedBadge />}
-                        </div>
-                        <span className="text-xs text-gray-500">{user.name}</span>
-                    </div>
-                    </div>
-                ))}
-              </>
+                    <span className="text-xs text-gray-500">{user.name}</span>
+                  </div>
+                </div>
+              ))}
+            </>
           )}
 
           {/* Posts Results */}
           {searchType === "posts" && (
-              <>
-                {isPostsLoading && <div className="p-4 text-center">Searching posts...</div>}
-                {!isPostsLoading && postResults.length === 0 && (
-                    <div className="p-4 text-center text-gray-500">
-                    কোনো পোস্ট পাওয়া যায়নি
-                    </div>
-                )}
-                <div className="grid grid-cols-3 gap-1 md:gap-4">
-                    {postResults.map((post) => (
-                        <motion.div
-                        key={post.id}
-                        variants={itemVariants}
-                        whileHover={{ scale: 0.98 }}
-                        className="relative aspect-square group cursor-pointer overflow-hidden"
-                        onClick={() => setViewingPost(post as Post)}
-                        >
-                        <OptimizedImage
-                            src={post.content.src || post.content.poster}
-                            width={400}
-                            className="w-full h-full transition-transform duration-300 group-hover:scale-110"
-                            alt="search result"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200 z-20">
-                            <div className="flex items-center gap-1">
-                            <Heart fill="white" size={16} /> {post.likes}
-                            </div>
-                            <div className="flex items-center gap-1">
-                            <CommentIcon
-                                fill="white"
-                                size={16}
-                                className="-scale-x-100"
-                            />{" "}
-                            {post.comments}
-                            </div>
-                        </div>
-                        </motion.div>
-                    ))}
+            <>
+              {isPostsLoading && <div className="p-4 text-center">Searching posts...</div>}
+              {!isPostsLoading && postResults.length === 0 && (
+                <div className="p-4 text-center text-gray-500">
+                  কোনো পোস্ট পাওয়া যায়নি
                 </div>
-              </>
+              )}
+              <div className="grid grid-cols-3 gap-1 md:gap-4">
+                {postResults.map((post) => (
+                  <motion.div
+                    key={post.id}
+                    variants={itemVariants}
+                    whileHover={{ scale: 0.98 }}
+                    className="relative aspect-square group cursor-pointer overflow-hidden"
+                    onClick={() => setViewingPost(post as Post)}
+                  >
+                    <OptimizedImage
+                      src={post.content.src || post.content.poster}
+                      width={400}
+                      className="w-full h-full transition-transform duration-300 group-hover:scale-110"
+                      alt="search result"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200 z-20">
+                      <div className="flex items-center gap-1">
+                        <Heart fill="white" size={16} /> {post.likes}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <CommentIcon
+                          fill="white"
+                          size={16}
+                          className="-scale-x-100"
+                        />{" "}
+                        {post.comments}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       ) : (

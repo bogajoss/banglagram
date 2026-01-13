@@ -5,11 +5,11 @@ import { motion } from "framer-motion";
 import { useUpdateProfile } from "../../hooks/mutations/useUpdateProfile";
 import { useAuth } from "../../hooks/useAuth";
 
-import OptimizedImage from "../OptimizedImage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Loader2 } from "lucide-react";
 
 const EditProfileModal: React.FC = () => {
@@ -80,13 +80,10 @@ const EditProfileModal: React.FC = () => {
           <div
             className={`flex items-center gap-4 p-4 rounded-lg ${theme === "dark" ? "bg-white/5" : "bg-black/5"}`}
           >
-            <div className="w-16 h-16 rounded-full overflow-hidden">
-              <OptimizedImage
-                src={avatar}
-                className="w-full h-full"
-                alt="avatar"
-              />
-            </div>
+            <Avatar className="w-16 h-16">
+              <AvatarImage src={avatar} />
+              <AvatarFallback>{currentUser.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+            </Avatar>
             <div>
               <div className="font-semibold text-lg">
                 {currentUser.username}

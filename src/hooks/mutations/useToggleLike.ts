@@ -31,10 +31,12 @@ export const useToggleLike = () => {
         const { error } = await supabase
           .from("likes")
           .delete()
-          .match(matchCriteria);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .match(matchCriteria as any);
         if (error) throw error;
       } else {
         // Like
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase.from("likes") as any).insert(
           matchCriteria,
         );

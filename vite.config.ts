@@ -19,6 +19,7 @@ export default defineConfig({
     tailwindcss(),
   ],
   build: {
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -35,6 +36,9 @@ export default defineConfig({
             }
             if (id.includes("@tanstack")) {
               return "tanstack";
+            }
+            if (id.includes("dashjs")) {
+              return "dashjs";
             }
             return "libs";
           }

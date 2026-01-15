@@ -336,6 +336,7 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
                             activeId={activeId}
                             setActiveId={setActiveId}
                             containerRef={containerRef}
+                            onEditText={handleStartTextEdit}
                         />
                     </div>
                 )}

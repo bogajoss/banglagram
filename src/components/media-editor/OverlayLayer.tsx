@@ -21,6 +21,7 @@ interface OverlayLayerProps {
     activeId: string | null;
     setActiveId: (id: string | null) => void;
     containerRef: React.RefObject<HTMLDivElement | null>;
+    onEditText?: () => void;
 }
 
 const OverlayLayer: React.FC<OverlayLayerProps> = ({
@@ -29,6 +30,7 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
     activeId,
     setActiveId,
     containerRef,
+    onEditText,
 }) => {
     const [container, setContainer] = useState<HTMLElement | null>(null);
 
@@ -72,10 +74,15 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                             whiteSpace: "pre-wrap",
                             zIndex: item.id === activeId ? 50 : 10,
                             textAlign: "center",
+                            touchAction: "none",
                         }}
                         onClick={(e) => {
                             e.stopPropagation();
-                            setActiveId(item.id);
+                            if (activeId === item.id && item.type === 'text' && onEditText) {
+                                onEditText();
+                            } else {
+                                setActiveId(item.id);
+                            }
                         }}
                     >
                         {item.content}
@@ -97,6 +104,9 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                     keepRatio={true}
                     renderDirections={["nw", "ne", "se", "sw"]}
 
+                    onDragStart={(e) => {
+                        e.set([overlays.find(o => o.id === activeId)?.x || 0, overlays.find(o => o.id === activeId)?.y || 0]);
+                    }}
                     onDrag={(e) => {
                         e.target.style.transform = e.transform;
                     }}
@@ -106,15 +116,29 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                         }
                     }}
 
+                    onScaleStart={(e) => {
+                        const item = overlays.find(o => o.id === activeId);
+                        e.set([item?.scale || 1, item?.scale || 1]);
+                        if (e.dragStart) {
+                            e.dragStart.set([item?.x || 0, item?.y || 0]);
+                        }
+                    }}
                     onScale={(e) => {
                         e.target.style.transform = e.drag.transform;
                     }}
                     onScaleEnd={(e) => {
                         if (e.lastEvent) {
-                            updateOverlay(activeId, { scale: e.lastEvent.scale[0] });
+                            updateOverlay(activeId, { 
+                                scale: e.lastEvent.scale[0],
+                                x: e.lastEvent.drag.translate[0],
+                                y: e.lastEvent.drag.translate[1]
+                            });
                         }
                     }}
 
+                    onRotateStart={(e) => {
+                        e.set(overlays.find(o => o.id === activeId)?.rotation || 0);
+                    }}
                     onRotate={(e) => {
                         e.target.style.transform = e.drag.transform;
                     }}

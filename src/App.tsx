@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import Layout from "./components/layout/Layout";
 import { supabase } from "./lib/supabaseClient";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLastSeen } from "./hooks/useLastSeen";
 const HomeView = lazy(() => import("./views/HomeView"));
 const ProfileView = lazy(() => import("./views/ProfileView"));
 const MessagesView = lazy(() => import("./views/MessagesView"));
@@ -97,6 +98,9 @@ export default function App() {
     );
     setUnreadNotificationsCount(unread.length);
   }, [notifications, setUnreadNotificationsCount]);
+
+  // Initialize last seen tracking
+  useLastSeen();
 
   useEffect(() => {
     if (profile && user) {

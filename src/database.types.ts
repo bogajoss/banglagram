@@ -19,6 +19,8 @@ export interface Database {
           website: string | null;
           is_verified: boolean;
           role: string;
+          last_seen: string | null;
+          is_online: boolean;
           updated_at: string;
         };
         Insert: {
@@ -30,6 +32,8 @@ export interface Database {
           website?: string | null;
           is_verified?: boolean;
           role?: string;
+          last_seen?: string | null;
+          is_online?: boolean;
           updated_at?: string;
         };
         Update: {
@@ -41,6 +45,8 @@ export interface Database {
           website?: string | null;
           is_verified?: boolean;
           role?: string;
+          last_seen?: string | null;
+          is_online?: boolean;
           updated_at?: string;
         };
 

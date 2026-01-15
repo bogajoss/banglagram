@@ -30,6 +30,7 @@ import { useGetConversations, getUniqueConversations } from "../hooks/queries/us
 import { useSendMessage } from "../hooks/mutations/useSendMessage";
 import { useMarkMessagesRead } from "../hooks/mutations/useMarkMessagesRead";
 import { useTypingIndicator } from "../hooks/useTypingIndicator";
+import { useActiveStatus } from "../hooks/useActiveStatus";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Database } from "../database.types";
 
@@ -37,6 +38,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import OptimizedImage from "../components/OptimizedImage";
 import VerifiedBadge from "../components/VerifiedBadge";
+import { UserStatus } from "../components/UserStatus";
+import { TypingIndicator } from "../components/TypingIndicator";
 
 type DbMessage = Database["public"]["Tables"]["messages"]["Row"];
 
@@ -65,6 +68,10 @@ const MessagesView: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedUserStatus, setSelectedUserStatus] = useState<{ isOnline: boolean; lastSeen: string | null }>({
+    isOnline: false,
+    lastSeen: null,
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
@@ -176,6 +183,34 @@ const MessagesView: React.FC = () => {
     }
   }, [messages, selectedUserId, user?.id, markRead]);
 
+  // Active status hook
+  const presenceRoomId = selectedUserId ? [user?.id, selectedUserId].sort().join("-") : "";
+  const { presenceState, setOnlineStatus } = useActiveStatus(presenceRoomId);
+
+  // Track selected user's status from presence state
+  useEffect(() => {
+    if (selectedUserId && presenceState[selectedUserId]) {
+      const userPresence = presenceState[selectedUserId];
+      setSelectedUserStatus({
+        isOnline: userPresence.isOnline,
+        lastSeen: userPresence.lastSeen,
+      });
+    }
+  }, [selectedUserId, presenceState]);
+
+  // Set online when user selects a chat
+  useEffect(() => {
+    if (selectedUserId && user) {
+      setOnlineStatus(true);
+    }
+
+    return () => {
+      if (selectedUserId && user) {
+        setOnlineStatus(false);
+      }
+    };
+  }, [selectedUserId, user, setOnlineStatus]);
+
   // Typing indicator logic
   useEffect(() => {
     if (selectedUserId) {
@@ -188,40 +223,77 @@ const MessagesView: React.FC = () => {
   }, [newMessage, selectedUserId, setTyping]);
 
   // Realtime Subscription
+  // Realtime Subscription
   useEffect(() => {
     if (!user) return;
 
+    // Use a unique channel signature to avoid collisions
+    const channelName = `chat_messages_tracking_${user.id}_${Date.now()}`;
     const channel = supabase
-      .channel("chat_messages_realtime")
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
-          event: "*", // Listen to all events (INSERT, UPDATE)
+          event: "*",
           schema: "public",
           table: "messages",
         },
         (payload) => {
+          // console.log("Realtime event received:", payload);
           if (!payload.new) return;
           const msg = payload.new as DbMessage;
 
-          // Invalidate conversations to update last message/unread count
+          // Invalidate conversations to immediately update sidebar previews/unread counts
           queryClient.invalidateQueries({ queryKey: ["conversations"] });
 
           if (!selectedUserId) return;
 
+          // Check if message belongs to current active chat
           const isRelevant =
             (msg.sender_id === selectedUserId && msg.receiver_id === user.id) ||
             (msg.sender_id === user.id && msg.receiver_id === selectedUserId);
 
-
           if (isRelevant) {
-            queryClient.invalidateQueries({
+            // 1. Direct Cache Update for INSTANT FEEDBACK
+            if (msg.sender_id === selectedUserId) {
+              queryClient.setQueryData(
+                MESSAGES_QUERY_KEY(selectedUserId),
+                (oldData: any) => {
+                  if (!oldData || !oldData.pages) return oldData;
+
+                  // Prevent duplicates
+                  const exists = oldData.pages.some((page: DbMessage[]) =>
+                    page.some((m) => m.id === msg.id)
+                  );
+                  if (exists) return oldData;
+
+                  // Insert new message at top of first page
+                  // Infinite query pages are arrays of pages, where pages[0] is the newest page
+                  const newPages = [...oldData.pages];
+                  newPages[0] = [msg, ...newPages[0]];
+
+                  return {
+                    ...oldData,
+                    pages: newPages,
+                  };
+                }
+              );
+            }
+
+            // 2. Safety Refetch
+            queryClient.refetchQueries({
               queryKey: MESSAGES_QUERY_KEY(selectedUserId),
+              type: "active",
             });
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Realtime Subscription Status [${channelName}]:`, status);
+        if (status === "CHANNEL_ERROR") {
+          console.error("Realtime connection failed. Check your network or project status.");
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -311,18 +383,10 @@ const MessagesView: React.FC = () => {
     }
   };
 
-  const prevMessagesLength = useRef(0);
+  // Auto scroll to bottom on new messages (like WhatsApp/Messenger)
   useEffect(() => {
-    // Only scroll to bottom if we have new messages (length increased) 
-    // AND the last message is from the user or it's a very short list (initial load)
-    if (messages.length > prevMessagesLength.current) {
-      const lastMsg = messages[messages.length - 1];
-      if (lastMsg?.sender_id === user?.id || messages.length < 25) {
-        messagesEndRef.current?.scrollIntoView({ behavior: prevMessagesLength.current === 0 ? "auto" : "smooth" });
-      }
-    }
-    prevMessagesLength.current = messages.length;
-  }, [messages, typingUsers, user?.id]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, typingUsers]);
 
 
   const handleSelectUser = (user: User) => {
@@ -475,22 +539,32 @@ const MessagesView: React.FC = () => {
                     <ChevronLeft size={28} />
                   </div>
                   <Avatar
-                    className="w-8 h-8 cursor-pointer"
+                    className="w-8 h-8 cursor-pointer relative"
                     onClick={() =>
                       navigate(`/profile/${selectedUser.username}`)
                     }
                   >
                     <AvatarImage src={selectedUser.avatar} />
                     <AvatarFallback>{selectedUser.username[0].toUpperCase()}</AvatarFallback>
+                    {selectedUserStatus.isOnline && (
+                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                    )}
                   </Avatar>
-                  <div
-                    className="font-semibold text-base truncate max-w-[150px] cursor-pointer hover:underline flex items-center gap-1"
-                    onClick={() =>
-                      navigate(`/profile/${selectedUser.username}`)
-                    }
-                  >
-                    {selectedUser.username}
-                    {selectedUser.isVerified && <VerifiedBadge />}
+                  <div className="flex flex-col">
+                    <div
+                      className="font-semibold text-base truncate max-w-[150px] cursor-pointer hover:underline flex items-center gap-1"
+                      onClick={() =>
+                        navigate(`/profile/${selectedUser.username}`)
+                      }
+                    >
+                      {selectedUser.username}
+                      {selectedUser.isVerified && <VerifiedBadge />}
+                    </div>
+                    <UserStatus
+                      isOnline={selectedUserStatus.isOnline}
+                      lastSeen={selectedUserStatus.lastSeen}
+                      className="text-xs"
+                    />
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -552,13 +626,6 @@ const MessagesView: React.FC = () => {
                   </div>
                 ))}
                 <div ref={messagesEndRef} />
-
-                {/* Typing Indicator */}
-                {typingUsers.length > 0 && (
-                  <div className="text-xs text-gray-500 px-4 pb-2 animate-pulse">
-                    {typingUsers.join(", ")} টাইপ করছে...
-                  </div>
-                )}
               </div>
               <div className="p-4 shrink-0 relative">
                 {/* Emoji Picker */}
@@ -574,6 +641,13 @@ const MessagesView: React.FC = () => {
                       skinTonesDisabled={true}
                       searchDisabled={false}
                     />
+                  </div>
+                )}
+
+                {/* Typing Indicator */}
+                {typingUsers.length > 0 && (
+                  <div className="px-4 py-2">
+                    <TypingIndicator typingUsers={typingUsers} />
                   </div>
                 )}
 

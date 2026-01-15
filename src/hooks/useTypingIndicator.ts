@@ -7,6 +7,7 @@ export const useTypingIndicator = (roomId: string) => {
   const { user, profile } = useAuth();
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const typingTimeoutRef = useRef<Record<string, NodeJS.Timeout>>({});
 
   useEffect(() => {
     if (!user || !roomId) return;
@@ -21,37 +22,75 @@ export const useTypingIndicator = (roomId: string) => {
 
     channelRef.current = channel;
 
-    channel
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState();
-        const typing: string[] = [];
+    const handlePresenceSync = () => {
+      const state = channel.presenceState();
+      const typing: string[] = [];
 
-        Object.keys(state).forEach(key => {
-            const presence = state[key] as Array<{ isTyping?: boolean; username?: string }>;
-            presence.forEach(p => {
-                if (p.isTyping && p.username) {
-                    typing.push(p.username);
-                }
-            });
+      Object.keys(state).forEach((key) => {
+        const presenceArray = state[key] as Array<{
+          isTyping?: boolean;
+          username?: string;
+          userId?: string;
+        }>;
+        presenceArray.forEach((p) => {
+          // Don't show current user's typing indicator
+          if (p.isTyping && p.username && p.userId !== user?.id) {
+            typing.push(p.username);
+          }
         });
-        
-        setTypingUsers([...new Set(typing)]);
+      });
+
+      setTypingUsers([...new Set(typing)]);
+    };
+
+    channel
+      .on("presence", { event: "sync" }, handlePresenceSync)
+      .on("presence", { event: "join" }, () => {
+        handlePresenceSync();
+      })
+      .on("presence", { event: "leave" }, () => {
+        handlePresenceSync();
       })
       .subscribe();
 
     return () => {
-        supabase.removeChannel(channel);
-        channelRef.current = null;
+      supabase.removeChannel(channel);
+      channelRef.current = null;
+      // Clear all timeouts
+      Object.values(typingTimeoutRef.current).forEach(clearTimeout);
     };
   }, [roomId, user]);
 
   const setTyping = async (isTyping: boolean) => {
-    if (channelRef.current) {
-        await channelRef.current.track({ 
-            isTyping, 
-            username: profile?.username,
-            online_at: new Date().toISOString(),
-        });
+    if (channelRef.current && user && profile) {
+      const presenceData = {
+        isTyping,
+        username: profile.username,
+        userId: user.id,
+      };
+
+      await channelRef.current.track(presenceData);
+
+      // Auto-clear typing status after 3 seconds of inactivity
+      if (isTyping) {
+        if (typingTimeoutRef.current[user.id]) {
+          clearTimeout(typingTimeoutRef.current[user.id]);
+        }
+
+        typingTimeoutRef.current[user.id] = setTimeout(async () => {
+          if (channelRef.current) {
+            await channelRef.current.track({
+              isTyping: false,
+              username: profile.username,
+              userId: user.id,
+            });
+          }
+        }, 3000);
+      } else {
+        if (typingTimeoutRef.current[user.id]) {
+          clearTimeout(typingTimeoutRef.current[user.id]);
+        }
+      }
     }
   };
 

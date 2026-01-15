@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   website text,
   is_verified boolean DEFAULT false,
   role text DEFAULT 'user' NOT NULL,
+  last_seen timestamp with time zone,
+  is_online boolean DEFAULT false,
   updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -308,6 +310,8 @@ BEGIN
 
     CREATE POLICY "Users can view their own messages." ON public.messages FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
     CREATE POLICY "Users can send messages." ON public.messages FOR INSERT WITH CHECK (auth.uid() = sender_id);
+    CREATE POLICY "Users can update their own messages." ON public.messages FOR UPDATE USING (auth.uid() = sender_id);
+    CREATE POLICY "Users can delete their own messages." ON public.messages FOR DELETE USING (auth.uid() = sender_id);
 
     CREATE POLICY "Users can view their own notifications." ON public.notifications FOR SELECT USING (auth.uid() = user_id);
     CREATE POLICY "Users can create notifications they triggered." ON public.notifications FOR INSERT WITH CHECK (auth.uid() = actor_id);
@@ -365,3 +369,29 @@ EXCEPTION
         NULL;
 END
 $$;
+
+-- Presence and Realtime Optimization
+CREATE INDEX IF NOT EXISTS idx_profiles_is_online ON public.profiles(is_online);
+CREATE INDEX IF NOT EXISTS idx_profiles_last_seen ON public.profiles(last_seen DESC);
+
+-- Enable Realtime Replication
+BEGIN;
+  DO $$
+  BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+      CREATE PUBLICATION supabase_realtime;
+    END IF;
+  END
+  $$;
+
+  -- Add tables to realtime publication if not already added
+  -- Note: In some Supabase versions, you might need to check if they are already in the publication
+  -- But usually, adding them again is fine or idempotent in newer versions of PG if handled correctly.
+  -- To be safe and compatible with standard SQL Editor runs:
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+
+  -- Set replica identity to FULL to ensure we get all data in updates/deletes
+  ALTER TABLE public.messages REPLICA IDENTITY FULL;
+  ALTER TABLE public.profiles REPLICA IDENTITY FULL;
+COMMIT;

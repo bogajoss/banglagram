@@ -82,8 +82,10 @@ export const useSendMessage = () => {
     },
 
     onSettled: (_, __, variables) => {
-      queryClient.invalidateQueries({
+      // Refetch immediately after mutation for real-time sync
+      queryClient.refetchQueries({
         queryKey: MESSAGES_QUERY_KEY(variables.receiverId),
+        type: "active",
       });
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },

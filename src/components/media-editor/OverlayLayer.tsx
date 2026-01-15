@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useLayoutEffect } from "react";
 import Moveable from "react-moveable";
 
 export interface OverlayItem {
@@ -11,6 +11,8 @@ export interface OverlayItem {
     rotation: number;
     color?: string;
     fontSize?: number;
+    fontFamily?: string;
+    background?: boolean;
 }
 
 interface OverlayLayerProps {
@@ -28,16 +30,11 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
     setActiveId,
     containerRef,
 }) => {
-    const [target, setTarget] = useState<HTMLElement | null>(null);
+    const [container, setContainer] = useState<HTMLElement | null>(null);
 
-    useEffect(() => {
-        if (activeId) {
-            const el = document.getElementById(activeId);
-            setTarget(el);
-        } else {
-            setTarget(null);
-        }
-    }, [activeId]);
+    useLayoutEffect(() => {
+        setContainer(containerRef.current);
+    }, [containerRef]);
 
     const updateOverlay = (id: string, updates: Partial<OverlayItem>) => {
         setOverlays((prev) =>
@@ -47,37 +44,53 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
 
     return (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {overlays.map((item) => (
-                <div
-                    key={item.id}
-                    id={item.id}
-                    className="absolute cursor-move pointer-events-auto origin-center touch-none select-none"
-                    style={{
-                        transform: `translate(${item.x}px, ${item.y}px) rotate(${item.rotation}deg) scale(${item.scale})`,
-                        color: item.color || "white",
-                        fontSize: item.fontSize || 32,
-                        fontWeight: "bold",
-                        textShadow: "1px 1px 2px rgba(0,0,0,0.8)",
-                        whiteSpace: "pre-wrap",
-                        zIndex: 10,
-                    }}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setActiveId(item.id);
-                    }}
-                >
-                    {item.content}
-                </div>
-            ))}
+            {overlays.map((item) => {
+                const isText = item.type === "text";
+                const hasBg = isText && item.background;
+                
+                // Determine text color vs background color for contrast
+                const bgColor = hasBg ? (item.color || "white") : "transparent";
+                const textColor = hasBg 
+                    ? (item.color === "#FFFFFF" || item.color === "#FFFF00" ? "#000000" : "#FFFFFF")
+                    : (item.color || "white");
 
-            {activeId && target && (
+                return (
+                    <div
+                        key={item.id}
+                        id={item.id}
+                        className="absolute cursor-move pointer-events-auto origin-center touch-none select-none"
+                        style={{
+                            transform: `translate(${item.x}px, ${item.y}px) rotate(${item.rotation}deg) scale(${item.scale})`,
+                            color: textColor,
+                            backgroundColor: bgColor,
+                            padding: hasBg ? "4px 12px" : "0px",
+                            borderRadius: hasBg ? "8px" : "0px",
+                            fontSize: item.fontSize || 32,
+                            fontFamily: item.fontFamily || "sans-serif",
+                            fontWeight: "bold",
+                            textShadow: hasBg ? "none" : "1px 1px 2px rgba(0,0,0,0.8)",
+                            whiteSpace: "pre-wrap",
+                            zIndex: item.id === activeId ? 50 : 10,
+                            textAlign: "center",
+                        }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveId(item.id);
+                        }}
+                    >
+                        {item.content}
+                    </div>
+                );
+            })}
+
+            {activeId && container && (
                 <Moveable
-                    target={target}
-                    container={containerRef.current}
+                    target={`#${activeId}`}
+                    container={container}
                     draggable={true}
                     throttleDrag={0}
-                    resizable={true}
-                    throttleResize={0}
+                    scalable={true}
+                    throttleScale={0}
                     rotatable={true}
                     throttleRotate={0}
                     origin={false}
@@ -88,24 +101,27 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                         e.target.style.transform = e.transform;
                     }}
                     onDragEnd={(e) => {
-                        // For simple state sync (simplified parsing):
-                        const matrix = new DOMMatrix(getComputedStyle(e.target).transform);
-                        updateOverlay(activeId, { x: matrix.e, y: matrix.f });
+                        if (e.lastEvent) {
+                            updateOverlay(activeId, { x: e.lastEvent.translate[0], y: e.lastEvent.translate[1] });
+                        }
                     }}
 
                     onScale={(e) => {
                         e.target.style.transform = e.drag.transform;
                     }}
+                    onScaleEnd={(e) => {
+                        if (e.lastEvent) {
+                            updateOverlay(activeId, { scale: e.lastEvent.scale[0] });
+                        }
+                    }}
+
                     onRotate={(e) => {
                         e.target.style.transform = e.drag.transform;
                     }}
-
-                    // Sync back to state on end
-                    onRenderEnd={() => {
-                        // This is a bit complex to parse back fully to pure x/y/rotation/scale components 
-                        // without a matrix math library, so often usually people just rely on the visual DOM style 
-                        // during edit and screenshot the container.
-                        // But for saving, we might need it. For now, visual editing is key.
+                    onRotateEnd={(e) => {
+                        if (e.lastEvent) {
+                            updateOverlay(activeId, { rotation: e.lastEvent.rotation });
+                        }
                     }}
                 />
             )}

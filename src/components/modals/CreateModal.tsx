@@ -58,7 +58,7 @@ const CreateModal: React.FC = () => {
   const handleShare = async () => {
     if (!file || !user || !profile) return;
 
-    let fileToUpload = file;
+    const fileToUpload = file;
     // Cropping is handled by MediaEditor destructively, no need for extra logic here
 
     if (createType === "reel") {

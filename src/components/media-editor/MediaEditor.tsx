@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
-import Cropper from "react-easy-crop";
+import Cropper, { type Area } from "react-easy-crop";
 // import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,11 +10,20 @@ import {
     Check,
     X,
     Trash2,
+    Edit2,
+    Square,
+    Smartphone,
+    Monitor,
+    Image as ImageIcon,
+    Baseline,
+    CaseSensitive,
+    Layers
 } from "lucide-react";
 import OverlayLayer, { type OverlayItem } from "./OverlayLayer";
 import getCroppedImg from "./utils/canvasUtils";
 import { toBlob } from "html-to-image";
-import EmojiPicker, { Theme } from "emoji-picker-react";
+import EmojiPicker, { Theme, type EmojiClickData } from "emoji-picker-react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface MediaEditorProps {
     file: File;
@@ -23,6 +32,12 @@ interface MediaEditorProps {
 }
 
 const COLORS = ["#FFFFFF", "#000000", "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF"];
+const FONTS = [
+    { name: "Sans", family: "sans-serif" },
+    { name: "Serif", family: "serif" },
+    { name: "Mono", family: "monospace" },
+    { name: "Rounded", family: "ui-rounded, system-ui, sans-serif" }
+];
 
 const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => {
     const [mode, setMode] = useState<"crop" | "edit">("edit");
@@ -45,7 +60,9 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
     // Crop State
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
-    const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+    const [aspectRatio, setAspectRatio] = useState<number>(4 / 5);
+    const [originalAspect, setOriginalAspect] = useState<number>(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
     // Overlay State
     const [overlays, setOverlays] = useState<OverlayItem[]>([]);
@@ -55,10 +72,16 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
     // Tools State
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [currentColor, setCurrentColor] = useState("#FFFFFF");
+    const [isEditingText, setIsEditingText] = useState(false);
+    const [textToEdit, setTextToEdit] = useState("");
 
-    const onCropComplete = useCallback((_croppedArea: any, croppedAreaPixels: any) => {
+    const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
         setCroppedAreaPixels(croppedAreaPixels);
     }, []);
+
+    const onMediaLoaded = (mediaSize: { width: number; height: number }) => {
+        setOriginalAspect(mediaSize.width / mediaSize.height);
+    };
 
     const handleApplyCrop = async () => {
         if (!croppedAreaPixels) return;
@@ -92,12 +115,14 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
                 rotation: 0,
                 color: currentColor,
                 fontSize: 32,
+                fontFamily: FONTS[0].family,
+                background: false
             },
         ]);
         setActiveId(newId);
     };
 
-    const handleAddEmoji = (emojiData: any) => {
+    const handleAddEmoji = (emojiData: EmojiClickData) => {
         const newId = `emoji-${Date.now()}`;
         setOverlays((prev) => [
             ...prev,
@@ -120,6 +145,54 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
             setOverlays((prev) => prev.filter((o) => o.id !== activeId));
             setActiveId(null);
         }
+    };
+
+    const handleToggleBackground = () => {
+        if (activeId) {
+            setOverlays(prev => prev.map(o => o.id === activeId ? { ...o, background: !o.background } : o));
+        }
+    };
+
+    const handleCycleFont = () => {
+        if (activeId) {
+            const currentItem = overlays.find(o => o.id === activeId);
+            if (currentItem) {
+                const currentIndex = FONTS.findIndex(f => f.family === currentItem.fontFamily);
+                const nextIndex = (currentIndex + 1) % FONTS.length;
+                setOverlays(prev => prev.map(o => o.id === activeId ? { ...o, fontFamily: FONTS[nextIndex].family } : o));
+            }
+        }
+    };
+
+    const handleBringToFront = () => {
+        if (activeId) {
+            setOverlays(prev => {
+                const item = prev.find(o => o.id === activeId);
+                if (!item) return prev;
+                const filtered = prev.filter(o => o.id !== activeId);
+                return [...filtered, item];
+            });
+        }
+    };
+
+    const handleStartTextEdit = () => {
+        if (activeId) {
+            const item = overlays.find((o) => o.id === activeId);
+            if (item && item.type === 'text') {
+                setTextToEdit(item.content);
+                setIsEditingText(true);
+            }
+        }
+    };
+
+    const handleTextEditComplete = () => {
+        if (activeId && textToEdit.trim()) {
+            setOverlays((prev) =>
+                prev.map((o) => (o.id === activeId ? { ...o, content: textToEdit } : o))
+            );
+        }
+        setIsEditingText(false);
+        setTextToEdit("");
     };
 
     const activeOverlay = overlays.find((o) => o.id === activeId);
@@ -188,16 +261,51 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
                             image={currentPreview}
                             crop={crop}
                             zoom={zoom}
-                            aspect={4 / 5}
+                            aspect={aspectRatio}
                             onCropChange={setCrop}
                             onCropComplete={onCropComplete}
                             onZoomChange={setZoom}
+                            onMediaLoaded={onMediaLoaded}
                         />
+                        <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-4 px-4">
+                            <Button
+                                size="sm"
+                                variant={aspectRatio === 1 ? "default" : "secondary"}
+                                onClick={() => setAspectRatio(1)}
+                                className="w-10 h-10 p-0 rounded-full"
+                            >
+                                <Square size={16} />
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant={aspectRatio === 4 / 5 ? "default" : "secondary"}
+                                onClick={() => setAspectRatio(4 / 5)}
+                                className="w-10 h-10 p-0 rounded-full"
+                            >
+                                <Smartphone size={16} />
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant={aspectRatio === 16 / 9 ? "default" : "secondary"}
+                                onClick={() => setAspectRatio(16 / 9)}
+                                className="w-10 h-10 p-0 rounded-full"
+                            >
+                                <Monitor size={16} />
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant={aspectRatio === originalAspect ? "default" : "secondary"}
+                                onClick={() => setAspectRatio(originalAspect)}
+                                className="w-10 h-10 p-0 rounded-full"
+                            >
+                                <ImageIcon size={16} />
+                            </Button>
+                        </div>
                         <Button
                             className="absolute bottom-4 right-4 z-50 bg-blue-600"
                             onClick={handleApplyCrop}
                         >
-                            ক্রপ করুন
+                            Apply Crop
                         </Button>
                     </div>
                 ) : (
@@ -237,19 +345,50 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
             <div className="bg-zinc-900 border-t border-zinc-800 p-4">
 
                 {/* If Active Item: Show Item Specific Tools */}
-                {activeId && activeOverlay?.type === "text" && (
-                    <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
-                        {COLORS.map(c => (
-                            <div
-                                key={c}
-                                className={`w-8 h-8 rounded-full cursor-pointer border-2 ${currentColor === c ? 'border-white' : 'border-transparent'}`}
-                                style={{ backgroundColor: c }}
-                                onClick={() => {
-                                    setCurrentColor(c);
-                                    setOverlays(prev => prev.map(o => o.id === activeId ? { ...o, color: c } : o));
-                                }}
-                            />
-                        ))}
+                {activeId && (
+                    <div className="mb-4 flex gap-2 items-center overflow-x-auto pb-2 scrollbar-hide">
+                        {activeOverlay?.type === "text" && (
+                            <>
+                                <Button 
+                                    variant={activeOverlay.background ? "default" : "secondary"} 
+                                    size="icon" 
+                                    onClick={handleToggleBackground}
+                                    className={activeOverlay.background ? "bg-blue-600" : ""}
+                                >
+                                    <Baseline size={16} />
+                                </Button>
+                                <Button variant="secondary" size="icon" onClick={handleCycleFont}>
+                                    <CaseSensitive size={16} />
+                                </Button>
+                                <Button variant="secondary" size="icon" onClick={handleStartTextEdit}>
+                                    <Edit2 size={16} />
+                                </Button>
+                                <div className="w-px h-6 bg-zinc-700 mx-1" />
+                            </>
+                        )}
+                        
+                        <Button variant="secondary" size="icon" onClick={handleBringToFront}>
+                            <Layers size={16} />
+                        </Button>
+
+                        {activeOverlay?.type === "text" && (
+                            <>
+                                <div className="w-px h-6 bg-zinc-700 mx-1" />
+                                {COLORS.map(c => (
+                                    <div
+                                        key={c}
+                                        className={`w-8 h-8 rounded-full cursor-pointer border-2 shrink-0 ${currentColor === c ? 'border-white' : 'border-transparent'}`}
+                                        style={{ backgroundColor: c }}
+                                        onClick={() => {
+                                            setCurrentColor(c);
+                                            setOverlays(prev => prev.map(o => o.id === activeId ? { ...o, color: c } : o));
+                                        }}
+                                    />
+                                ))}
+                            </>
+                        )}
+                        
+                        <div className="flex-grow" />
                         <Button variant="destructive" size="icon" onClick={handleDeleteActive}>
                             <Trash2 size={16} />
                         </Button>
@@ -257,43 +396,62 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
                 )}
 
                 {/* Main Tools Container */}
-                <div className="flex items-center justify-around">
-                    <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={() => setShowEmojiPicker(true)}>
-                        <div className="p-3 bg-zinc-800 rounded-full hover:bg-zinc-700">
-                            <Smile className="text-white h-6 w-6" />
-                        </div>
-                        <span className="text-xs text-zinc-400">Emoji</span>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={handleAddText}>
-                        <div className="p-3 bg-zinc-800 rounded-full hover:bg-zinc-700">
-                            <Type className="text-white h-6 w-6" />
-                        </div>
-                        <span className="text-xs text-zinc-400">Text</span>
-                    </div>
-
-                    {!isVideo && (
-                        <div
-                            className={`flex flex-col items-center gap-1 cursor-pointer ${mode === 'crop' ? 'opacity-100' : 'opacity-70'}`}
-                            onClick={() => setMode(mode === 'crop' ? 'edit' : 'crop')}
-                        >
-                            <div className={`p-3 bg-zinc-800 rounded-full hover:bg-zinc-700 ${mode === 'crop' ? 'bg-blue-600' : ''}`}>
-                                <Crop className="text-white h-6 w-6" />
-                            </div>
-                            <span className="text-xs text-zinc-400">Crop</span>
-                        </div>
-                    )}
-
-                    {isVideo && (
-                        <div className="flex flex-col items-center gap-1 cursor-pointer">
+                {!activeId && (
+                    <div className="flex items-center justify-around">
+                        <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={() => setShowEmojiPicker(true)}>
                             <div className="p-3 bg-zinc-800 rounded-full hover:bg-zinc-700">
-                                <Scissors className="text-white h-6 w-6" />
+                                <Smile className="text-white h-6 w-6" />
                             </div>
-                            <span className="text-xs text-zinc-400">Trim</span>
+                            <span className="text-xs text-zinc-400">Emoji</span>
                         </div>
-                    )}
-                </div>
+
+                        <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={handleAddText}>
+                            <div className="p-3 bg-zinc-800 rounded-full hover:bg-zinc-700">
+                                <Type className="text-white h-6 w-6" />
+                            </div>
+                            <span className="text-xs text-zinc-400">Text</span>
+                        </div>
+
+                        {!isVideo && (
+                            <div
+                                className={`flex flex-col items-center gap-1 cursor-pointer ${mode === 'crop' ? 'opacity-100' : 'opacity-70'}`}
+                                onClick={() => setMode(mode === 'crop' ? 'edit' : 'crop')}
+                            >
+                                <div className={`p-3 bg-zinc-800 rounded-full hover:bg-zinc-700 ${mode === 'crop' ? 'bg-blue-600' : ''}`}>
+                                    <Crop className="text-white h-6 w-6" />
+                                </div>
+                                <span className="text-xs text-zinc-400">Crop</span>
+                            </div>
+                        )}
+
+                        {isVideo && (
+                            <div className="flex flex-col items-center gap-1 cursor-pointer">
+                                <div className="p-3 bg-zinc-800 rounded-full hover:bg-zinc-700">
+                                    <Scissors className="text-white h-6 w-6" />
+                                </div>
+                                <span className="text-xs text-zinc-400">Trim</span>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
+
+            {/* Text Editor Modal */}
+            {isEditingText && (
+                <div className="fixed inset-0 z-[1020] bg-black/80 flex flex-col justify-center items-center p-4">
+                    <Textarea
+                        autoFocus
+                        value={textToEdit}
+                        onChange={(e) => setTextToEdit(e.target.value)}
+                        className="bg-transparent border-none text-center text-3xl font-bold text-white resize-none focus-visible:ring-0 min-h-[150px]"
+                        style={{ color: currentColor }}
+                    />
+                    <div className="mt-4 flex gap-4">
+                        <Button variant="secondary" onClick={() => setIsEditingText(false)}>Cancel</Button>
+                        <Button onClick={handleTextEditComplete}>Done</Button>
+                    </div>
+                </div>
+            )}
 
             {/* Popups */}
             {showEmojiPicker && (

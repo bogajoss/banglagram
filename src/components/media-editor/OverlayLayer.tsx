@@ -37,6 +37,7 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
     const dragStartRef = useRef({ x: 0, y: 0 });
     const itemStartRef = useRef({ x: 0, y: 0 });
     const currentDragItemIdRef = useRef<string | null>(null);
+    const hasMovedRef = useRef(false);
 
     useLayoutEffect(() => {
         setContainer(containerRef.current);
@@ -85,24 +86,36 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                         }}
                         onPointerDown={(e) => {
                             e.stopPropagation();
-                            // Start Manual Drag
+                            
+                            // If item is already active, let Moveable handle the drag
+                            if (activeId === item.id) {
+                                return;
+                            }
+
+                            // Start Manual Drag for unselected items
                             isDraggingRef.current = true;
                             currentDragItemIdRef.current = item.id;
                             dragStartRef.current = { x: e.clientX, y: e.clientY };
                             itemStartRef.current = { x: item.x, y: item.y };
+                            hasMovedRef.current = false;
                             
                             // Capture pointer for smooth dragging even if we leave the element
                             e.currentTarget.setPointerCapture(e.pointerId);
-
-                            if (activeId !== item.id) {
-                                setActiveId(item.id);
-                            }
+                            
+                            // IMPORTANT: Do NOT setActiveId here. 
+                            // We defer selection to onPointerUp to avoid Moveable mounting mid-drag.
                         }}
                         onPointerMove={(e) => {
                             e.stopPropagation();
                             if (isDraggingRef.current && currentDragItemIdRef.current === item.id) {
                                 const dx = e.clientX - dragStartRef.current.x;
                                 const dy = e.clientY - dragStartRef.current.y;
+                                
+                                // Threshold to consider it a move (avoid jitter on taps)
+                                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+                                    hasMovedRef.current = true;
+                                }
+
                                 updateOverlay(item.id, {
                                     x: itemStartRef.current.x + dx,
                                     y: itemStartRef.current.y + dy
@@ -115,6 +128,9 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                                 isDraggingRef.current = false;
                                 currentDragItemIdRef.current = null;
                                 e.currentTarget.releasePointerCapture(e.pointerId);
+                                
+                                // Select the item on release (whether tap or drag-drop)
+                                setActiveId(item.id);
                             }
                         }}
                     >

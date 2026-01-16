@@ -1,29 +1,26 @@
 import React, { useState, useRef, useCallback } from "react";
 import Cropper, { type Area } from "react-easy-crop";
-// import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import {
     Type,
     Smile,
     Crop,
     Scissors,
-    Check,
     X,
     Trash2,
-    Edit2,
     Square,
     Smartphone,
     Monitor,
     Image as ImageIcon,
     Baseline,
-    CaseSensitive,
-    Layers
+    ChevronRight
 } from "lucide-react";
 import OverlayLayer, { type OverlayItem } from "./OverlayLayer";
 import getCroppedImg from "./utils/canvasUtils";
 import { toBlob } from "html-to-image";
 import EmojiPicker, { Theme, type EmojiClickData } from "emoji-picker-react";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 interface MediaEditorProps {
     file: File;
@@ -31,12 +28,13 @@ interface MediaEditorProps {
     onCancel: () => void;
 }
 
-const COLORS = ["#FFFFFF", "#000000", "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF"];
+const COLORS = ["#FFFFFF", "#000000", "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#FFA500", "#800080", "#008080"];
 const FONTS = [
-    { name: "Sans", family: "sans-serif" },
+    { name: "Classic", family: "sans-serif" },
     { name: "Serif", family: "serif" },
     { name: "Mono", family: "monospace" },
-    { name: "Rounded", family: "ui-rounded, system-ui, sans-serif" }
+    { name: "Rounded", family: "ui-rounded, system-ui, sans-serif" },
+    { name: "Cursive", family: "cursive" }
 ];
 
 const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => {
@@ -72,8 +70,10 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
     // Tools State
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [currentColor, setCurrentColor] = useState("#FFFFFF");
+    const [currentFontFamily, setCurrentFontFamily] = useState(FONTS[0].family);
     const [isEditingText, setIsEditingText] = useState(false);
     const [textToEdit, setTextToEdit] = useState("");
+    const [textBackground, setTextBackground] = useState(false);
 
     const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
         setCroppedAreaPixels(croppedAreaPixels);
@@ -111,23 +111,29 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
             initialY = rect.height / 2;
         }
         
-        setOverlays((prev) => [
-            ...prev,
-            {
-                id: newId,
-                type: "text",
-                content: "Tap to Edit",
-                x: initialX,
-                y: initialY,
-                scale: 1,
-                rotation: 0,
-                color: currentColor,
-                fontSize: 32,
-                fontFamily: FONTS[0].family,
-                background: false
-            },
-        ]);
+        // Start editing immediately
+        setCurrentColor("#FFFFFF");
+        setCurrentFontFamily(FONTS[0].family);
+        setTextBackground(false);
+        setTextToEdit("");
+        
+        const newItem: OverlayItem = {
+            id: newId,
+            type: "text",
+            content: "", // Empty initially, will be filled by modal
+            x: initialX,
+            y: initialY,
+            scale: 1,
+            rotation: 0,
+            color: "#FFFFFF",
+            fontSize: 32,
+            fontFamily: FONTS[0].family,
+            background: false
+        };
+
+        setOverlays((prev) => [...prev, newItem]);
         setActiveId(newId);
+        setIsEditingText(true);
     };
 
     const handleAddEmoji = (emojiData: EmojiClickData) => {
@@ -163,82 +169,57 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
         }
     };
 
-    const handleToggleBackground = () => {
-        if (activeId) {
-            setOverlays(prev => prev.map(o => o.id === activeId ? { ...o, background: !o.background } : o));
-        }
-    };
-
-    const handleCycleFont = () => {
-        if (activeId) {
-            const currentItem = overlays.find(o => o.id === activeId);
-            if (currentItem) {
-                const currentIndex = FONTS.findIndex(f => f.family === currentItem.fontFamily);
-                const nextIndex = (currentIndex + 1) % FONTS.length;
-                setOverlays(prev => prev.map(o => o.id === activeId ? { ...o, fontFamily: FONTS[nextIndex].family } : o));
-            }
-        }
-    };
-
-    const handleBringToFront = () => {
-        if (activeId) {
-            setOverlays(prev => {
-                const item = prev.find(o => o.id === activeId);
-                if (!item) return prev;
-                const filtered = prev.filter(o => o.id !== activeId);
-                return [...filtered, item];
-            });
-        }
-    };
-
     const handleStartTextEdit = () => {
         if (activeId) {
             const item = overlays.find((o) => o.id === activeId);
             if (item && item.type === 'text') {
                 setTextToEdit(item.content);
+                setCurrentColor(item.color || "#FFFFFF");
+                setCurrentFontFamily(item.fontFamily || FONTS[0].family);
+                setTextBackground(!!item.background);
                 setIsEditingText(true);
             }
         }
     };
 
     const handleTextEditComplete = () => {
-        if (activeId && textToEdit.trim()) {
-            setOverlays((prev) =>
-                prev.map((o) => (o.id === activeId ? { ...o, content: textToEdit } : o))
-            );
+        if (activeId) {
+            if (!textToEdit.trim()) {
+                // Remove if empty
+                setOverlays(prev => prev.filter(o => o.id !== activeId));
+                setActiveId(null);
+            } else {
+                setOverlays((prev) =>
+                    prev.map((o) => (o.id === activeId ? { 
+                        ...o, 
+                        content: textToEdit,
+                        color: currentColor,
+                        fontFamily: currentFontFamily,
+                        background: textBackground
+                    } : o))
+                );
+            }
         }
         setIsEditingText(false);
         setTextToEdit("");
     };
 
-    const activeOverlay = overlays.find((o) => o.id === activeId);
-
     const handleSave = async () => {
         try {
             if (isVideo) {
-                // Video Export Logic (Pass through for now, as we agreed on easy path first)
-                // In a full implementation, we would burn overlays here or pass metadata.
-                // For now, we just pass the original file back.
-                // TODO: Implement FFmpeg trim if needed via the separate trim UI.
                 onSave(file);
                 return;
             }
 
-            // Image Export Logic
-            // 1. If we cropped, apply crop first
-            // 2. Capture the current view
             if (!containerRef.current) return;
 
-            // Ensure we are in edit mode etc for clean capture
             setMode("edit");
             setActiveId(null);
 
-            // Wait for UI to settle (mode switch + handles hide)
             await new Promise(r => setTimeout(r, 150));
 
             const blob = await toBlob(containerRef.current, {
                 cacheBust: false,
-                includeQueryParams: false, // Extra safety for blob URLs
                 quality: 1,
                 pixelRatio: 2,
             });
@@ -254,25 +235,78 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
     };
 
     return (
-        <div className="fixed inset-0 z-[1000] bg-black flex flex-col">
-            {/* Header */}
-            <div className="h-14 flex items-center justify-between px-4 bg-zinc-900 border-b border-zinc-800">
-                <Button variant="ghost" className="text-white" onClick={onCancel}>
-                    <X className="mr-2 h-4 w-4" /> Cancel
-                </Button>
-                <span className="text-white font-semibold">Edit Media</span>
-                <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
-                    <Check className="mr-2 h-4 w-4" /> Done
-                </Button>
+        <div className="fixed inset-0 z-[1000] bg-black flex flex-col items-center justify-center overflow-hidden">
+            
+            {/* Top Toolbar (Floating) */}
+            <div className="absolute top-0 left-0 right-0 z-50 p-4 flex justify-between items-start pointer-events-none">
+                 {/* Cancel Button */}
+                <div className="pointer-events-auto">
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm"
+                        onClick={onCancel}
+                    >
+                        <X className="h-6 w-6" />
+                    </Button>
+                </div>
+
+                {/* Right Side Tools */}
+                <div className="pointer-events-auto flex gap-4">
+                     {/* Tools Stack */}
+                    <div className="flex gap-2 bg-black/40 backdrop-blur-sm rounded-full p-2">
+                         {!activeId && (
+                            <>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-white hover:bg-white/20 rounded-full h-10 w-10"
+                                    onClick={handleAddText}
+                                >
+                                    <Type className="h-5 w-5" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-white hover:bg-white/20 rounded-full h-10 w-10"
+                                    onClick={() => setShowEmojiPicker(true)}
+                                >
+                                    <Smile className="h-5 w-5" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={cn("text-white hover:bg-white/20 rounded-full h-10 w-10", mode === 'crop' && "bg-white/20 text-blue-400")}
+                                    onClick={() => setMode(mode === 'crop' ? 'edit' : 'crop')}
+                                >
+                                    {isVideo ? <Scissors className="h-5 w-5" /> : <Crop className="h-5 w-5" />}
+                                </Button>
+                            </>
+                         )}
+                         {activeId && (
+                             <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-500 hover:bg-red-500/20 rounded-full h-10 w-10"
+                                onClick={handleDeleteActive}
+                            >
+                                <Trash2 className="h-5 w-5" />
+                            </Button>
+                         )}
+                    </div>
+                </div>
             </div>
 
             {/* Main Canvas Area */}
             <div
-                className="flex-grow relative overflow-hidden flex items-center justify-center bg-[#1a1a1a] p-4"
+                className="w-full h-full relative flex items-center justify-center bg-[#1a1a1a]"
                 onClick={() => setActiveId(null)}
             >
-                {mode === "crop" && !isVideo ? (
-                    <div className="relative w-full h-full">
+                 {mode === "crop" && !isVideo ? (
+                    <div className="relative w-full h-full max-w-lg mx-auto bg-black">
+                         {/* Crop Controls Overlay */}
+                        <div className="absolute inset-0 z-10 pointer-events-none border-2 border-white/20 m-4 rounded-xl"></div>
+                        
                         <Cropper
                             image={currentPreview}
                             crop={crop}
@@ -282,60 +316,44 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
                             onCropComplete={onCropComplete}
                             onZoomChange={setZoom}
                             onMediaLoaded={onMediaLoaded}
+                            classes={{ containerClassName: "bg-black" }}
                         />
-                        <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-4 px-4">
-                            <Button
-                                size="sm"
-                                variant={aspectRatio === 1 ? "default" : "secondary"}
-                                onClick={() => setAspectRatio(1)}
-                                className="w-10 h-10 p-0 rounded-full"
-                            >
-                                <Square size={16} />
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant={aspectRatio === 4 / 5 ? "default" : "secondary"}
-                                onClick={() => setAspectRatio(4 / 5)}
-                                className="w-10 h-10 p-0 rounded-full"
-                            >
-                                <Smartphone size={16} />
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant={aspectRatio === 16 / 9 ? "default" : "secondary"}
-                                onClick={() => setAspectRatio(16 / 9)}
-                                className="w-10 h-10 p-0 rounded-full"
-                            >
-                                <Monitor size={16} />
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant={aspectRatio === originalAspect ? "default" : "secondary"}
-                                onClick={() => setAspectRatio(originalAspect)}
-                                className="w-10 h-10 p-0 rounded-full"
-                            >
-                                <ImageIcon size={16} />
-                            </Button>
+                        
+                        {/* Crop Actions Footer */}
+                        <div className="absolute bottom-8 left-0 right-0 z-50 flex flex-col items-center gap-4 px-4">
+                             <div className="flex gap-4 bg-black/60 backdrop-blur-md p-2 rounded-full">
+                                <Button size="sm" variant="ghost" onClick={() => setAspectRatio(1)} className={cn("rounded-full h-8 w-8 p-0", aspectRatio === 1 ? "bg-white text-black" : "text-white")}>
+                                    <Square size={14} />
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => setAspectRatio(4 / 5)} className={cn("rounded-full h-8 w-8 p-0", aspectRatio === 4/5 ? "bg-white text-black" : "text-white")}>
+                                    <Smartphone size={14} />
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => setAspectRatio(16 / 9)} className={cn("rounded-full h-8 w-8 p-0", aspectRatio === 16/9 ? "bg-white text-black" : "text-white")}>
+                                    <Monitor size={14} />
+                                </Button>
+                                 <Button size="sm" variant="ghost" onClick={() => setAspectRatio(originalAspect)} className={cn("rounded-full h-8 w-8 p-0", aspectRatio === originalAspect ? "bg-white text-black" : "text-white")}>
+                                    <ImageIcon size={14} />
+                                </Button>
+                             </div>
+                             
+                             <Button onClick={handleApplyCrop} className="w-full max-w-[200px] rounded-full bg-white text-black hover:bg-white/90 font-bold">
+                                 Apply
+                             </Button>
                         </div>
-                        <Button
-                            className="absolute bottom-4 right-4 z-50 bg-blue-600"
-                            onClick={handleApplyCrop}
-                        >
-                            Apply Crop
-                        </Button>
                     </div>
-                ) : (
+                 ) : (
                     <div
                         ref={containerRef}
-                        className="relative shadow-2xl bg-black inline-flex"
-                        style={{
+                        className="relative shadow-2xl bg-black inline-flex overflow-hidden"
+                         style={{
                             maxWidth: '100%',
                             maxHeight: '100%',
+                            aspectRatio: isVideo ? undefined : `${originalAspect}`,
                             width: 'auto',
                             height: 'auto'
                         }}
                     >
-                        {isVideo ? (
+                         {isVideo ? (
                             currentPreview && <video src={currentPreview} className="max-w-full max-h-full block object-contain" loop autoPlay muted />
                         ) : (
                             currentPreview && <img
@@ -345,7 +363,6 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
                             />
                         )}
 
-                        {/* Overlays */}
                         <OverlayLayer
                             overlays={overlays}
                             setOverlays={setOverlays}
@@ -354,137 +371,122 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
                             containerRef={containerRef}
                             onEditText={handleStartTextEdit}
                         />
+                        
+                        {/* Gradient Overlays for better visibility of controls */}
+                        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
                     </div>
-                )}
+                 )}
             </div>
 
-            {/* Toolbar */}
-            <div className="bg-zinc-900 border-t border-zinc-800 p-4">
+            {/* Bottom Done Button (Floating) */}
+             {mode !== 'crop' && (
+                <div className="absolute bottom-6 right-6 z-50">
+                    <Button 
+                        onClick={handleSave} 
+                        className="bg-white text-black hover:bg-gray-200 rounded-full px-6 font-bold shadow-lg"
+                    >
+                        Next <ChevronRight className="ml-1 h-4 w-4" />
+                    </Button>
+                </div>
+            )}
 
-                {/* If Active Item: Show Item Specific Tools */}
-                {activeId && (
-                    <div className="mb-4 flex gap-2 items-center overflow-x-auto pb-2 scrollbar-hide">
-                        {activeOverlay?.type === "text" && (
-                            <>
-                                <Button 
-                                    variant={activeOverlay.background ? "default" : "secondary"} 
-                                    size="icon" 
-                                    onClick={handleToggleBackground}
-                                    className={activeOverlay.background ? "bg-blue-600" : ""}
-                                >
-                                    <Baseline size={16} />
-                                </Button>
-                                <Button variant="secondary" size="icon" onClick={handleCycleFont}>
-                                    <CaseSensitive size={16} />
-                                </Button>
-                                <Button variant="secondary" size="icon" onClick={handleStartTextEdit}>
-                                    <Edit2 size={16} />
-                                </Button>
-                                <div className="w-px h-6 bg-zinc-700 mx-1" />
-                            </>
-                        )}
-                        
-                        <Button variant="secondary" size="icon" onClick={handleBringToFront}>
-                            <Layers size={16} />
-                        </Button>
 
-                        {activeOverlay?.type === "text" && (
-                            <>
-                                <div className="w-px h-6 bg-zinc-700 mx-1" />
-                                {COLORS.map(c => (
-                                    <div
-                                        key={c}
-                                        className={`w-8 h-8 rounded-full cursor-pointer border-2 shrink-0 ${currentColor === c ? 'border-white' : 'border-transparent'}`}
-                                        style={{ backgroundColor: c }}
-                                        onClick={() => {
-                                            setCurrentColor(c);
-                                            setOverlays(prev => prev.map(o => o.id === activeId ? { ...o, color: c } : o));
-                                        }}
-                                    />
-                                ))}
-                            </>
-                        )}
-                        
-                        <div className="flex-grow" />
-                        <Button variant="destructive" size="icon" onClick={handleDeleteActive}>
-                            <Trash2 size={16} />
-                        </Button>
-                    </div>
-                )}
-
-                {/* Main Tools Container */}
-                {!activeId && (
-                    <div className="flex items-center justify-around">
-                        <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={() => setShowEmojiPicker(true)}>
-                            <div className="p-3 bg-zinc-800 rounded-full hover:bg-zinc-700">
-                                <Smile className="text-white h-6 w-6" />
-                            </div>
-                            <span className="text-xs text-zinc-400">Emoji</span>
-                        </div>
-
-                        <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={handleAddText}>
-                            <div className="p-3 bg-zinc-800 rounded-full hover:bg-zinc-700">
-                                <Type className="text-white h-6 w-6" />
-                            </div>
-                            <span className="text-xs text-zinc-400">Text</span>
-                        </div>
-
-                        {!isVideo && (
-                            <div
-                                className={`flex flex-col items-center gap-1 cursor-pointer ${mode === 'crop' ? 'opacity-100' : 'opacity-70'}`}
-                                onClick={() => setMode(mode === 'crop' ? 'edit' : 'crop')}
-                            >
-                                <div className={`p-3 bg-zinc-800 rounded-full hover:bg-zinc-700 ${mode === 'crop' ? 'bg-blue-600' : ''}`}>
-                                    <Crop className="text-white h-6 w-6" />
-                                </div>
-                                <span className="text-xs text-zinc-400">Crop</span>
-                            </div>
-                        )}
-
-                        {isVideo && (
-                            <div className="flex flex-col items-center gap-1 cursor-pointer">
-                                <div className="p-3 bg-zinc-800 rounded-full hover:bg-zinc-700">
-                                    <Scissors className="text-white h-6 w-6" />
-                                </div>
-                                <span className="text-xs text-zinc-400">Trim</span>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* Text Editor Modal */}
+            {/* Full Screen Text Editor */}
             {isEditingText && (
-                <div className="fixed inset-0 z-[1020] bg-black/80 flex flex-col justify-center items-center p-4">
-                    <Textarea
-                        autoFocus
-                        value={textToEdit}
-                        onChange={(e) => setTextToEdit(e.target.value)}
-                        className="bg-transparent border-none text-center text-3xl font-bold text-white resize-none focus-visible:ring-0 min-h-[150px]"
-                        style={{ color: currentColor }}
-                    />
-                    <div className="mt-4 flex gap-4">
-                        <Button variant="secondary" onClick={() => setIsEditingText(false)}>Cancel</Button>
-                        <Button onClick={handleTextEditComplete}>Done</Button>
+                <div className="fixed inset-0 z-[1050] bg-black/90 backdrop-blur-xl flex flex-col animate-in fade-in duration-200">
+                    {/* Header */}
+                    <div className="flex justify-between items-center p-4">
+                        <Button variant="ghost" className="text-white" onClick={() => setIsEditingText(false)}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            className="bg-white text-black hover:bg-gray-200 rounded-full px-6" 
+                            onClick={handleTextEditComplete}
+                        >
+                            Done
+                        </Button>
+                    </div>
+
+                    {/* Editor Canvas */}
+                    <div className="flex-grow flex items-center justify-center p-4 relative">
+                        <Textarea
+                            autoFocus
+                            value={textToEdit}
+                            onChange={(e) => setTextToEdit(e.target.value)}
+                            className="bg-transparent border-none text-center text-3xl font-bold text-white resize-none focus-visible:ring-0 min-h-[150px] w-full max-w-lg mx-auto shadow-none placeholder:text-white/30"
+                            placeholder="Type something..."
+                            style={{ 
+                                color: textBackground ? (currentColor === "#FFFFFF" ? "#000000" : "#FFFFFF") : currentColor,
+                                fontFamily: currentFontFamily,
+                                backgroundColor: textBackground ? (currentColor === "#FFFFFF" ? "#FFFFFF" : currentColor) : "transparent",
+                                borderRadius: '8px',
+                                padding: '1rem'
+                            }}
+                        />
+                    </div>
+
+                    {/* Tools (Keyboard Accessory View) */}
+                    <div className="p-4 pb-8 flex flex-col gap-4 max-w-lg mx-auto w-full">
+                         {/* Font Family Selector */}
+                         <div className="flex justify-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                            <Button 
+                                variant="outline" 
+                                size="icon"
+                                className={cn("rounded-full border-white/20 text-white hover:bg-white/20 h-10 w-10 shrink-0", textBackground && "bg-white text-black hover:bg-white/90")}
+                                onClick={() => setTextBackground(!textBackground)}
+                            >
+                                <Baseline className="h-5 w-5" />
+                            </Button>
+                            <div className="w-px h-8 bg-white/20 mx-2 self-center" />
+                             {FONTS.map(font => (
+                                 <button
+                                    key={font.name}
+                                    onClick={() => setCurrentFontFamily(font.family)}
+                                    className={cn(
+                                        "px-4 py-1.5 rounded-full text-sm font-medium border transition-all whitespace-nowrap",
+                                        currentFontFamily === font.family 
+                                            ? "bg-white text-black border-white" 
+                                            : "bg-transparent text-white border-white/30 hover:bg-white/10"
+                                    )}
+                                    style={{ fontFamily: font.family }}
+                                 >
+                                    {font.name}
+                                 </button>
+                             ))}
+                         </div>
+
+                        {/* Color Picker */}
+                        <div className="flex justify-center gap-3 overflow-x-auto p-1 scrollbar-hide">
+                            {COLORS.map((c) => (
+                                <button
+                                    key={c}
+                                    className={cn(
+                                        "w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 shrink-0",
+                                        currentColor === c ? "border-white scale-110 shadow-lg" : "border-transparent"
+                                    )}
+                                    style={{ backgroundColor: c }}
+                                    onClick={() => setCurrentColor(c)}
+                                />
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* Popups */}
+            {/* Emoji Picker Modal */}
             {showEmojiPicker && (
-                <div className="absolute bottom-20 left-0 right-0 z-[1010] flex justify-center">
-                    <div className="relative">
-                        <Button
-                            size="sm"
-                            className="absolute -top-10 right-0 z-10 rounded-full"
-                            variant="secondary"
-                            onClick={() => setShowEmojiPicker(false)}
-                        >
-                            <X size={16} />
-                        </Button>
+                <div className="fixed inset-0 z-[1050] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center" onClick={() => setShowEmojiPicker(false)}>
+                    <div className="bg-zinc-900 w-full max-w-sm rounded-t-xl sm:rounded-xl overflow-hidden h-[50vh] sm:h-[400px] flex flex-col" onClick={e => e.stopPropagation()}>
+                        <div className="p-2 border-b border-zinc-800 flex justify-center">
+                            <div className="w-12 h-1.5 bg-zinc-700 rounded-full" />
+                        </div>
                         <EmojiPicker
                             theme={Theme.DARK}
                             onEmojiClick={handleAddEmoji}
+                            width="100%"
+                            height="100%"
+                            previewConfig={{ showPreview: false }}
                         />
                     </div>
                 </div>

@@ -25,7 +25,7 @@ import {
   useGetMessages,
   MESSAGES_QUERY_KEY,
 } from "../hooks/queries/useGetMessages";
-import { useGetConversations, getUniqueConversations } from "../hooks/queries/useGetConversations";
+import { useGetConversations } from "../hooks/queries/useGetConversations";
 
 import { useSendMessage } from "../hooks/mutations/useSendMessage";
 import { useMarkMessagesRead } from "../hooks/mutations/useMarkMessagesRead";
@@ -140,9 +140,9 @@ const MessagesView: React.FC = () => {
   } = useGetConversations(user?.id);
 
   const conversations = React.useMemo(() => {
-    if (!conversationsData || !user?.id) return [];
-    return getUniqueConversations(conversationsData.pages, user.id);
-  }, [conversationsData, user?.id]);
+    if (!conversationsData) return [];
+    return conversationsData.pages.flat();
+  }, [conversationsData]);
 
   // Derive selectedUserId
   const selectedUserId =
@@ -500,9 +500,13 @@ const MessagesView: React.FC = () => {
                       {u.isVerified && <VerifiedBadge />}
                     </div>
                     <div
-                      className={`text-xs truncate ${theme === "dark" ? "text-[#a8a8a8]" : "text-gray-500"}`}
+                      className={`text-xs truncate ${
+                        !u.isRead && u.lastSenderId !== user?.id
+                          ? theme === "dark" ? "text-white font-bold" : "text-black font-bold"
+                          : theme === "dark" ? "text-[#a8a8a8]" : "text-gray-500"
+                      }`}
                     >
-                      মেসেজ...
+                      {u.lastSenderId === user?.id ? "আপনি: " : ""}{u.lastMessage || "সংযুক্ত ফাইল"}
                     </div>
                   </div>
                 </div>

@@ -23,6 +23,7 @@ import StoryViewer from "./components/StoryViewer";
 import PostDetailsModal from "./components/modals/PostDetailsModal";
 import { useAppStore } from "./store/useAppStore";
 import PageWrapper from "./components/PageWrapper";
+import AppSkeleton from "./components/layout/AppSkeleton";
 import { useAuth } from "./hooks/useAuth";
 import type { User as AppUser } from "./types";
 import {
@@ -180,16 +181,7 @@ export default function App() {
       </AnimatePresence>
 
       <AnimatePresence mode="wait">
-        <Suspense
-          fallback={
-            <div
-              className="min-h-screen w-full flex items-center justify-center bg-background"
-            >
-
-              <div className="w-8 h-8 border-4 border-[#006a4e] border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          }
-        >
+        <Suspense fallback={<AppSkeleton />}>
           <Routes location={location} key={location.pathname}>
             <Route element={<Layout />}>
               <Route

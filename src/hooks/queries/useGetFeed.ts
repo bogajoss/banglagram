@@ -1,7 +1,6 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { supabase } from "../../lib/supabaseClient";
-import type { Database } from "../../database.types";
 
 export const FEED_QUERY_KEY = ["feed"];
 
@@ -9,101 +8,39 @@ export const useGetFeed = (userId?: string) => {
   return useInfiniteQuery({
     queryKey: FEED_QUERY_KEY,
     queryFn: async ({ pageParam = 0 }) => {
-      const from = pageParam * 10;
-      const to = from + 9;
+      
+      const { data, error } = await supabase.rpc("get_feed", {
+        current_user_id: userId,
+        limit_count: 10,
+        offset_count: pageParam * 10
+      } as any);
 
-      const { data: postsData, error: postsError } = await supabase
-        .from("posts")
-        .select(
-          `
-          id,
-          created_at,
-          caption,
-          image_url,
-          user_id,
-          profiles (username, full_name, avatar_url, is_verified),
-          likes (count),
-          comments (count)
-        `,
-        )
-        .order("created_at", { ascending: false })
-        .range(from, to);
+      if (error) throw error;
 
-      if (postsError) throw postsError;
+      const posts = (data as any[]) || [];
 
-      type PostWithProfile = Database["public"]["Tables"]["posts"]["Row"] & {
-        profiles: {
-          username: string;
-          full_name: string | null;
-          avatar_url: string | null;
-          is_verified: boolean | null;
-        } | null;
-        likes: { count: number }[];
-        comments: { count: number }[];
-      };
-
-      const posts = (postsData || []) as unknown as PostWithProfile[];
-      const postIds = posts.map((p) => p.id);
-
-      // 2. Fetch User Likes and Saves (if logged in)
-      const likedPostIds = new Set<string>();
-      const savedPostIds = new Set<string>();
-
-      if (userId && postIds.length > 0) {
-        const { data: likesData } = await supabase
-          .from("likes")
-          .select("post_id")
-          .eq("user_id", userId)
-          .in("post_id", postIds);
-
-        if (likesData) {
-          (likesData as { post_id: string | null }[]).forEach((l) => {
-            if (l.post_id) likedPostIds.add(l.post_id);
-          });
-        }
-
-        const { data: savesData } = await supabase
-          .from("saves")
-          .select("post_id")
-          .eq("user_id", userId)
-          .in("post_id", postIds);
-
-        if (savesData) {
-          (savesData as { post_id: string | null }[]).forEach((s) => {
-            if (s.post_id) savedPostIds.add(s.post_id);
-          });
-        }
-      }
-
-      // 3. Merge
-      return posts.map((post) => {
-        const profile = post.profiles;
-        const likes = post.likes;
-        const comments = post.comments;
-
-        return {
-          id: post.id,
-          user: {
-            id: post.user_id,
-            username: profile?.username || "Unknown",
-            name: profile?.full_name || "Unknown",
-            avatar: profile?.avatar_url || "",
-            isVerified: profile?.is_verified || false,
-          },
-          content: {
-            type: "image" as const,
-            src: post.image_url,
-          },
-          likes: likes[0]?.count || 0,
-          caption: post.caption || "",
-          comments: comments[0]?.count || 0,
-          time: dayjs(post.created_at).fromNow(),
-          createdAt: post.created_at,
-          isVerified: profile?.is_verified || false,
-          hasLiked: likedPostIds.has(post.id),
-          hasSaved: savedPostIds.has(post.id),
-        };
-      });
+      return posts.map((post: any) => ({
+        id: post.id,
+        user: {
+          id: post.user_id,
+          username: post.username,
+          name: post.full_name || post.username,
+          avatar: post.avatar_url || "",
+          isVerified: post.is_verified || false,
+        },
+        content: {
+          type: "image" as const,
+          src: post.image_url,
+        },
+        likes: post.likes_count || 0,
+        caption: post.caption || "",
+        comments: post.comments_count || 0,
+        time: dayjs(post.created_at).fromNow(),
+        createdAt: post.created_at,
+        isVerified: post.is_verified || false,
+        hasLiked: post.has_liked,
+        hasSaved: post.has_saved,
+      }));
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {

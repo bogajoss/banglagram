@@ -301,7 +301,52 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_feed: {
+        Args: {
+          current_user_id: string;
+          limit_count?: number;
+          offset_count?: number;
+        };
+        Returns: {
+          id: string;
+          created_at: string;
+          caption: string | null;
+          image_url: string;
+          likes_count: number;
+          comments_count: number;
+          user_id: string;
+          username: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          is_verified: boolean;
+          has_liked: boolean;
+          has_saved: boolean;
+        }[];
+      };
+      get_conversations: {
+        Args: {
+          current_user_id: string;
+          limit_count?: number;
+          offset_count?: number;
+        };
+        Returns: {
+          user_id: string;
+          username: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          is_verified: boolean;
+          last_message: string | null;
+          last_message_time: string;
+          is_read: boolean;
+          sender_id: string;
+        }[];
+      };
+      exec_sql: {
+        Args: {
+          query: string;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       [_ in never]: never;

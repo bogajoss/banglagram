@@ -6,6 +6,7 @@ import {
     Smile,
     Crop,
     Scissors,
+    Edit2,
     X,
     Trash2,
     Square,
@@ -204,6 +205,8 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
         setTextToEdit("");
     };
 
+    const activeOverlay = overlays.find((o) => o.id === activeId);
+
     const handleSave = async () => {
         try {
             if (isVideo) {
@@ -284,14 +287,26 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
                             </>
                          )}
                          {activeId && (
-                             <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-red-500 hover:bg-red-500/20 rounded-full h-10 w-10"
-                                onClick={handleDeleteActive}
-                            >
-                                <Trash2 className="h-5 w-5" />
-                            </Button>
+                             <>
+                                {activeOverlay?.type === 'text' && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-white hover:bg-white/20 rounded-full h-10 w-10"
+                                        onClick={handleStartTextEdit}
+                                    >
+                                        <Edit2 className="h-5 w-5" />
+                                    </Button>
+                                )}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-red-500 hover:bg-red-500/20 rounded-full h-10 w-10"
+                                    onClick={handleDeleteActive}
+                                >
+                                    <Trash2 className="h-5 w-5" />
+                                </Button>
+                             </>
                          )}
                     </div>
                 </div>
@@ -369,7 +384,6 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
                             activeId={activeId}
                             setActiveId={setActiveId}
                             containerRef={containerRef}
-                            onEditText={handleStartTextEdit}
                         />
                         
                         {/* Gradient Overlays for better visibility of controls */}

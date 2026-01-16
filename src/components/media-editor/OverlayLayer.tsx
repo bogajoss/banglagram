@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect } from "react";
+import React, { useState, useLayoutEffect, useRef } from "react";
 import Moveable from "react-moveable";
 
 export interface OverlayItem {
@@ -21,7 +21,6 @@ interface OverlayLayerProps {
     activeId: string | null;
     setActiveId: (id: string | null) => void;
     containerRef: React.RefObject<HTMLDivElement | null>;
-    onEditText?: () => void;
 }
 
 const OverlayLayer: React.FC<OverlayLayerProps> = ({
@@ -30,9 +29,14 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
     activeId,
     setActiveId,
     containerRef,
-    onEditText,
 }) => {
     const [container, setContainer] = useState<HTMLElement | null>(null);
+
+    // Refs for manual drag handling (Hybrid Drag)
+    const isDraggingRef = useRef(false);
+    const dragStartRef = useRef({ x: 0, y: 0 });
+    const itemStartRef = useRef({ x: 0, y: 0 });
+    const currentDragItemIdRef = useRef<string | null>(null);
 
     useLayoutEffect(() => {
         setContainer(containerRef.current);
@@ -81,8 +85,36 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                         }}
                         onPointerDown={(e) => {
                             e.stopPropagation();
+                            // Start Manual Drag
+                            isDraggingRef.current = true;
+                            currentDragItemIdRef.current = item.id;
+                            dragStartRef.current = { x: e.clientX, y: e.clientY };
+                            itemStartRef.current = { x: item.x, y: item.y };
+                            
+                            // Capture pointer for smooth dragging even if we leave the element
+                            e.currentTarget.setPointerCapture(e.pointerId);
+
                             if (activeId !== item.id) {
                                 setActiveId(item.id);
+                            }
+                        }}
+                        onPointerMove={(e) => {
+                            e.stopPropagation();
+                            if (isDraggingRef.current && currentDragItemIdRef.current === item.id) {
+                                const dx = e.clientX - dragStartRef.current.x;
+                                const dy = e.clientY - dragStartRef.current.y;
+                                updateOverlay(item.id, {
+                                    x: itemStartRef.current.x + dx,
+                                    y: itemStartRef.current.y + dy
+                                });
+                            }
+                        }}
+                        onPointerUp={(e) => {
+                            e.stopPropagation();
+                            if (isDraggingRef.current) {
+                                isDraggingRef.current = false;
+                                currentDragItemIdRef.current = null;
+                                e.currentTarget.releasePointerCapture(e.pointerId);
                             }
                         }}
                     >
@@ -162,14 +194,6 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                                 y: e.lastEvent.drag.translate[1]
                             });
                         }
-                    }}
-                    
-                    onClick={({ isDrag, inputEvent }: any) => {
-                         inputEvent.stopPropagation();
-                         const item = overlays.find(o => o.id === activeId);
-                         if (!isDrag && item?.type === 'text' && onEditText) {
-                             onEditText();
-                         }
                     }}
                 />
             )}

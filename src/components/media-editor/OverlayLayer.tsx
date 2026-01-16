@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect, useRef } from "react";
+import React, { useState, useLayoutEffect } from "react";
 import Moveable from "react-moveable";
 
 export interface OverlayItem {
@@ -33,7 +33,6 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
     onEditText,
 }) => {
     const [container, setContainer] = useState<HTMLElement | null>(null);
-    const lastActiveIdRef = useRef<string | null>(null);
 
     useLayoutEffect(() => {
         setContainer(containerRef.current);
@@ -79,13 +78,9 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                         }}
                         onClick={(e) => {
                             e.stopPropagation();
-                            if (lastActiveIdRef.current === item.id && item.type === 'text' && onEditText) {
-                                onEditText();
-                            }
                         }}
                         onPointerDown={(e) => {
                             e.stopPropagation();
-                            lastActiveIdRef.current = activeId;
                             if (activeId !== item.id) {
                                 setActiveId(item.id);
                             }
@@ -167,6 +162,14 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                                 y: e.lastEvent.drag.translate[1]
                             });
                         }
+                    }}
+                    
+                    onClick={({ isDrag, inputEvent }: any) => {
+                         inputEvent.stopPropagation();
+                         const item = overlays.find(o => o.id === activeId);
+                         if (!isDrag && item?.type === 'text' && onEditText) {
+                             onEditText();
+                         }
                     }}
                 />
             )}

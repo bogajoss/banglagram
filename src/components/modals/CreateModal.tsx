@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowLeft, X, MapPin, Loader2, Edit2 } from "lucide-react";
+import { ArrowLeft, X, MapPin, Loader2, Edit2, ChevronRight, Hash, AtSign } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { motion } from "framer-motion";
 import { useAuth } from "../../hooks/useAuth";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 import OptimizedImage from "../OptimizedImage";
 import FileUploader from "../FileUploader";
@@ -18,19 +19,18 @@ import MediaEditor from "../media-editor/MediaEditor";
 const CreateModal: React.FC = () => {
   const { theme, setCreateModalOpen, showToast } = useAppStore();
   const { user, profile } = useAuth();
-  const glassModal =
-    theme === "dark"
-      ? "bg-[#121212]/90 backdrop-blur-2xl border border-white/10"
-      : "bg-white/90 backdrop-blur-2xl border border-black/10";
+  
+  // Professional glass effect for modal
+  const glassModal = theme === "dark"
+      ? "bg-[#121212] md:bg-[#121212]/95 md:backdrop-blur-xl md:border md:border-zinc-800"
+      : "bg-white md:bg-white/95 md:backdrop-blur-xl md:border md:border-zinc-200";
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [location, setLocation] = useState("");
   const [isVideo, setIsVideo] = useState(false);
-  const [createType, setCreateType] = useState<"post" | "reel" | "story" | null>(
-    null,
-  );
+  const [createType, setCreateType] = useState<"post" | "reel" | "story" | null>(null);
 
   const [isEditingMedia, setIsEditingMedia] = useState(false);
 
@@ -58,65 +58,38 @@ const CreateModal: React.FC = () => {
   const handleShare = async () => {
     if (!file || !user || !profile) return;
 
-    const fileToUpload = file;
-    // Cropping is handled by MediaEditor destructively, no need for extra logic here
-
     if (createType === "reel") {
       createReel(
+        { file, caption, userId: user.id, username: profile.username },
         {
-          file: fileToUpload,
-          caption,
-          userId: user.id,
-          username: profile.username,
-        },
-        {
-          onSuccess: () => {
-            showToast("রিল শেয়ার করা হয়েছে");
-            setCreateModalOpen(false);
-          },
+          onSuccess: () => { showToast("রিল শেয়ার করা হয়েছে"); setCreateModalOpen(false); },
           onError: () => showToast("রিল শেয়ার করতে সমস্যা হয়েছে"),
         },
       );
     } else if (createType === "story") {
       createStory(
+        { file, userId: user.id },
         {
-          file: fileToUpload,
-          userId: user.id,
-        },
-        {
-          onSuccess: () => {
-            showToast("স্টোরি শেয়ার করা হয়েছে");
-            setCreateModalOpen(false);
-          },
+          onSuccess: () => { showToast("স্টোরি শেয়ার করা হয়েছে"); setCreateModalOpen(false); },
           onError: () => showToast("স্টোরি শেয়ার করতে সমস্যা হয়েছে"),
         },
       );
     } else {
       createPost(
+        { file, caption, location, userId: user.id, username: profile.username },
         {
-          file: fileToUpload,
-          caption,
-          location,
-          userId: user.id,
-          username: profile.username,
-        },
-        {
-          onSuccess: () => {
-            showToast("পোস্ট শেয়ার করা হয়েছে");
-            setCreateModalOpen(false);
-          },
+          onSuccess: () => { showToast("পোস্ট শেয়ার করা হয়েছে"); setCreateModalOpen(false); },
           onError: () => showToast("পোস্ট শেয়ার করতে সমস্যা হয়েছে"),
         },
       );
     }
   };
 
-
   const onClose = () => setCreateModalOpen(false);
 
   const onMediaSaved = (editedFile: File) => {
     setFile(editedFile);
-    setPreview(URL.createObjectURL(editedFile)); // Revoke old url if needed in prod
+    setPreview(URL.createObjectURL(editedFile));
     setIsEditingMedia(false);
   };
 
@@ -134,58 +107,58 @@ const CreateModal: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4"
+        className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center md:p-4"
         onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          className={`w-full max-w-4xl h-full md:h-[80vh] md:rounded-xl overflow-hidden shadow-2xl flex flex-col ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
+          initial={{ scale: 0.95, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 20 }}
+          className={`w-full h-full md:w-full md:max-w-5xl md:h-[85vh] md:rounded-2xl overflow-hidden shadow-2xl flex flex-col ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
           onClick={(e) => e.stopPropagation()}
         >
 
           {/* Header */}
-          <div
-            className={`p-3 border-b text-center font-bold relative flex items-center justify-between ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
-          >
-            <div className="w-10">
-              {preview && (
+          <div className={cn(
+            "px-4 h-14 border-b flex items-center justify-between shrink-0",
+            theme === "dark" ? "border-zinc-800" : "border-zinc-200"
+          )}>
+            <div className="w-20 flex justify-start">
+              {preview ? (
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="-ml-2"
                   onClick={() => {
                     setPreview(null);
                     setFile(null);
                     setCreateType(null);
                   }}
                 >
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-6 w-6" />
+                </Button>
+              ) : (
+                <Button variant="ghost" size="icon" className="-ml-2" onClick={onClose}>
+                  <X className="h-6 w-6" />
                 </Button>
               )}
             </div>
-            <span>
+            
+            <span className="font-semibold text-lg">
               {preview
-                ? createType === "reel"
-                  ? "নতুন রিল"
-                  : createType === "story"
-                    ? "নতুন স্টোরি"
-                    : "নতুন পোস্ট"
-                : "তৈরি করুন"}
+                ? createType === "reel" ? "New Reel" : createType === "story" ? "New Story" : "New Post"
+                : "Create"}
             </span>
-            <div className="w-10 flex justify-end">
-              {preview ? (
+            
+            <div className="w-20 flex justify-end">
+              {preview && (
                 <Button
                   variant="ghost"
                   onClick={handleShare}
                   disabled={isPending}
-                  className="text-[#0095f6] hover:text-[#0095f6] hover:bg-transparent p-0 h-auto font-bold"
+                  className="text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 font-semibold px-2"
                 >
-                  {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "শেয়ার"}
-                </Button>
-              ) : (
-                <Button variant="ghost" size="icon" onClick={onClose}>
-                  <X className="h-5 w-5" />
+                  {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : "Share"}
                 </Button>
               )}
             </div>
@@ -193,17 +166,19 @@ const CreateModal: React.FC = () => {
 
           {/* Body */}
           <div className="flex-grow flex flex-col md:flex-row overflow-hidden">
-            {/* Image/Video Section */}
-            <div
-              className={`flex-1 flex items-center justify-center bg-black relative ${preview ? "md:border-r border-zinc-800" : ""}`}
-            >
+            
+            {/* Left: Media Preview */}
+            <div className={cn(
+              "flex-1 bg-black relative flex items-center justify-center overflow-hidden",
+              preview ? "md:border-r border-zinc-800" : ""
+            )}>
               {preview ? (
-                <div className="relative w-full h-full flex items-center justify-center">
-                  {isVideo ? (
+                <div className="relative w-full h-full flex items-center justify-center bg-[#1a1a1a]">
+                   {isVideo ? (
                     <video
                       src={preview}
                       controls
-                      className="max-h-full max-w-full"
+                      className="max-h-full max-w-full object-contain"
                     />
                   ) : (
                     <OptimizedImage
@@ -214,53 +189,34 @@ const CreateModal: React.FC = () => {
                     />
                   )}
 
-                  {/* Edit Button Overlay */}
-                  <Button
-                    size="icon"
-                    className="absolute bottom-4 right-4 rounded-full bg-black/50 hover:bg-black/70 text-white z-10"
-                    onClick={() => setIsEditingMedia(true)}
-                  >
-                    <Edit2 size={20} />
-                  </Button>
+                  {/* Edit Button (Floating) */}
+                  {!isVideo && (
+                    <Button
+                      size="icon"
+                      className="absolute bottom-4 right-4 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-md border border-white/10 shadow-lg h-12 w-12"
+                      onClick={() => setIsEditingMedia(true)}
+                    >
+                      <Edit2 size={20} />
+                    </Button>
+                  )}
                 </div>
               ) : (
-                <div className="w-full h-full p-6">
+                <div className="w-full h-full p-8 flex flex-col items-center justify-center">
                   <FileUploader onFileSelect={onFileSelect} />
                 </div>
               )}
             </div>
 
-            {/* Type & Detail Section */}
+            {/* Right: Details Form */}
             {preview && (
-              <div
-                className={`w-full md:w-[350px] flex flex-col ${theme === "dark" ? "bg-zinc-900" : "bg-white"}`}
-              >
-                {/* Type Selector */}
-                <div
-                  className={`p-4 border-b flex gap-2 ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
-                >
-                  {!isVideo && (
-                    <Button
-                      variant={createType === "post" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setCreateType("post")}
-                      className={`flex-1 text-xs font-bold ${createType === "post" ? "bg-[#006a4e] hover:bg-[#00523c]" : "bg-transparent"}`}
-                    >
-                      পোস্ট
-                    </Button>
-                  )}
-                  <Button
-                    variant={createType === (isVideo ? "reel" : "story") ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCreateType(isVideo ? "reel" : "story")}
-                    className={`flex-1 text-xs font-bold ${createType === (isVideo ? "reel" : "story") ? "bg-[#006a4e] hover:bg-[#00523c]" : "bg-transparent"}`}
-                  >
-                    {isVideo ? "রিল" : "স্টোরি"}
-                  </Button>
-                </div>
-
+              <div className={cn(
+                "w-full md:w-[400px] flex flex-col bg-background/50 backdrop-blur-sm",
+                 theme === "dark" ? "bg-[#121212]" : "bg-white"
+              )}>
+                
+                {/* User Profile Row */}
                 <div className="p-4 flex items-center gap-3">
-                  <Avatar className="w-8 h-8">
+                  <Avatar className="w-10 h-10 border border-border">
                     <AvatarImage src={profile?.avatar_url || ""} />
                     <AvatarFallback>{profile?.username?.[0]?.toUpperCase()}</AvatarFallback>
                   </Avatar>
@@ -269,44 +225,96 @@ const CreateModal: React.FC = () => {
                   </span>
                 </div>
 
-                {createType !== "story" && (
-                  <>
-                    <Textarea
-                      className="flex-grow p-4 bg-transparent outline-none resize-none text-sm border-none focus-visible:ring-0"
-                      placeholder="ক্যাপশন লিখুন..."
-                      value={caption}
-                      onChange={(e) => setCaption(e.target.value)}
-                    />
-                    {!isVideo && (
-                      <div
-                        className={`p-4 border-t ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm text-gray-400">
-                            লোকেশন যোগ করুন
-                          </span>
-                          <MapPin size={16} className="text-gray-400" />
-                        </div>
-                        <Input
-                          type="text"
-                          placeholder="লোকেশন"
-                          className="w-full bg-transparent outline-none text-sm py-1 border-none focus-visible:ring-0 h-auto p-0"
-                          value={location}
-                          onChange={(e) => setLocation(e.target.value)}
+                {createType !== "story" ? (
+                  <div className="flex-grow flex flex-col overflow-y-auto">
+                    {/* Caption Input */}
+                    <div className="px-4 pb-4">
+                        <Textarea
+                          className="w-full min-h-[120px] bg-transparent border-none focus-visible:ring-0 resize-none text-base p-0 placeholder:text-muted-foreground/50"
+                          placeholder="Write a caption..."
+                          value={caption}
+                          onChange={(e) => setCaption(e.target.value)}
                         />
-                      </div>
-                    )}
-                  </>
-                )}
+                    </div>
 
-                {createType === "story" && (
-                  <div className="flex-grow flex items-center justify-center p-8 text-center">
-                    <p className="text-sm text-zinc-500">
-                      স্টোরি ২৪ ঘন্টার জন্য দৃশ্যমান থাকবে। স্টোরিতে কোনো ক্যাপশন
-                      বা লোকেশন যোগ করা যায় না।
+                    <div className={cn("h-px w-full", theme === "dark" ? "bg-zinc-800" : "bg-zinc-100")} />
+
+                    {/* Meta Options List */}
+                    <div className="flex flex-col">
+                        {!isVideo && (
+                            <div className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors border-b border-border/50">
+                                <div className="flex items-center gap-3 text-sm">
+                                    <MapPin size={20} className="text-muted-foreground" />
+                                    <Input 
+                                        type="text" 
+                                        placeholder="Add Location" 
+                                        value={location}
+                                        onChange={(e) => setLocation(e.target.value)}
+                                        className="border-none bg-transparent h-auto p-0 focus-visible:ring-0 placeholder:text-foreground/80"
+                                    />
+                                </div>
+                                <ChevronRight size={16} className="text-muted-foreground" />
+                            </div>
+                        )}
+                        
+                        <div className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors border-b border-border/50">
+                             <div className="flex items-center gap-3 text-sm">
+                                <AtSign size={20} className="text-muted-foreground" />
+                                <span>Tag People</span>
+                            </div>
+                             <ChevronRight size={16} className="text-muted-foreground" />
+                        </div>
+
+                         <div className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors border-b border-border/50">
+                             <div className="flex items-center gap-3 text-sm">
+                                <Hash size={20} className="text-muted-foreground" />
+                                <span>Add Topics</span>
+                            </div>
+                             <ChevronRight size={16} className="text-muted-foreground" />
+                        </div>
+                    </div>
+                  </div>
+                ) : (
+                   <div className="flex-grow flex items-center justify-center p-8 text-center text-muted-foreground">
+                    <p className="text-sm">
+                      Stories are visible for 24 hours. Captions and locations are not supported on stories yet.
                     </p>
                   </div>
                 )}
+
+                {/* Bottom Type Selector */}
+                <div className={cn(
+                    "p-4 border-t",
+                    theme === "dark" ? "border-zinc-800" : "border-zinc-200"
+                )}>
+                    <div className="grid grid-cols-2 gap-2 bg-muted/50 p-1 rounded-lg">
+                         {!isVideo && (
+                            <button
+                                onClick={() => setCreateType("post")}
+                                className={cn(
+                                    "text-sm font-semibold py-2 rounded-md transition-all",
+                                    createType === "post" 
+                                        ? "bg-background text-foreground shadow-sm" 
+                                        : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                Post
+                            </button>
+                         )}
+                         <button
+                            onClick={() => setCreateType(isVideo ? "reel" : "story")}
+                             className={cn(
+                                    "text-sm font-semibold py-2 rounded-md transition-all",
+                                    createType === (isVideo ? "reel" : "story")
+                                        ? "bg-background text-foreground shadow-sm" 
+                                        : "text-muted-foreground hover:text-foreground"
+                                )}
+                         >
+                            {isVideo ? "Reel" : "Story"}
+                         </button>
+                    </div>
+                </div>
+
               </div>
             )}
           </div>

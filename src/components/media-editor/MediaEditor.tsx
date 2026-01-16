@@ -103,14 +103,22 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
 
     const handleAddText = () => {
         const newId = `text-${Date.now()}`;
+        let initialX = 0;
+        let initialY = 0;
+        if (containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            initialX = rect.width / 2;
+            initialY = rect.height / 2;
+        }
+        
         setOverlays((prev) => [
             ...prev,
             {
                 id: newId,
                 type: "text",
                 content: "Tap to Edit",
-                x: 0,
-                y: 0,
+                x: initialX,
+                y: initialY,
                 scale: 1,
                 rotation: 0,
                 color: currentColor,
@@ -124,14 +132,22 @@ const MediaEditor: React.FC<MediaEditorProps> = ({ file, onSave, onCancel }) => 
 
     const handleAddEmoji = (emojiData: EmojiClickData) => {
         const newId = `emoji-${Date.now()}`;
+        let initialX = 0;
+        let initialY = 0;
+        if (containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            initialX = rect.width / 2;
+            initialY = rect.height / 2;
+        }
+
         setOverlays((prev) => [
             ...prev,
             {
                 id: newId,
                 type: "emoji",
                 content: emojiData.emoji,
-                x: 0,
-                y: 0,
+                x: initialX,
+                y: initialY,
                 scale: 1,
                 rotation: 0,
             },

@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect } from "react";
+import React, { useState, useLayoutEffect, useRef } from "react";
 import Moveable from "react-moveable";
 
 export interface OverlayItem {
@@ -33,6 +33,7 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
     onEditText,
 }) => {
     const [container, setContainer] = useState<HTMLElement | null>(null);
+    const lastActiveIdRef = useRef<string | null>(null);
 
     useLayoutEffect(() => {
         setContainer(containerRef.current);
@@ -78,9 +79,14 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                         }}
                         onClick={(e) => {
                             e.stopPropagation();
-                            if (activeId === item.id && item.type === 'text' && onEditText) {
+                            if (lastActiveIdRef.current === item.id && item.type === 'text' && onEditText) {
                                 onEditText();
-                            } else {
+                            }
+                        }}
+                        onPointerDown={(e) => {
+                            e.stopPropagation();
+                            lastActiveIdRef.current = activeId;
+                            if (activeId !== item.id) {
                                 setActiveId(item.id);
                             }
                         }}
@@ -100,6 +106,7 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                     throttleScale={0}
                     rotatable={true}
                     throttleRotate={0}
+                    pinchable={true}
                     origin={false}
                     keepRatio={true}
                     renderDirections={["nw", "ne", "se", "sw"]}
@@ -145,6 +152,20 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                     onRotateEnd={(e) => {
                         if (e.lastEvent) {
                             updateOverlay(activeId, { rotation: e.lastEvent.rotation });
+                        }
+                    }}
+
+                    onPinch={(e: any) => {
+                        e.target.style.transform = e.drag.transform;
+                    }}
+                    onPinchEnd={(e: any) => {
+                         if (e.lastEvent) {
+                            updateOverlay(activeId, { 
+                                scale: e.lastEvent.scale[0],
+                                rotation: e.lastEvent.rotation,
+                                x: e.lastEvent.drag.translate[0],
+                                y: e.lastEvent.drag.translate[1]
+                            });
                         }
                     }}
                 />

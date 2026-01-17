@@ -17,6 +17,7 @@ interface CreateCommentVariables {
   text: string;
   userId: string;
   audioBlob?: Blob;
+  parentId?: string;
 }
 
 interface MutationContext {
@@ -37,6 +38,7 @@ export const useCreateComment = () => {
       text,
       userId,
       audioBlob,
+      parentId,
     }: CreateCommentVariables) => {
       let audioUrl = null;
 
@@ -47,29 +49,53 @@ export const useCreateComment = () => {
           .upload(filename, audioBlob);
 
         if (uploadError) throw uploadError;
-
-        const { data: publicUrlData } = supabase.storage
+        
+        const { data } = supabase.storage
           .from("audio-messages")
           .getPublicUrl(filename);
-
-        audioUrl = publicUrlData.publicUrl;
+          
+        audioUrl = data.publicUrl;
       }
-
-      const payload =
-        type === "post"
-          ? { user_id: userId, post_id: targetId, text, audio_url: audioUrl }
-          : { user_id: userId, reel_id: targetId, text, audio_url: audioUrl };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from("comments") as any)
-        .insert(payload)
-        .select()
+        .insert({
+          user_id: userId,
+          post_id: type === "post" ? targetId : null,
+          reel_id: type === "reel" ? targetId : null,
+          text,
+          audio_url: audioUrl,
+          parent_id: parentId,
+        })
+        .select(`
+          *,
+          user:profiles(username, avatar_url, is_verified)
+        `)
         .single();
 
       if (error) throw error;
-      return data;
+      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyData = data as any;
+      return {
+        id: anyData.id,
+        created_at: anyData.created_at,
+        text: anyData.text,
+        user_id: anyData.user_id,
+        post_id: anyData.post_id,
+        reel_id: anyData.reel_id,
+        parent_id: anyData.parent_id,
+        likes_count: 0,
+        hasLiked: false,
+        audioUrl: anyData.audio_url,
+        user: {
+           username: anyData.user?.username,
+           avatar_url: anyData.user?.avatar_url,
+           isVerified: anyData.user?.is_verified,
+        }
+      } as unknown as Comment;
     },
-    onMutate: async ({ targetId, type, text, userId, audioBlob }) => {
+    onMutate: async ({ targetId, type, text, userId, audioBlob, parentId }) => {
       const commentsKey = ["comments", type, targetId];
       const feedKey = type === "post" ? FEED_QUERY_KEY : REELS_QUERY_KEY;
 
@@ -87,9 +113,13 @@ export const useCreateComment = () => {
         post_id: type === "post" ? targetId : undefined,
         reel_id: type === "reel" ? targetId : undefined,
         audioUrl: audioBlob ? URL.createObjectURL(audioBlob) : undefined,
+        parent_id: parentId,
+        likes_count: 0,
+        hasLiked: false,
         user: {
           username: profile?.username || "You",
           avatar_url: profile?.avatar_url || "",
+          isVerified: false,
         },
       };
 

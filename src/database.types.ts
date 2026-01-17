@@ -102,6 +102,8 @@ export interface Database {
           reel_id: string | null;
           text: string;
           audio_url: string | null;
+          parent_id: string | null;
+          likes_count: number;
           created_at: string;
         };
         Insert: {
@@ -111,6 +113,8 @@ export interface Database {
           reel_id?: string | null;
           text: string;
           audio_url?: string | null;
+          parent_id?: string | null;
+          likes_count?: number;
           created_at?: string;
         };
         Update: {
@@ -120,6 +124,28 @@ export interface Database {
           reel_id?: string | null;
           text?: string;
           audio_url?: string | null;
+          parent_id?: string | null;
+          likes_count?: number;
+          created_at?: string;
+        };
+      };
+      comment_likes: {
+        Row: {
+          id: string;
+          user_id: string;
+          comment_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          comment_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          comment_id?: string;
           created_at?: string;
         };
       };

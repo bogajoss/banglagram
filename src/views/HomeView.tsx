@@ -112,7 +112,7 @@ const HomeView: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-[630px] lg:max-w-5xl pt-0 md:pt-[30px] flex flex-col lg:flex-row lg:items-start lg:gap-16">
+    <div className="w-full max-w-[630px] lg:max-w-5xl mx-auto pt-0 md:pt-[30px] flex flex-col lg:flex-row lg:items-start lg:justify-center lg:gap-8">
       <div
         className={`md:hidden sticky top-0 z-10 border-b ${borderClass} px-4 h-[60px] flex items-center justify-between ${theme === "dark" ? "bg-black" : "bg-white"}`}
       >
@@ -231,7 +231,7 @@ const HomeView: React.FC = () => {
         </div>
       </div>
 
-      <div className="hidden lg:block w-[319px]">
+      <div className="hidden lg:block w-[319px] px-4">
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -262,13 +262,13 @@ const HomeView: React.FC = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="flex flex-col gap-3"
+          className="flex flex-col gap-2"
         >
           {suggestedUsers.slice(0, 5).map((u, i) => (
             <motion.div
               key={i}
               variants={itemVariants}
-              className="flex items-center justify-between hover:bg-white/5 p-2 rounded-lg transition-colors cursor-pointer"
+              className="flex items-center justify-between hover:bg-white/5 p-1.5 rounded-lg transition-colors cursor-pointer"
               onClick={() => handleUserClick(u as User)}
             >
               <div className="flex items-center gap-3">
@@ -303,7 +303,7 @@ const HomeView: React.FC = () => {
           ))}
         </motion.div>
 
-        <div className={`mt-8 text-xs ${textSecondary} space-y-4`}>
+        <div className={`mt-4 text-xs ${textSecondary} space-y-4 px-0`}>
           <div className="flex flex-wrap gap-1">
             <span>About</span>•<span>Help</span>•<span>Press</span>•
             <span>API</span>•<span>Jobs</span>•<span>Privacy</span>•

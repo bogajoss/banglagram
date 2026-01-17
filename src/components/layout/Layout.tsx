@@ -31,7 +31,7 @@ const Layout: React.FC = () => {
             to="/"
             className="bg-[#006a4e] text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-lg hover:bg-[#00523c] transition-colors"
           >
-            লগ ইন করুন
+            Log In
           </Link>
         </div>
       )}

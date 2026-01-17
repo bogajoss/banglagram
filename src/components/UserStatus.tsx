@@ -1,10 +1,10 @@
 import React from "react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import "dayjs/locale/bn";
+import "dayjs/locale/en";
 
 dayjs.extend(relativeTime);
-dayjs.locale("bn");
+dayjs.locale("en");
 
 interface UserStatusProps {
   isOnline: boolean;
@@ -18,7 +18,7 @@ export const UserStatus: React.FC<UserStatusProps> = ({
   className = "",
 }) => {
   if (isOnline) {
-    return <span className={`text-green-500 text-xs font-medium ${className}`}>অ্যাক্টিভ এখনই</span>;
+    return <span className={`text-green-500 text-xs font-medium ${className}`}>Active now</span>;
   }
 
   if (lastSeen) {
@@ -30,23 +30,23 @@ export const UserStatus: React.FC<UserStatusProps> = ({
 
     let timeText = "";
     if (diffMinutes < 1) {
-      timeText = "কয়েক সেকেন্ড আগে";
+      timeText = "Just now";
     } else if (diffMinutes < 60) {
-      timeText = `${diffMinutes} মিনিট আগে`;
+      timeText = `${diffMinutes}m ago`;
     } else if (diffHours < 24) {
-      timeText = `${diffHours} ঘণ্টা আগে`;
+      timeText = `${diffHours}h ago`;
     } else if (diffDays < 7) {
-      timeText = `${diffDays} দিন আগে`;
+      timeText = `${diffDays}d ago`;
     } else {
       timeText = lastSeenTime.format("DD MMM");
     }
 
     return (
       <span className={`text-gray-500 text-xs font-medium ${className}`}>
-        শেষ সক্রিয়: {timeText}
+        Active {timeText}
       </span>
     );
   }
 
-  return <span className={`text-gray-500 text-xs font-medium ${className}`}>অনলাইন অবস্থা জানা নেই</span>;
+  return <span className={`text-gray-500 text-xs font-medium ${className}`}>Unknown status</span>;
 };

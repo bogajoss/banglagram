@@ -38,13 +38,13 @@ const AdminDashboardView: React.FC = () => {
                         onClick={() => setActiveTab('users')}
                         className={`flex-1 md:flex-none px-8 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center justify-center gap-2 uppercase tracking-widest ${activeTab === 'users' ? 'bg-card shadow-lg scale-[1.05] text-foreground border border-border' : 'text-muted-foreground hover:text-foreground'}`}
                     >
-                        <Users size={16} /> <span className="md:inline">ইউজার</span>
+                        <Users size={16} /> <span className="md:inline">Users</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('content')}
                         className={`flex-1 md:flex-none px-8 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center justify-center gap-2 uppercase tracking-widest ${activeTab === 'content' ? 'bg-card shadow-lg scale-[1.05] text-foreground border border-border' : 'text-muted-foreground hover:text-foreground'}`}
                     >
-                        <Grid size={16} /> <span className="md:inline">পোস্ট</span>
+                        <Grid size={16} /> <span className="md:inline">Posts</span>
                     </button>
                 </div>
             </div>

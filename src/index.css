@@ -4,11 +4,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-hind-siliguri: "Hind Siliguri", sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
-  font-family: var(--font-hind-siliguri);
+  font-family: var(--font-sans);
 }
 
 @theme inline {

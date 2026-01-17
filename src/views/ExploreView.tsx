@@ -113,7 +113,7 @@ const ExploreView: React.FC = () => {
           />
           <input
             type="text"
-            placeholder="অনুসন্ধান"
+            placeholder="Search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={`bg-transparent border-none outline-none text-sm w-full p-0 h-auto ${theme === "dark" ? "text-white" : "text-black"}`}
@@ -134,13 +134,13 @@ const ExploreView: React.FC = () => {
               className={`flex-1 py-2 text-sm font-semibold ${searchType === "accounts" ? (theme === "dark" ? "text-white border-b-2 border-white" : "text-black border-b-2 border-black") : "text-zinc-500"}`}
               onClick={() => setSearchType("accounts")}
             >
-              অ্যাকাউন্ট
+              Accounts
             </button>
             <button
               className={`flex-1 py-2 text-sm font-semibold ${searchType === "posts" ? (theme === "dark" ? "text-white border-b-2 border-white" : "text-black border-b-2 border-black") : "text-zinc-500"}`}
               onClick={() => setSearchType("posts")}
             >
-              পোস্ট
+              Posts
             </button>
           </div>
         )}
@@ -154,7 +154,7 @@ const ExploreView: React.FC = () => {
               {isSearching && <div className="p-4 text-center">Searching...</div>}
               {!isSearching && userResults.length === 0 && (
                 <div className="p-4 text-center text-gray-500">
-                  কোনো অ্যাকাউন্ট পাওয়া যায়নি
+                  No accounts found
                 </div>
               )}
               {userResults.map((user) => (
@@ -185,7 +185,7 @@ const ExploreView: React.FC = () => {
               {isPostsLoading && <div className="p-4 text-center">Searching posts...</div>}
               {!isPostsLoading && postResults.length === 0 && (
                 <div className="p-4 text-center text-gray-500">
-                  কোনো পোস্ট পাওয়া যায়নি
+                  No posts found
                 </div>
               )}
               <div className="grid grid-cols-3 gap-1 md:gap-4">
@@ -270,9 +270,9 @@ const ExploreView: React.FC = () => {
           )}
           <div ref={ref} className="h-10 text-center py-4 text-gray-500">
             {isFetchingNextPage
-              ? "আরও লোড হচ্ছে..."
+              ? "Loading more..."
               : hasNextPage
-                ? "নিচে দেখুন"
+                ? "See below"
                 : ""}
           </div>
         </>

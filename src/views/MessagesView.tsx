@@ -341,7 +341,7 @@ const MessagesView: React.FC = () => {
       });
       setShowRecorder(false);
     } catch (error) {
-      showToast("ভয়েস মেসেজ পাঠাতে সমস্যা হয়েছে");
+      showToast("Failed to send voice message");
       console.error(error);
     } finally {
       setIsUploading(false);
@@ -375,7 +375,7 @@ const MessagesView: React.FC = () => {
         mediaUrl: publicUrl,
       });
     } catch (error) {
-      showToast("ছবি পাঠাতে সমস্যা হয়েছে");
+      showToast("Failed to send image");
       console.error(error);
     } finally {
       setIsUploading(false);
@@ -427,7 +427,7 @@ const MessagesView: React.FC = () => {
               <Search size={16} className="text-[#8e8e8e]" />
               <input
                 type="text"
-                placeholder="অনুসন্ধান"
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm w-full placeholder-[#8e8e8e]"
@@ -447,11 +447,11 @@ const MessagesView: React.FC = () => {
               <>
                 {isSearching ? (
                   <div className="p-4 text-center text-sm text-gray-500">
-                    অনুসন্ধান করা হচ্ছে...
+                    Searching...
                   </div>
                 ) : searchResults.length === 0 ? (
                   <div className="p-4 text-center text-sm text-gray-500">
-                    কোনো ফলাফল পাওয়া যায়নি
+                    No results found
                   </div>
                 ) : (
                   searchResults.map((u) => (
@@ -506,7 +506,7 @@ const MessagesView: React.FC = () => {
                           : theme === "dark" ? "text-[#a8a8a8]" : "text-gray-500"
                       }`}
                     >
-                      {u.lastSenderId === user?.id ? "আপনি: " : ""}{u.lastMessage || "সংযুক্ত ফাইল"}
+                      {u.lastSenderId === user?.id ? "You: " : ""}{u.lastMessage || "Attachment"}
                     </div>
                   </div>
                 </div>
@@ -518,7 +518,7 @@ const MessagesView: React.FC = () => {
                   onClick={() => fetchNextConvos()}
                   className="text-xs text-[#006a4e] font-bold hover:underline"
                 >
-                  পুরানো চ্যাট লোড করুন
+                  Load older chats
                 </button>
               </div>
             )}
@@ -583,7 +583,7 @@ const MessagesView: React.FC = () => {
                       disabled={isFetchingNextPage}
                       className="text-xs text-[#006a4e] font-bold py-1 px-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
                     >
-                      {isFetchingNextPage ? "লোড হচ্ছে..." : "পুরানো মেসেজ দেখুন"}
+                      {isFetchingNextPage ? "Loading..." : "See older messages"}
                     </button>
                   </div>
                 )}
@@ -709,7 +709,7 @@ const MessagesView: React.FC = () => {
                     <div className="flex-grow flex items-center min-w-0 h-full py-1">
                       <input
                         type="text"
-                        placeholder="মেসেজ..."
+                        placeholder="Message..."
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onFocus={() => setShowEmojiPicker(false)}
@@ -723,7 +723,7 @@ const MessagesView: React.FC = () => {
                         className="text-blue-500 font-bold px-3 py-2 shrink-0 cursor-pointer hover:text-blue-600 disabled:opacity-50 transition-colors"
                         disabled={(!newMessage.trim() && !isUploading) || isUploading}
                       >
-                        {isUploading ? "..." : "পাঠান"}
+                        {isUploading ? "..." : "Send"}
                       </button>
                     ) : null}
                   </form>
@@ -740,12 +740,12 @@ const MessagesView: React.FC = () => {
                 <MessageCircle size={48} strokeWidth={1} />
               </div>
               <div>
-                <h2 className="text-xl font-normal mb-1">আপনার মেসেজ</h2>
+                <h2 className="text-xl font-normal mb-1">Your Messages</h2>
                 <button
                   className={`${buttonBg} text-white px-4 py-1.5 rounded-lg text-sm font-semibold`}
-                  onClick={() => showToast("বাম পাশ থেকে চ্যাট শুরু করুন")}
+                  onClick={() => showToast("Select a chat to start messaging")}
                 >
-                  মেসেজ পাঠান
+                  Send Message
                 </button>
               </div>
             </div>

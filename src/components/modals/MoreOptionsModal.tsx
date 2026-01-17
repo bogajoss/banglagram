@@ -37,52 +37,52 @@ const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
                 onClose();
               }}
             >
-              এডিট করুন
+              Edit
             </button>
           )}
           <button
             className="py-3.5 text-[#f42a41] border-b border-zinc-700/30 hover:bg-white/5 transition-colors"
             onClick={() => {
-              showToast("রিপোর্ট করা হয়েছে");
+              showToast("Reported");
               onClose();
             }}
           >
-            রিপোর্ট করুন
+            Report
           </button>
           <button
             className="py-3.5 text-[#f42a41] border-b border-zinc-700/30 hover:bg-white/5 transition-colors"
             onClick={() => {
-              showToast("আনফলো করা হয়েছে");
+              showToast("Unfollowed");
               onClose();
             }}
           >
-            আনফলো
+            Unfollow
           </button>
           <button
             className="py-3.5 border-b border-zinc-700/30 hover:bg-white/5 transition-colors"
             onClick={() => {
-              showToast("ফেভারিটে যোগ করা হয়েছে");
+              showToast("Added to favorites");
               onClose();
             }}
           >
-            ফেভারিটে যোগ করুন
+            Add to favorites
           </button>
           <button
             className="py-3.5 border-b border-zinc-700/30 hover:bg-white/5 transition-colors"
             onClick={() => {
               const url = shareUrl || window.location.href;
               navigator.clipboard.writeText(url);
-              showToast("লিঙ্ক কপি করা হয়েছে");
+              showToast("Link copied");
               onClose();
             }}
           >
-            লিঙ্ক কপি করুন
+            Copy link
           </button>
           <button
             className="py-3.5 hover:bg-white/5 transition-colors"
             onClick={onClose}
           >
-            বাতিল করুন
+            Cancel
           </button>
         </div>
       </div>

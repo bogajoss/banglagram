@@ -36,7 +36,7 @@ export const useUpdateProfile = () => {
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onSuccess: (data: any) => {
-      showToast("প্রোফাইল আপডেট করা হয়েছে");
+      showToast("Profile updated");
 
       // Update local store
       setCurrentUser({
@@ -54,7 +54,7 @@ export const useUpdateProfile = () => {
     },
     onError: (error) => {
       console.error("Update profile error:", error);
-      showToast("প্রোফাইল আপডেট করতে সমস্যা হয়েছে");
+      showToast("Failed to update profile");
     },
   });
 };

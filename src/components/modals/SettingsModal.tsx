@@ -26,7 +26,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   };
 
   const handleOptionClick = (option: string) => {
-    showToast(`${option} - শীঘ্রই আসছে`);
+    showToast(`${option} - Coming soon`);
   };
 
   return (
@@ -48,7 +48,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
           <div
             className={`p-4 border-b font-bold flex justify-between items-center ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
           >
-            <span>সেটিংস</span>
+            <span>Settings</span>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="h-5 w-5" />
             </Button>
@@ -56,27 +56,27 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
           <Button
             variant="ghost"
-            onClick={() => handleOptionClick("নোটিফিকেশন")}
+            onClick={() => handleOptionClick("Notifications")}
             className="flex items-center justify-start gap-3 p-4 h-auto w-full rounded-none border-b border-border"
           >
             <Bell size={20} />
-            <span>নোটিফিকেশন এবং সাউন্ড</span>
+            <span>Notifications and Sounds</span>
           </Button>
           <Button
             variant="ghost"
-            onClick={() => handleOptionClick("প্রাইভেন্সি")}
+            onClick={() => handleOptionClick("Privacy")}
             className="flex items-center justify-start gap-3 p-4 h-auto w-full rounded-none border-b border-border"
           >
             <Lock size={20} />
-            <span>প্রাইভেন্সি এবং সিকিউরিটি</span>
+            <span>Privacy and Security</span>
           </Button>
           <Button
             variant="ghost"
-            onClick={() => handleOptionClick("অ্যাকাউন্ট")}
+            onClick={() => handleOptionClick("Account")}
             className="flex items-center justify-start gap-3 p-4 h-auto w-full rounded-none border-b border-border"
           >
             <Shield size={20} />
-            <span>অ্যাকাউন্ট সেন্টার</span>
+            <span>Account Center</span>
           </Button>
           <Button
             variant="ghost"
@@ -84,7 +84,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             className="flex items-center justify-start gap-3 p-4 h-auto w-full rounded-none text-red-500 hover:text-red-600 hover:bg-red-500/10"
           >
             <LogOut size={20} />
-            <span>লগ আউট</span>
+            <span>Log Out</span>
           </Button>
         </div>
       </motion.div>

@@ -19,10 +19,10 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import "dayjs/locale/bn";
+import "dayjs/locale/en";
 
 dayjs.extend(relativeTime);
-dayjs.locale("bn");
+dayjs.locale("en");
 
 
 const HomeView: React.FC = () => {
@@ -121,7 +121,7 @@ const HomeView: React.FC = () => {
         </h1>
         <div className="flex items-center gap-5">
           <motion.div whileTap={{ scale: 0.9 }}>
-            <Heart size={24} onClick={() => showToast("নোটিফিকেশন")} />
+            <Heart size={24} onClick={() => showToast("Notifications")} />
           </motion.div>
           <motion.div
             className="relative"
@@ -170,7 +170,7 @@ const HomeView: React.FC = () => {
             <span
               className={`text-xs truncate w-full text-center ${theme === "dark" ? "text-[#a8a8a8]" : "text-zinc-500"}`}
             >
-              আপনার স্টোরি
+              Your Story
             </span>
           </motion.div>
 
@@ -254,7 +254,7 @@ const HomeView: React.FC = () => {
 
         <div className="flex justify-between items-center mb-4">
           <span className={`text-sm font-semibold ${textSecondary}`}>
-            আপনার জন্য প্রস্তাবিত
+            Suggested for you
           </span>
         </div>
 
@@ -297,7 +297,7 @@ const HomeView: React.FC = () => {
                   }
                 }}
               >
-                ফলো
+                Follow
               </Button>
             </motion.div>
           ))}

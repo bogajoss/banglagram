@@ -71,7 +71,7 @@ const EditProfileModal: React.FC = () => {
         <div
           className={`p-4 border-b font-bold flex justify-between items-center ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
         >
-          <span>এডিট প্রোফাইল</span>
+          <span>Edit Profile</span>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
@@ -89,7 +89,7 @@ const EditProfileModal: React.FC = () => {
                 {currentUser.username}
               </div>
               <label className="text-[#006a4e] text-sm font-bold cursor-pointer hover:underline">
-                প্রোফাইল ছবি পরিবর্তন করুন
+                Change profile photo
                 <input
                   type="file"
                   className="hidden"
@@ -102,7 +102,7 @@ const EditProfileModal: React.FC = () => {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>নাম</Label>
+              <Label>Name</Label>
               <Input
                 type="text"
                 value={name}
@@ -111,7 +111,7 @@ const EditProfileModal: React.FC = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label>বায়ো</Label>
+              <Label>Bio</Label>
               <Textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
@@ -124,7 +124,7 @@ const EditProfileModal: React.FC = () => {
               disabled={isPending}
               className="w-full bg-[#006a4e] hover:bg-[#00523c] text-white font-bold"
             >
-              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "সেভ করুন"}
+              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save"}
             </Button>
           </div>
         </div>

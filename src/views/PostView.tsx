@@ -29,12 +29,12 @@ const PostView: React.FC = () => {
   if (error || !post) {
     return (
       <div className={`min-h-screen w-full flex flex-col items-center justify-center ${theme === "dark" ? "bg-black text-white" : "bg-white text-black"}`}>
-        <h2 className="text-xl font-bold mb-4">পোস্টটি খুঁজে পাওয়া যায়নি</h2>
+        <h2 className="text-xl font-bold mb-4">Post not found</h2>
         <button
           onClick={() => navigate("/")}
           className="bg-[#006a4e] text-white px-4 py-2 rounded-lg font-semibold"
         >
-          হোমে ফিরে যান
+          Return Home
         </button>
       </div>
     );
@@ -50,7 +50,7 @@ const PostView: React.FC = () => {
           >
             <ChevronLeft size={24} />
           </button>
-          <h1 className="text-xl font-bold">পোস্ট</h1>
+          <h1 className="text-xl font-bold">Post</h1>
         </div>
 
         <PostItem

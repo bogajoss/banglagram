@@ -18,7 +18,7 @@ const AdminPostsView: React.FC = () => {
         e.stopPropagation();
         if (confirm("Are you sure you want to delete this post?")) {
             deletePost(id, {
-                onSuccess: () => showToast("পোস্ট ডিলিট করা হয়েছে"),
+                onSuccess: () => showToast("Post deleted"),
                 onError: (err) => showToast(`Error: ${err.message}`)
             });
         }
@@ -78,7 +78,7 @@ const AdminPostsView: React.FC = () => {
             {hasNextPage && (
                 <div className="mt-12 text-center">
                     <Button variant="outline" className="rounded-full px-12 h-11 font-black border-border hover:bg-accent hover:scale-105 active:scale-95 transition-all text-xs uppercase tracking-[0.2em]" onClick={() => fetchNextPage()}>
-                        লোড মোর
+                        Load More
                     </Button>
                 </div>
             )}

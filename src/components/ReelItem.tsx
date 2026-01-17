@@ -56,7 +56,7 @@ const ReelItem: React.FC<ReelItemProps> = memo(
 
     const handleLike = () => {
       if (!user) {
-        showToast("লাইক করতে লগ ইন করুন");
+        showToast("Log in to like");
         return;
       }
       toggleLike({
@@ -69,7 +69,7 @@ const ReelItem: React.FC<ReelItemProps> = memo(
 
     const handleFollow = () => {
       if (!user) {
-        showToast("ফলো করতে লগ ইন করুন");
+        showToast("Log in to follow");
         return;
       }
       if (!reel.userId) return;
@@ -81,8 +81,8 @@ const ReelItem: React.FC<ReelItemProps> = memo(
           targetUsername: reel.user.username,
         },
         {
-          onSuccess: () => showToast("ফলো করা হয়েছে"),
-          onError: () => showToast("ফলো করতে সমস্যা হয়েছে"),
+          onSuccess: () => showToast("Followed"),
+          onError: () => showToast("Failed to follow"),
         },
       );
     };
@@ -244,13 +244,13 @@ const ReelItem: React.FC<ReelItemProps> = memo(
                   handleFollow();
                 }}
               >
-                {reel.user.isFollowing ? "ফলো করছেন" : "ফলো"}
+                {reel.user.isFollowing ? "Following" : "Follow"}
               </motion.button>
             </div>
             <div className="text-sm mb-3 line-clamp-2 drop-shadow-md text-white">
               {reel.caption}{" "}
               <span className="text-zinc-300 cursor-pointer font-semibold hover:text-white">
-                আরও
+                More
               </span>
             </div>
             <div className="flex items-center gap-2 text-xs drop-shadow-md text-white opacity-80">

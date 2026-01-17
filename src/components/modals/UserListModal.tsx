@@ -73,14 +73,14 @@ const UserListModal: React.FC<UserListModalProps> = ({
                 <button
                   className={`px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#006a4e] text-white hover:bg-[#00523c]`}
                 >
-                  ফলো
+                  Follow
                 </button>
               </div>
             ))
           )}
           {!loading && users.length === 0 && (
             <div className="text-center py-10 text-sm opacity-60">
-              তালিকা খালি
+              List is empty
             </div>
           )}
         </div>

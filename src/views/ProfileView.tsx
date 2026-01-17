@@ -132,7 +132,7 @@ const ProfileView: React.FC = () => {
     <div className="w-full max-w-[935px] px-0 md:px-5 py-0 md:py-[30px]">
       {listModalType && (
         <UserListModal
-          title={listModalType === "followers" ? "ফলোয়ার" : "ফলোইং"}
+          title={listModalType === "followers" ? "Followers" : "Following"}
           users={followsList}
           loading={followsLoading}
           onClose={handleCloseList}
@@ -206,7 +206,7 @@ const ProfileView: React.FC = () => {
               <span className="font-semibold text-lg">
                 {profileUser.stats?.posts || 0}
               </span>
-              <span className={`text-sm ${textSecondary}`}>পোস্ট</span>
+              <span className={`text-sm ${textSecondary}`}>posts</span>
             </div>
             <div
               className="flex flex-col cursor-pointer"
@@ -215,7 +215,7 @@ const ProfileView: React.FC = () => {
               <span className="font-semibold text-lg">
                 {profileUser.stats?.followers || 0}
               </span>
-              <span className={`text-sm ${textSecondary}`}>ফলোয়ার</span>
+              <span className={`text-sm ${textSecondary}`}>followers</span>
             </div>
             <div
               className="flex flex-col cursor-pointer"
@@ -224,7 +224,7 @@ const ProfileView: React.FC = () => {
               <span className="font-semibold text-lg">
                 {profileUser.stats?.following || 0}
               </span>
-              <span className={`text-sm ${textSecondary}`}>ফলোইং</span>
+              <span className={`text-sm ${textSecondary}`}>following</span>
             </div>
           </div>
         </div>
@@ -242,14 +242,14 @@ const ProfileView: React.FC = () => {
                     onClick={() => setEditProfileOpen(true)}
                     className="text-sm font-semibold h-8"
                   >
-                    এডিট প্রোফাইল
+                    Edit profile
                   </Button>
                   <Button
                     variant="secondary"
                     onClick={() => setIsArchiveOpen(true)}
                     className="text-sm font-semibold h-8"
                   >
-                    আর্কাইভ দেখুন
+                    View Archive
                   </Button>
                 </>
               ) : (
@@ -259,7 +259,7 @@ const ProfileView: React.FC = () => {
                     className={`${userIsFollowing ? "bg-secondary text-secondary-foreground hover:bg-secondary/80" : "bg-[#006a4e] text-white hover:bg-[#00523c]"} text-sm font-semibold h-8`}
                     variant={userIsFollowing ? "secondary" : "default"}
                   >
-                    {userIsFollowing ? "ফলো করছেন" : "ফলো"}
+                    {userIsFollowing ? "Following" : "Follow"}
                   </Button>
                   <Button
                     variant="secondary"
@@ -270,7 +270,7 @@ const ProfileView: React.FC = () => {
                     }
                     className="text-sm font-semibold h-8"
                   >
-                    মেসেজ
+                    Message
                   </Button>
                 </>
               )}
@@ -291,7 +291,7 @@ const ProfileView: React.FC = () => {
               <span className="font-semibold">
                 {profileUser.stats?.posts || 0}
               </span>{" "}
-              পোস্ট
+              Posts
             </span>
             <span
               className="cursor-pointer"
@@ -300,7 +300,7 @@ const ProfileView: React.FC = () => {
               <span className="font-semibold">
                 {profileUser.stats?.followers || 0}
               </span>{" "}
-              ফলোয়ার
+              Followers
             </span>
             <span
               className="cursor-pointer"
@@ -309,13 +309,13 @@ const ProfileView: React.FC = () => {
               <span className="font-semibold">
                 {profileUser.stats?.following || 0}
               </span>{" "}
-              ফলোইং
+              Following
             </span>
           </div>
           <div className="text-sm px-1 md:px-0">
             <div className="font-semibold">{profileUser.name}</div>
             <div className="flex items-center gap-1 bg-[#262626] w-fit px-2 py-1 rounded-full text-xs text-[#a8a8a8] mt-1 mb-2 cursor-pointer hover:bg-[#363636]">
-              <AtSign size={10} /> <span>থ্রেডস</span>
+              <AtSign size={10} /> <span>Threads</span>
             </div>
             <div className="whitespace-pre-wrap">{profileUser.bio || ""}</div>
           </div>
@@ -337,7 +337,7 @@ const ProfileView: React.FC = () => {
                 />
               </div>
             </div>
-            <span className="text-xs font-semibold">নতুন</span>
+            <span className="text-xs font-semibold">New</span>
           </div>
         </div>
       )}
@@ -349,7 +349,7 @@ const ProfileView: React.FC = () => {
             className={`flex items-center justify-center gap-2 h-[44px] md:h-[52px] border-t-2 md:border-t flex-1 md:flex-none text-xs font-semibold tracking-widest transition-colors ${activeTab === "posts" ? (theme === "dark" ? "border-white text-white" : "border-black text-black") : "border-transparent text-[#a8a8a8]"}`}
           >
             <Grid size={12} className="md:size-3 size-6" />
-            <span className="hidden md:block">পোস্ট</span>
+            <span className="hidden md:block">Posts</span>
           </button>
           {isMe && (
             <button
@@ -357,7 +357,7 @@ const ProfileView: React.FC = () => {
               className={`flex items-center justify-center gap-2 h-[44px] md:h-[52px] border-t-2 md:border-t flex-1 md:flex-none text-xs font-semibold tracking-widest transition-colors ${activeTab === "saved" ? (theme === "dark" ? "border-white text-white" : "border-black text-black") : "border-transparent text-[#a8a8a8]"}`}
             >
               <Bookmark size={12} className="md:size-3 size-6" />
-              <span className="hidden md:block">সেভ করা</span>
+              <span className="hidden md:block">Saved</span>
             </button>
           )}
           <button
@@ -365,7 +365,7 @@ const ProfileView: React.FC = () => {
             className={`flex items-center justify-center gap-2 h-[44px] md:h-[52px] border-t-2 md:border-t flex-1 md:flex-none text-xs font-semibold tracking-widest transition-colors ${activeTab === "tagged" ? (theme === "dark" ? "border-white text-white" : "border-black text-black") : "border-transparent text-[#a8a8a8]"}`}
           >
             <UserCheck size={12} className="md:size-3 size-6" />
-            <span className="hidden md:block">ট্যাগ করা</span>
+            <span className="hidden md:block">Tagged</span>
           </button>
         </div>
       </div>
@@ -410,17 +410,17 @@ const ProfileView: React.FC = () => {
             </div>
           )}
           <h2 className="text-xl font-bold mb-2 text-[#a8a8a8]">
-            {activeTab === "saved" ? "কোনো সেভ করা পোস্ট নেই" : "এখনো কিছু নেই"}
+            {activeTab === "saved" ? "No saved posts" : "Nothing yet"}
           </h2>
           {isMe && activeTab === "posts" && (
             <>
               <p className={`text-sm ${textSecondary} mb-4`}>
-                আপনি যখন ফটো শেয়ার করবেন, তখন সেগুলো এখানে দেখা যাবে।
+                When you share photos, they will appear here.
               </p>
               <Button
                 className="bg-[#006a4e] text-white hover:bg-[#00523c] font-semibold text-sm h-9"
               >
-                প্রথম ফটো শেয়ার করুন
+                Share your first photo
               </Button>
             </>
           )}

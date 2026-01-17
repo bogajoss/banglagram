@@ -158,20 +158,20 @@ const NotificationsView: React.FC = () => {
       <div
         className={`md:hidden sticky top-0 z-10 border-b ${borderClass} p-4 flex items-center ${theme === "dark" ? "bg-black/95 backdrop-blur-md" : "bg-white/95 backdrop-blur-md"}`}
       >
-        <h1 className="text-xl font-bold">নোটিফিকেশন</h1>
+        <h1 className="text-xl font-bold">Notifications</h1>
       </div>
 
       <div className="px-4 md:px-2 py-2 md:py-8 flex flex-col gap-6">
-        <h1 className="text-2xl font-bold px-2 hidden md:block">নোটিফিকেশন</h1>
+        <h1 className="text-2xl font-bold px-2 hidden md:block">Notifications</h1>
         <div>
-          <h2 className="text-base font-bold mb-4 px-2">আগের</h2>
+          <h2 className="text-base font-bold mb-4 px-2">Earlier</h2>
           <div className="flex flex-col gap-4">
             {notifLoading && (
               <div className="p-4 text-center">Loading notifications...</div>
             )}
             {!notifLoading && notifications.length === 0 && (
               <div className="p-4 text-center text-gray-500">
-                কোনো নোটিফিকেশন নেই
+                No notifications yet
               </div>
             )}
 
@@ -230,13 +230,13 @@ const NotificationsView: React.FC = () => {
                   <button
                     className={`${theme === "dark" ? "bg-[#363636]" : "bg-gray-200 text-black"} px-4 py-1.5 rounded-lg text-sm font-semibold`}
                   >
-                    ফলো করছেন
+                    Following
                   </button>
                 ) : notif.type === "follow" ? (
                   <button
                     className={`${buttonBg} text-white px-4 py-1.5 rounded-lg text-sm font-semibold`}
                   >
-                    ফলো
+                    Follow
                   </button>
                 ) : null}
               </div>
@@ -245,7 +245,7 @@ const NotificationsView: React.FC = () => {
         </div>
         <div className={`border-t ${borderClass} pt-4`}>
           <h2 className="text-base font-bold mb-4 px-2">
-            আপনার জন্য প্রস্তাবিত
+            Suggested for you
           </h2>
           <div className="flex flex-col gap-4">
             {suggestedUsers.map((user, index) => {
@@ -293,7 +293,7 @@ const NotificationsView: React.FC = () => {
                       }
                     }}
                   >
-                    ফলো
+                    Follow
                   </button>
                 </div>
               );

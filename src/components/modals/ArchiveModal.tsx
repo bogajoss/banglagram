@@ -34,7 +34,7 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({ onClose }) => {
           className={`p-4 border-b font-bold flex justify-between items-center ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
         >
           <div className="flex items-center gap-2">
-            <span>আর্কাইভ</span>
+            <span>Archive</span>
             <Archive size={16} className="opacity-50" />
           </div>
           <X className="cursor-pointer" onClick={onClose} />
@@ -46,9 +46,9 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({ onClose }) => {
           >
             <Archive size={32} />
           </div>
-          <h3 className="font-bold text-lg mb-1">আর্কাইভে কিছু নেই</h3>
+          <h3 className="font-bold text-lg mb-1">Archive is empty</h3>
           <p className="text-sm">
-            আপনি যখন পোস্ট বা স্টোরি আর্কাইভ করবেন, তখন সেগুলো এখানে দেখা যাবে।
+            When you archive posts or stories, they will appear here.
           </p>
         </div>
       </motion.div>

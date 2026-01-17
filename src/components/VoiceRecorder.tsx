@@ -126,7 +126,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             <span className="text-sm font-mono text-red-500">
               {formatTime(recordingTime)}
             </span>
-            <span className="text-xs text-zinc-500">রেকর্ডিং হচ্ছে...</span>
+            <span className="text-xs text-zinc-500">Recording...</span>
           </div>
           <Button
             size="icon"

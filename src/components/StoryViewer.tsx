@@ -8,7 +8,7 @@ import { useGetStories } from "../hooks/queries/useGetStories";
 import { useAuth } from "../hooks/useAuth";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import "dayjs/locale/bn";
+import "dayjs/locale/en";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -16,7 +16,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 
 dayjs.extend(relativeTime);
-dayjs.locale("bn");
+dayjs.locale("en");
 
 const StoryViewer: React.FC = () => {
   const { viewingStory, setViewingStory, showToast } = useAppStore();

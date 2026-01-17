@@ -67,21 +67,21 @@ const FileUploader: React.FC<FileUploaderProps> = ({
 
                 {isDragActive ? (
                     <p className="text-xl font-medium text-[#0095f6]">
-                        ফাইলগুলি এখানে ছাড়ুন
+                        Drop files here
                     </p>
                 ) : isDragReject ? (
                     <p className="text-xl font-medium text-red-500">
-                        এই ফাইলটি সাপোর্ট করছে না
+                        File not supported
                     </p>
                 ) : (
                     <>
                         <p
                             className={`text-xl font-light ${theme === "dark" ? "text-white" : "text-black"}`}
                         >
-                            ফটো বা ভিডিও এখানে টেনে আনুন
+                            Drag photos or videos here
                         </p>
                         <button className="bg-[#0095f6] hover:bg-[#1877f2] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors mt-4">
-                            নির্বাচন করুন
+                            Select
                         </button>
                     </>
                 )}

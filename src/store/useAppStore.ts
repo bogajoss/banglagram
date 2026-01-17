@@ -90,7 +90,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         img,
         isUser: true,
       };
-      get().showToast("স্টোরি যোগ করা হয়েছে");
+      get().showToast("Story added");
       return {
         stories: [newStory, ...state.stories.filter((s) => !s.isUser)],
       };

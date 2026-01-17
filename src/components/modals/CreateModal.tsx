@@ -62,24 +62,24 @@ const CreateModal: React.FC = () => {
       createReel(
         { file, caption, userId: user.id, username: profile.username },
         {
-          onSuccess: () => { showToast("রিল শেয়ার করা হয়েছে"); setCreateModalOpen(false); },
-          onError: () => showToast("রিল শেয়ার করতে সমস্যা হয়েছে"),
+          onSuccess: () => { showToast("Reel shared"); setCreateModalOpen(false); },
+          onError: () => showToast("Failed to share reel"),
         },
       );
     } else if (createType === "story") {
       createStory(
         { file, userId: user.id },
         {
-          onSuccess: () => { showToast("স্টোরি শেয়ার করা হয়েছে"); setCreateModalOpen(false); },
-          onError: () => showToast("স্টোরি শেয়ার করতে সমস্যা হয়েছে"),
+          onSuccess: () => { showToast("Story shared"); setCreateModalOpen(false); },
+          onError: () => showToast("Failed to share story"),
         },
       );
     } else {
       createPost(
         { file, caption, location, userId: user.id, username: profile.username },
         {
-          onSuccess: () => { showToast("পোস্ট শেয়ার করা হয়েছে"); setCreateModalOpen(false); },
-          onError: () => showToast("পোস্ট শেয়ার করতে সমস্যা হয়েছে"),
+          onSuccess: () => { showToast("Post shared"); setCreateModalOpen(false); },
+          onError: () => showToast("Failed to share post"),
         },
       );
     }

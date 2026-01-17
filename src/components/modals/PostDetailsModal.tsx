@@ -33,11 +33,11 @@ import VerifiedBadge from "../VerifiedBadge";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import "dayjs/locale/bn";
+import "dayjs/locale/en";
 import RichText from "../RichText";
 
 dayjs.extend(relativeTime);
-dayjs.locale("bn");
+dayjs.locale("en");
 
 // Audio Player moved to standalone component
 
@@ -102,7 +102,7 @@ const PostDetailsModal: React.FC = () => {
 
   const handleLike = () => {
     if (!user) {
-      showToast("লাইক করতে লগ ইন করুন");
+      showToast("Log in to like");
       return;
     }
     toggleLike({
@@ -117,7 +117,7 @@ const PostDetailsModal: React.FC = () => {
     if (e) e.preventDefault();
 
     if (!user) {
-      showToast("কমেন্ট করতে লগ ইন করুন");
+      showToast("Log in to comment");
       return;
     }
 
@@ -133,11 +133,11 @@ const PostDetailsModal: React.FC = () => {
       },
       {
         onSuccess: () => {
-          showToast("কমেন্ট যোগ করা হয়েছে");
+          showToast("Comment added");
           setNewComment("");
           setShowRecorder(false);
         },
-        onError: () => showToast("কমেন্ট যোগ করতে সমস্যা হয়েছে"),
+        onError: () => showToast("Failed to add comment"),
       },
     );
   };
@@ -203,7 +203,7 @@ const PostDetailsModal: React.FC = () => {
           >
             {/* Mobile Header: Comments Title */}
             <div className="md:hidden w-full text-center font-bold text-sm">
-              কমেন্ট
+              Comments
             </div>
 
             {/* Desktop Header: User Profile */}
@@ -273,7 +273,7 @@ const PostDetailsModal: React.FC = () => {
 
                 {loadingComments ? (
                   <div className="text-center py-4 text-zinc-500 text-sm">
-                    লোড হচ্ছে...
+                    Loading...
                   </div>
                 ) : comments && comments.length > 0 ? (
                   comments.map((c: { id: string; user_id: string; user: { username: string; avatar_url: string; is_verified?: boolean }; text: string; audio_url?: string; audioUrl?: string; created_at: string }) => {
@@ -317,10 +317,10 @@ const PostDetailsModal: React.FC = () => {
                             <div className="flex items-center gap-4 text-xs text-zinc-500 font-semibold mt-1.5">
                               <span>{dayjs(c.created_at).fromNow(true)}</span>
                               <span className="cursor-pointer hover:text-zinc-400">
-                                0 লাইক
+                                0 likes
                               </span>
                               <span className="cursor-pointer hover:text-zinc-400">
-                                রিপ্লাই
+                                Reply
                               </span>
                             </div>
                           </div>
@@ -334,7 +334,7 @@ const PostDetailsModal: React.FC = () => {
                   })
                 ) : (
                   <div className="text-center py-10 text-zinc-500 text-sm">
-                    কোনো কমেন্ট নেই
+                    No comments yet
                   </div>
                 )}
               </div>
@@ -377,7 +377,7 @@ const PostDetailsModal: React.FC = () => {
                 <Send
                   size={24}
                   className="cursor-pointer hover:opacity-70"
-                  onClick={() => showToast("শেয়ার করা হয়েছে")}
+                  onClick={() => showToast("Shared")}
                 />
               </div>
               <Bookmark
@@ -397,7 +397,7 @@ const PostDetailsModal: React.FC = () => {
 
             <div className="flex flex-col mb-2">
               <span className="font-semibold text-sm">
-                {activeItem.likes + " লাইক"}
+                {activeItem.likes + " likes"}
               </span>
               <span className="text-[10px] text-zinc-500 uppercase">
                 {"createdAt" in activeItem && activeItem.createdAt ? dayjs(activeItem.createdAt).fromNow() : "time" in activeItem ? activeItem.time : ""}
@@ -437,7 +437,7 @@ const PostDetailsModal: React.FC = () => {
                   />
                   <input
                     type="text"
-                    placeholder="কমেন্ট যোগ করুন..."
+                    placeholder="Add a comment..."
                     className={`bg-transparent text-sm w-full outline-none ${theme === "dark" ? "text-white" : "text-black"}`}
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
@@ -458,7 +458,7 @@ const PostDetailsModal: React.FC = () => {
                     className="text-[#006a4e] text-sm font-semibold disabled:opacity-50 hover:text-[#004d39] flex-shrink-0"
                     disabled={!newComment || isCommenting}
                   >
-                    {isCommenting ? <Loader2 className="h-4 w-4 animate-spin" /> : "পোস্ট"}
+                    {isCommenting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Post"}
                   </button>
                 </form>
               )}

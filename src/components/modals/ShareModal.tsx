@@ -84,7 +84,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
         <div
           className={`p-3 border-b text-center font-bold relative ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
         >
-          শেয়ার করুন
+          Share
           <X
             className="absolute right-3 top-3 cursor-pointer"
             onClick={onClose}
@@ -99,7 +99,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
             <Search size={18} className="text-[#8e8e8e]" />
             <input
               type="text"
-              placeholder="অনুসন্ধান"
+              placeholder="Search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent border-none outline-none text-sm w-full"
@@ -116,11 +116,11 @@ const ShareModal: React.FC<ShareModalProps> = ({
         <div className="h-64 overflow-y-auto p-2">
           {isSearching ? (
             <div className="p-4 text-center text-sm text-gray-500">
-              অনুসন্ধান করা হচ্ছে...
+              Searching...
             </div>
           ) : users.length === 0 ? (
             <div className="p-4 text-center text-sm text-gray-500">
-              কোনো ফলাফল পাওয়া যায়নি
+              No results found
             </div>
           ) : (
             users.map((user, idx) => (
@@ -150,11 +150,11 @@ const ShareModal: React.FC<ShareModalProps> = ({
                   className={`px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#006a4e] text-white hover:bg-[#00523c] transition-colors`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    showToast(`${user.username}-কে পাঠানো হয়েছে`);
+                    showToast(`Sent to ${user.username}`);
                     onClose();
                   }}
                 >
-                  পাঠান
+                  Send
                 </button>
               </div>
             )))}
@@ -167,7 +167,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
             onClick={() => {
               const url = shareUrl || window.location.href;
               navigator.clipboard.writeText(url);
-              showToast("লিঙ্ক কপি করা হয়েছে");
+              showToast("Link copied");
               onClose();
             }}
           >
@@ -176,12 +176,12 @@ const ShareModal: React.FC<ShareModalProps> = ({
             >
               <Copy size={20} />
             </div>
-            <span className="text-xs">লিঙ্ক কপি</span>
+            <span className="text-xs">Copy Link</span>
           </div>
           <div
             className="flex flex-col items-center gap-1 cursor-pointer min-w-[60px]"
             onClick={() => {
-              showToast("আপনার স্টোরিতে যোগ করা হয়েছে");
+              showToast("Added to your story");
               onClose();
             }}
           >
@@ -190,7 +190,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
             >
               <PlusSquare size={20} />
             </div>
-            <span className="text-xs">স্টোরিতে দিন</span>
+            <span className="text-xs">Add to story</span>
           </div>
         </div>
       </div>

@@ -26,7 +26,7 @@ const EditPostModal: React.FC<EditPostModalProps> = ({
 
   const handleSave = () => {
     if (!caption.trim()) {
-      showToast("ক্যাপশন খালি রাখা যাবে না");
+      showToast("Caption cannot be empty");
       return;
     }
 
@@ -34,10 +34,10 @@ const EditPostModal: React.FC<EditPostModalProps> = ({
       { postId: post.id, caption },
       {
         onSuccess: () => {
-          showToast("পোস্ট আপডেট করা হয়েছে");
+          showToast("Post updated");
           onClose();
         },
-        onError: () => showToast("আপডেট করতে সমস্যা হয়েছে"),
+        onError: () => showToast("Failed to update post"),
       }
     );
   };
@@ -74,13 +74,13 @@ const EditPostModal: React.FC<EditPostModalProps> = ({
         {/* Edit Form (Right/Bottom) */}
         <div className={`md:w-1/2 flex flex-col ${theme === "dark" ? "bg-zinc-900" : "bg-white"}`}>
           <div className={`p-3 border-b flex justify-between items-center ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}>
-            <span className="font-semibold text-sm">এডিট ইনফো</span>
+            <span className="font-semibold text-sm">Edit Info</span>
             <button
               onClick={handleSave}
               disabled={isPending}
               className="text-[#0095f6] font-bold text-sm hover:text-white disabled:opacity-50"
             >
-              {isPending ? "সেভ হচ্ছে..." : "সম্পন্ন"}
+              {isPending ? "Saving..." : "Done"}
             </button>
           </div>
 
@@ -94,14 +94,14 @@ const EditPostModal: React.FC<EditPostModalProps> = ({
 
           <textarea
             className={`flex-grow p-4 bg-transparent outline-none resize-none text-sm ${theme === "dark" ? "placeholder-zinc-500" : "placeholder-zinc-400"}`}
-            placeholder="ক্যাপশন লিখুন..."
+            placeholder="Write a caption..."
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             rows={6}
           />
 
           <div className="p-4 flex justify-end">
-            <button onClick={onClose} className="text-sm font-semibold hover:opacity-70">বাতিল করুন</button>
+            <button onClick={onClose} className="text-sm font-semibold hover:opacity-70">Cancel</button>
           </div>
         </div>
       </motion.div>

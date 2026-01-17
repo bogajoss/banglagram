@@ -66,7 +66,7 @@ const RichText: React.FC<RichTextProps> = ({
           className="text-zinc-500 cursor-pointer font-semibold ml-1 hover:text-zinc-700 dark:hover:text-zinc-300"
           onClick={onToggleExpand}
         >
-          ... আরও
+          ... more
         </span>
       )}
     </span>

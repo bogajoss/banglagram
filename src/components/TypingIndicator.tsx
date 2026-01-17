@@ -13,8 +13,8 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
 
   const typingText =
     typingUsers.length === 1
-      ? `${typingUsers[0]} টাইপ করছে...`
-      : `${typingUsers.length} জন টাইপ করছে...`;
+      ? `${typingUsers[0]} is typing...`
+      : `${typingUsers.length} people are typing...`;
 
   const dotStyle = {
     animation: "bounce 1.4s infinite",

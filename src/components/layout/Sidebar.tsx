@@ -112,15 +112,15 @@ const Sidebar: React.FC = () => {
                   {isSidebarExpanded && (
                     <span className="text-base truncate">
                       {item.label === "Home"
-                        ? "হোম"
+                        ? "Home"
                         : item.label === "Explore"
-                          ? "এক্সপ্লোর"
+                          ? "Explore"
                           : item.label === "Reels"
-                            ? "রিলস"
+                            ? "Reels"
                             : item.label === "Messages"
-                              ? "মেসেজ"
+                              ? "Messages"
                               : item.label === "Notifications"
-                                ? "নোটিফিকেশন"
+                                ? "Notifications"
                                 : item.label}
                     </span>
                   )}
@@ -148,7 +148,7 @@ const Sidebar: React.FC = () => {
                 <PlusSquare size={24} />
               </div>
               {isSidebarExpanded && (
-                <span className="text-base truncate ml-4 font-normal">তৈরি করুন</span>
+                <span className="text-base truncate ml-2 font-normal">Create</span>
               )}
             </motion.div>
           </Button>
@@ -170,7 +170,7 @@ const Sidebar: React.FC = () => {
                   <AvatarFallback>{currentUser.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
                 </Avatar>
                 {isSidebarExpanded && (
-                  <span className="text-base truncate">প্রোফাইল</span>
+                  <span className="text-base truncate">Profile</span>
                 )}
               </motion.div>
             )}
@@ -193,7 +193,7 @@ const Sidebar: React.FC = () => {
             className="w-full h-full flex items-center"
           >
             {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
-            {isSidebarExpanded && <span className="text-base ml-4 font-normal">থিম পরিবর্তন</span>}
+            {isSidebarExpanded && <span className="text-base ml-4 font-normal">Switch Appearance</span>}
           </motion.div>
         </Button>
 
@@ -216,7 +216,7 @@ const Sidebar: React.FC = () => {
             ) : (
               <PanelLeftOpen size={24} />
             )}
-            {isSidebarExpanded && <span className="text-base ml-4 font-normal">বন্ধ করুন</span>}
+            {isSidebarExpanded && <span className="text-base ml-4 font-normal">Collapse</span>}
           </motion.div>
         </Button>
 
@@ -235,7 +235,7 @@ const Sidebar: React.FC = () => {
             className="w-full h-full flex items-center"
           >
             <LogOut size={24} />
-            {isSidebarExpanded && <span className="text-base ml-4 font-normal">লগ আউট</span>}
+            {isSidebarExpanded && <span className="text-base ml-4 font-normal">Log Out</span>}
           </motion.div>
         </Button>
       </div>

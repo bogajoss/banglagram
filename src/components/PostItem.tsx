@@ -27,11 +27,11 @@ import OptimizedImage from "./OptimizedImage";
 import VerifiedBadge from "./VerifiedBadge";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import "dayjs/locale/bn";
+import "dayjs/locale/en";
 import RichText from "./RichText";
 
 dayjs.extend(relativeTime);
-dayjs.locale("bn");
+dayjs.locale("en");
 
 
 interface PostItemProps {
@@ -84,7 +84,7 @@ const PostItem: React.FC<PostItemProps> = memo(
 
     const handleLike = () => {
       if (!user) {
-        showToast("লাইক করতে লগ ইন করুন");
+        showToast("Log in to like");
         return;
       }
       toggleLike({
@@ -116,11 +116,11 @@ const PostItem: React.FC<PostItemProps> = memo(
         },
         {
           onSuccess: () => {
-            showToast("কমেন্ট যোগ করা হয়েছে");
+            showToast("Comment added");
             setNewComment("");
             setShowRecorder(false);
           },
-          onError: () => showToast("কমেন্ট যোগ করতে সমস্যা হয়েছে"),
+          onError: () => showToast("Failed to add comment"),
         },
       );
     };
@@ -261,7 +261,7 @@ const PostItem: React.FC<PostItemProps> = memo(
         </div>
 
         <div className="text-sm px-3 md:px-0">
-          <div className="font-semibold mb-1">{post.likes} লাইক</div>
+          <div className="font-semibold mb-1">{post.likes} likes</div>
           <div className="mb-1">
             <span
               className="font-semibold mr-2 cursor-pointer hover:opacity-70"
@@ -275,7 +275,7 @@ const PostItem: React.FC<PostItemProps> = memo(
             className={`${theme === "dark" ? "text-zinc-500" : "text-zinc-500"} cursor-pointer hover:underline`}
             onClick={() => onPostClick(post)}
           >
-            সব {post.comments} কমেন্ট দেখুন
+            View all {post.comments} comments
           </div>
           <div className="text-[10px] text-zinc-500 uppercase mt-1">
             {post.createdAt ? dayjs(post.createdAt).fromNow() : post.time}
@@ -328,7 +328,7 @@ const PostItem: React.FC<PostItemProps> = memo(
               />
               <input
                 type="text"
-                placeholder="কমেন্ট যোগ করুন..."
+                placeholder="Add a comment..."
                 className={`bg-transparent text-sm w-full outline-none ${theme === "dark" ? "text-white" : "text-black"}`}
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
@@ -349,7 +349,7 @@ const PostItem: React.FC<PostItemProps> = memo(
                 className="text-[#006a4e] text-sm font-semibold disabled:opacity-50 hover:text-[#004d39]"
                 disabled={!newComment || isCommenting}
               >
-                পোস্ট
+                Post
               </button>
             </form>
           )}

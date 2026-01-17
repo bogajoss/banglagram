@@ -19,7 +19,7 @@ const AdminUsersView: React.FC = () => {
 
     const handleVerify = (id: string, currentStatus: boolean) => {
         verifyUser({ userId: id, status: !currentStatus }, {
-            onSuccess: () => showToast(currentStatus ? "ভেরিফিকেশন রিমুভ করা হয়েছে" : "ইউজার ভেরিফাই করা হয়েছে"),
+            onSuccess: () => showToast(currentStatus ? "Verification removed" : "User verified"),
             onError: (err) => showToast(`Error: ${err.message}`)
         });
     };
@@ -27,7 +27,7 @@ const AdminUsersView: React.FC = () => {
     const handleBan = (id: string, currentRole: string) => {
         const newRole = currentRole === 'banned' ? 'user' : 'banned';
         restrictUser({ userId: id, role: newRole }, {
-            onSuccess: () => showToast(currentRole === 'banned' ? "ইউজার আনব্যান করা হয়েছে" : "ইউজার ব্যান করা হয়েছে"),
+            onSuccess: () => showToast(currentRole === 'banned' ? "User unbanned" : "User banned"),
             onError: (err) => showToast(`Error: ${err.message}`)
         });
     };
@@ -36,7 +36,7 @@ const AdminUsersView: React.FC = () => {
     const handleDelete = (id: string) => {
         if (confirm("Are you sure you want to delete this user? This cannot be undone.")) {
             deleteUser(id, {
-                onSuccess: () => showToast("ইউজার ডিলিট করা হয়েছে"),
+                onSuccess: () => showToast("User deleted"),
                 onError: (err) => showToast(`Error: ${err.message}`)
             });
         }
@@ -49,7 +49,7 @@ const AdminUsersView: React.FC = () => {
                 <div className="p-2 rounded-xl bg-card flex items-center gap-2 flex-grow border border-border transition-all focus-within:ring-2 focus-within:ring-ring/20">
                     <Search className="text-muted-foreground ml-2" size={20} />
                     <Input
-                        placeholder="ইউজার খুঁজুন..."
+                        placeholder="Search users..."
                         className="bg-transparent border-none p-0 h-auto focus-visible:ring-0 text-base"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -186,7 +186,7 @@ const AdminUsersView: React.FC = () => {
             {hasNextPage && (
                 <div className="mt-8 text-center">
                     <Button variant="outline" className="rounded-full px-10 font-black border-border hover:bg-accent text-xs uppercase tracking-widest transition-all hover:scale-105" onClick={() => fetchNextPage()}>
-                        আরো দেখুন
+                        View More
                     </Button>
                 </div>
             )}

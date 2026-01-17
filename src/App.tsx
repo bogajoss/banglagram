@@ -81,7 +81,7 @@ export default function App() {
         (payload) => {
           console.log("New notification:", payload);
           queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
-          showToast("একটি নতুন নোটিফিকেশন এসেছে");
+          showToast("New notification received");
         },
       )
       .subscribe();

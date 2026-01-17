@@ -1,18 +1,5 @@
-CREATE OR REPLACE FUNCTION public.exec_sql(query text)
-RETURNS json
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  EXECUTE query;
-  RETURN json_build_object('status', 'success');
-EXCEPTION WHEN OTHERS THEN
-  RETURN json_build_object('status', 'error', 'message', SQLERRM);
-END;
-$$;
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL PRIMARY KEY,
@@ -269,8 +256,8 @@ BEGIN
     CREATE POLICY "Reels are viewable by everyone." ON public.reels FOR SELECT USING (true);
     CREATE POLICY "Users can insert their own reels." ON public.reels FOR INSERT WITH CHECK (auth.uid() = user_id);
     CREATE POLICY "Users can delete their own reels." ON public.reels FOR DELETE USING (
-      auth.uid() = user_id OR 
-      auth.uid() IN (SELEC
+      auth.uid() = user_id
+    );
 
     CREATE POLICY "Likes are viewable by everyone." ON public.likes FOR SELECT USING (true);
     CREATE POLICY "Users can insert their own likes." ON public.likes FOR INSERT WITH CHECK (auth.uid() = user_id);
@@ -280,7 +267,9 @@ BEGIN
     CREATE POLICY "Users can insert their own comments." ON public.comments FOR INSERT WITH CHECK (auth.uid() = user_id);
     CREATE POLICY "Users can delete their own comments." ON public.comments FOR DELETE USING (
       auth.uid() = user_id OR 
-      auth.uid() IN (SELEC
+      auth.uid() IN (SELECT user_id FROM public.posts WHERE id = post_id) OR
+      auth.uid() IN (SELECT user_id FROM public.reels WHERE id = reel_id)
+    );
 
     CREATE POLICY "Follows are viewable by everyone." ON public.follows FOR SELECT USING (true);
     CREATE POLICY "Users can follow others." ON public.follows FOR INSERT WITH CHECK (auth.uid() = follower_id);
@@ -355,7 +344,6 @@ $$;
 CREATE INDEX IF NOT EXISTS idx_profiles_is_online ON public.profiles(is_online);
 CREATE INDEX IF NOT EXISTS idx_profiles_last_seen ON public.profiles(last_seen DESC);
 
-BEGIN;
   DO $$
   BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
@@ -364,14 +352,21 @@ BEGIN;
   END
   $$;
 
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+  DO $$
+  BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'messages') THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'profiles') THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+    END IF;
+  END
+  $$;
 
   ALTER TABLE public.messages REPLICA IDENTITY FULL;
   ALTER TABLE public.profiles REPLICA IDENTITY FULL;
-COMMIT;
 
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
+-- CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 CREATE INDEX IF NOT EXISTS idx_posts_caption_trgm ON public.posts USING gin (caption gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_profiles_username_trgm ON public.profiles USING gin (username gin_trgm_ops);
@@ -502,7 +497,9 @@ RETURNS TABLE (
     last_message text,
     last_message_time timestamp with time zone,
     is_read boolean,
-    sender_id uuid
+    sender_id uuid,
+    is_online boolean,
+    last_seen timestamp with time zone
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -533,13 +530,17 @@ BEGIN
         lm.content AS last_message,
         lm.created_at AS last_message_time,
         lm.is_read,
-        lm.sender_id
+        lm.sender_id,
+        p.is_online,
+        p.last_seen
     FROM latest_messages lm
     JOIN profiles p ON p.id = lm.partner_id
     ORDER BY lm.created_at DESC
     LIMIT limit_count OFFSET offset_count;
 END;
-$$;-- Enhance Comments: Nested Replies and Heart Reactions
+$$;
+
+-- Enhance Comments: Nested Replies and Heart Reactions
 
 -- 1. Add parent_id for nested replies
 ALTER TABLE public.comments 
@@ -839,6 +840,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 6. The "BanglaRank" Feed Algorithm
 -- Returns mixed feed of posts based on score and affinity
+DROP FUNCTION IF EXISTS public.get_ranked_feed(uuid, int, int);
+
 CREATE OR REPLACE FUNCTION public.get_ranked_feed(
   current_user_id uuid,
   limit_count int DEFAULT 10,
@@ -1021,7 +1024,8 @@ SET engagement_score = GREATEST(
         created_at
     ),
     1.0 
-);
+)
+WHERE id IS NOT NULL;
 
 UPDATE public.reels
 SET engagement_score = GREATEST(
@@ -1033,7 +1037,8 @@ SET engagement_score = GREATEST(
         created_at
     ),
     1.0
-);
+)
+WHERE id IS NOT NULL;
 
 -- 2. DROP AND RECREATE FUNCTION
 -- CRITICAL: We MUST drop the function first because we are changing the return return type (adding views_count)
@@ -1140,7 +1145,7 @@ RETURNS TABLE (
   created_at timestamp with time zone,
   likes_count bigint,
   comments_count bigint,
-  view_count bigint,    -- NAMED EXACTLY LIKE THE TABLE COLUMN
+  view_count bigint,
   has_liked boolean,
   has_saved boolean,
   type text,
@@ -1199,7 +1204,7 @@ BEGIN
   FROM scored_content sc
   JOIN public.profiles pr ON sc.user_id = pr.id
   WHERE 
-    true -- Show everything
+    true
   ORDER BY 
     (CASE WHEN sc.user_id IN (SELECT following_id FROM public.follows WHERE follower_id = current_user_id) THEN 1 ELSE 0 END) DESC,
     sc.final_rank DESC, 

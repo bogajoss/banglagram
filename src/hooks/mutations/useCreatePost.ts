@@ -7,7 +7,6 @@ import { PROFILE_QUERY_KEY } from "../queries/useGetProfile";
 interface CreatePostVariables {
   file: File;
   caption: string;
-  location: string;
   userId: string;
   username: string;
 }
@@ -19,7 +18,6 @@ export const useCreatePost = () => {
     mutationFn: async ({
       file,
       caption,
-      location,
       userId,
     }: CreatePostVariables) => {
       const fileExt = file.name.split(".").pop();
@@ -45,7 +43,6 @@ export const useCreatePost = () => {
           user_id: userId,
           caption,
           image_url: publicUrl,
-          location,
         })
         .select()
         .single();

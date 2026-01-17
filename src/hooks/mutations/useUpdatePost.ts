@@ -6,17 +6,16 @@ import { POST_QUERY_KEY } from "../queries/useGetPost";
 interface UpdatePostVariables {
   postId: string;
   caption: string;
-  location?: string;
 }
 
 export const useUpdatePost = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ postId, caption, location }: UpdatePostVariables) => {
+    mutationFn: async ({ postId, caption }: UpdatePostVariables) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from("posts") as any)
-        .update({ caption, location })
+        .update({ caption })
         .eq("id", postId)
         .select()
         .single();

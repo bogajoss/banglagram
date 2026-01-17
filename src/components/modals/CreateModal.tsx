@@ -28,7 +28,6 @@ const CreateModal: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
-  const [location, setLocation] = useState("");
   const [isVideo, setIsVideo] = useState(false);
   const [createType, setCreateType] = useState<"post" | "reel" | "story" | null>(null);
 
@@ -76,7 +75,7 @@ const CreateModal: React.FC = () => {
       );
     } else {
       createPost(
-        { file, caption, location, userId: user.id, username: profile.username },
+        { file, caption, userId: user.id, username: profile.username },
         {
           onSuccess: () => { showToast("Post shared"); setCreateModalOpen(false); },
           onError: () => showToast("Failed to share post"),
@@ -230,7 +229,7 @@ const CreateModal: React.FC = () => {
                     {/* Caption Input */}
                     <div className="px-4 pb-4">
                         <Textarea
-                          className="w-full min-h-[120px] bg-transparent border-none focus-visible:ring-0 resize-none text-base p-0 placeholder:text-muted-foreground/50"
+                          className="w-full min-h-[120px] bg-transparent border-none focus-visible:ring-0 resize-none text-base p-1 placeholder:text-muted-foreground/50"
                           placeholder="Write a caption..."
                           value={caption}
                           onChange={(e) => setCaption(e.target.value)}
@@ -241,22 +240,6 @@ const CreateModal: React.FC = () => {
 
                     {/* Meta Options List */}
                     <div className="flex flex-col">
-                        {!isVideo && (
-                            <div className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors border-b border-border/50">
-                                <div className="flex items-center gap-3 text-sm">
-                                    <MapPin size={20} className="text-muted-foreground" />
-                                    <Input 
-                                        type="text" 
-                                        placeholder="Add Location" 
-                                        value={location}
-                                        onChange={(e) => setLocation(e.target.value)}
-                                        className="border-none bg-transparent h-auto p-0 focus-visible:ring-0 placeholder:text-foreground/80"
-                                    />
-                                </div>
-                                <ChevronRight size={16} className="text-muted-foreground" />
-                            </div>
-                        )}
-                        
                         <div className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors border-b border-border/50">
                              <div className="flex items-center gap-3 text-sm">
                                 <AtSign size={20} className="text-muted-foreground" />
@@ -277,7 +260,7 @@ const CreateModal: React.FC = () => {
                 ) : (
                    <div className="flex-grow flex items-center justify-center p-8 text-center text-muted-foreground">
                     <p className="text-sm">
-                      Stories are visible for 24 hours. Captions and locations are not supported on stories yet.
+                      Stories are visible for 24 hours. Captions are not supported on stories yet.
                     </p>
                   </div>
                 )}

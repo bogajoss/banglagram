@@ -57,7 +57,6 @@ export interface Database {
           user_id: string;
           caption: string | null;
           image_url: string;
-          location: string | null;
           created_at: string;
         };
         Insert: {
@@ -65,7 +64,6 @@ export interface Database {
           user_id: string;
           caption?: string | null;
           image_url: string;
-          location?: string | null;
           created_at?: string;
         };
         Update: {
@@ -73,7 +71,6 @@ export interface Database {
           user_id?: string;
           caption?: string | null;
           image_url?: string;
-          location?: string | null;
           created_at?: string;
         };
       };

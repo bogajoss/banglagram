@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../useAuth";
+import type { Comment } from "../queries/useGetComments";
 
 interface ToggleCommentLikeVariables {
   commentId: string;
@@ -29,9 +30,10 @@ export const useToggleCommentLike = () => {
         if (error) throw error;
       } else {
         // Like
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase
-          .from("comment_likes") as any)
+          .from("comment_likes") as unknown as {
+            insert: (data: { user_id: string; comment_id: string }) => Promise<{ error: Error | null }>;
+          })
           .insert({ user_id: user.id, comment_id: commentId });
         if (error) throw error;
       }
@@ -41,7 +43,7 @@ export const useToggleCommentLike = () => {
         queryKey: ["comments", type, targetId, user?.id],
       });
 
-      const previousComments = queryClient.getQueryData([
+      const previousComments = queryClient.getQueryData<Comment[]>([
         "comments",
         type,
         targetId,
@@ -49,14 +51,11 @@ export const useToggleCommentLike = () => {
       ]);
 
       // Optimistically update
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      queryClient.setQueryData(
+      queryClient.setQueryData<Comment[]>(
         ["comments", type, targetId, user?.id],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (old: any) => {
+        (old) => {
           if (!old) return old;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          return old.map((comment: any) => {
+          return old.map((comment) => {
             if (comment.id === commentId) {
               return {
                 ...comment,

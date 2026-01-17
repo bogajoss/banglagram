@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../hooks/useAuth";
+import type { Database } from "../../database.types";
 
 export interface Comment {
   id: string;
@@ -20,6 +21,14 @@ export interface Comment {
   };
 }
 
+type DBComment = Database["public"]["Tables"]["comments"]["Row"] & {
+  profiles: {
+    username: string;
+    avatar_url: string | null;
+    is_verified: boolean;
+  } | null;
+};
+
 export const useGetComments = (targetId: string, type: "post" | "reel") => {
   const { user } = useAuth();
 
@@ -28,7 +37,7 @@ export const useGetComments = (targetId: string, type: "post" | "reel") => {
     queryFn: async () => {
       const column = type === "post" ? "post_id" : "reel_id";
 
-      const { data: commentsData, error } = await supabase
+      const { data, error } = await supabase
         .from("comments")
         .select(
           `
@@ -44,29 +53,28 @@ export const useGetComments = (targetId: string, type: "post" | "reel") => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      if (!commentsData) return [];
+      if (!data) return [];
+
+      const commentsData = data as unknown as DBComment[];
 
       const likedCommentIds = new Set<string>();
       if (user) {
-         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-         const commentIds = (commentsData as any[]).map(c => c.id);
+         const commentIds = commentsData.map(c => c.id);
          if (commentIds.length > 0) {
-             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-             const { data: likesData } = await (supabase
-                .from("comment_likes") as any)
+             const { data: rawLikesData } = await supabase
+                .from("comment_likes")
                 .select("comment_id")
                 .eq("user_id", user.id)
                 .in("comment_id", commentIds);
              
-             if (likesData) {
-                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                 (likesData as any[]).forEach(l => likedCommentIds.add(l.comment_id));
+             if (rawLikesData) {
+                 const likesData = rawLikesData as { comment_id: string }[];
+                 likesData.forEach(l => likedCommentIds.add(l.comment_id));
              }
          }
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return commentsData.map((comment: any) => {
+      return commentsData.map((comment) => {
         let audioUrl = comment.audio_url || undefined;
         // Fix for missing /public/ in storage URLs
         if (audioUrl && audioUrl.includes("/storage/v1/object/audio-messages/") && !audioUrl.includes("/storage/v1/object/public/")) {

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowLeft, X, Loader2, Edit2, ChevronRight, Hash, AtSign } from "lucide-react";
+import { ArrowLeft, X, Loader2, ChevronRight, Hash, AtSign } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { motion } from "framer-motion";
 import { useAuth } from "../../hooks/useAuth";
@@ -13,7 +13,6 @@ import { cn } from "@/lib/utils";
 
 import OptimizedImage from "../OptimizedImage";
 import FileUploader from "../FileUploader";
-import MediaEditor from "../media-editor/MediaEditor";
 
 const CreateModal: React.FC = () => {
   const { theme, setCreateModalOpen, showToast } = useAppStore();
@@ -29,8 +28,6 @@ const CreateModal: React.FC = () => {
   const [caption, setCaption] = useState("");
   const [isVideo, setIsVideo] = useState(false);
   const [createType, setCreateType] = useState<"post" | "reel" | "story" | null>(null);
-
-  const [isEditingMedia, setIsEditingMedia] = useState(false);
 
   const { mutate: createPost, isPending: isPostPending } = useCreatePost();
   const { mutate: createReel, isPending: isReelPending } = useCreateReel();
@@ -85,22 +82,8 @@ const CreateModal: React.FC = () => {
 
   const onClose = () => setCreateModalOpen(false);
 
-  const onMediaSaved = (editedFile: File) => {
-    setFile(editedFile);
-    setPreview(URL.createObjectURL(editedFile));
-    setIsEditingMedia(false);
-  };
-
   return (
     <>
-      {isEditingMedia && file && (
-        <MediaEditor
-          file={file}
-          onSave={onMediaSaved}
-          onCancel={() => setIsEditingMedia(false)}
-        />
-      )}
-
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -185,17 +168,6 @@ const CreateModal: React.FC = () => {
                       imgClassName="object-contain"
                       alt="preview"
                     />
-                  )}
-
-                  {/* Edit Button (Floating) */}
-                  {!isVideo && (
-                    <Button
-                      size="icon"
-                      className="absolute bottom-4 right-4 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-md border border-white/10 shadow-lg h-12 w-12"
-                      onClick={() => setIsEditingMedia(true)}
-                    >
-                      <Edit2 size={20} />
-                    </Button>
                   )}
                 </div>
               ) : (

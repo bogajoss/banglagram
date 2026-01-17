@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowLeft, X, MapPin, Loader2, Edit2, ChevronRight, Hash, AtSign } from "lucide-react";
+import { ArrowLeft, X, Loader2, Edit2, ChevronRight, Hash, AtSign } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { motion } from "framer-motion";
 import { useAuth } from "../../hooks/useAuth";
@@ -7,7 +7,6 @@ import { useCreatePost } from "../../hooks/mutations/useCreatePost";
 import { useCreateReel } from "../../hooks/mutations/useCreateReel";
 import { useCreateStory } from "../../hooks/mutations/useCreateStory";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";

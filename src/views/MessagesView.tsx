@@ -258,6 +258,7 @@ const MessagesView: React.FC = () => {
             if (msg.sender_id === selectedUserId) {
               queryClient.setQueryData(
                 MESSAGES_QUERY_KEY(selectedUserId),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (oldData: any) => {
                   if (!oldData || !oldData.pages) return oldData;
 

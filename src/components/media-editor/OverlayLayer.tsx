@@ -198,10 +198,10 @@ const OverlayLayer: React.FC<OverlayLayerProps> = ({
                         }
                     }}
 
-                    onPinch={(e: any) => {
+                    onPinch={(e: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
                         e.target.style.transform = e.drag.transform;
                     }}
-                    onPinchEnd={(e: any) => {
+                    onPinchEnd={(e: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
                          if (e.lastEvent) {
                             updateOverlay(activeId, { 
                                 scale: e.lastEvent.scale[0],

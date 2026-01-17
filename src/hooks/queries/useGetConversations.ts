@@ -28,6 +28,7 @@ export const useGetConversations = (userId: string | undefined) => {
         current_user_id: userId,
         limit_count: 20,
         offset_count: pageParam * 20,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       if (error) {
@@ -37,8 +38,10 @@ export const useGetConversations = (userId: string | undefined) => {
 
       // Map RPC result to Conversation interface
       // Force data to be treated as array
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rpcData = (data as any[]) || [];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return rpcData.map((c: any) => ({
         id: c.user_id,
         username: c.username,

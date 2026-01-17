@@ -10,8 +10,8 @@ export const useLastSeen = () => {
 
     try {
       const now = new Date().toISOString();
-      await (supabase
-        .from("profiles") as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from("profiles") as any)
         .update({
           last_seen: now,
           is_online: true,
@@ -27,8 +27,8 @@ export const useLastSeen = () => {
 
     try {
       const now = new Date().toISOString();
-      await (supabase
-        .from("profiles") as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from("profiles") as any)
         .update({
           last_seen: now,
           is_online: false,

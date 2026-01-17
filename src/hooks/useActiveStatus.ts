@@ -58,6 +58,7 @@ export const useActiveStatus = (roomId: string) => {
         setPresenceState(presence);
       })
       .on("presence", { event: "join" }, ({ newPresences }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         newPresences.forEach((presence: any) => {
           if (presence.userId && presence.username) {
             setPresenceState((prev) => ({
@@ -73,6 +74,7 @@ export const useActiveStatus = (roomId: string) => {
         });
       })
       .on("presence", { event: "leave" }, ({ leftPresences }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         leftPresences.forEach((presence: any) => {
           if (presence.userId) {
             setPresenceState((prev) => {
@@ -106,16 +108,16 @@ export const useActiveStatus = (roomId: string) => {
 
       // Also update the database
       if (!isOnline) {
-        await (supabase
-          .from("profiles") as any)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase.from("profiles") as any)
           .update({
             is_online: false,
             last_seen: now,
           })
           .eq("id", user.id);
       } else {
-        await (supabase
-          .from("profiles") as any)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase.from("profiles") as any)
           .update({
             is_online: true,
           })

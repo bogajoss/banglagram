@@ -53,11 +53,14 @@ export const useTypingIndicator = (roomId: string) => {
       })
       .subscribe();
 
+    // Capture ref value for cleanup
+    const timeouts = typingTimeoutRef.current;
+
     return () => {
       supabase.removeChannel(channel);
       channelRef.current = null;
       // Clear all timeouts
-      Object.values(typingTimeoutRef.current).forEach(clearTimeout);
+      Object.values(timeouts).forEach(clearTimeout);
     };
   }, [roomId, user]);
 

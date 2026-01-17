@@ -12,13 +12,16 @@ export const useGetFeed = (userId?: string) => {
       const { data, error } = await supabase.rpc("get_feed", {
         current_user_id: userId,
         limit_count: 10,
-        offset_count: pageParam * 10
+        offset_count: pageParam * 10,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       if (error) throw error;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const posts = (data as any[]) || [];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return posts.map((post: any) => ({
         id: post.id,
         user: {

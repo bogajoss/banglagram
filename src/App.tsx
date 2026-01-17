@@ -6,6 +6,7 @@ import Layout from "./components/layout/Layout";
 import { supabase } from "./lib/supabaseClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLastSeen } from "./hooks/useLastSeen";
+import { useOnlineStatus } from "./hooks/useOnlineStatus";
 const HomeView = lazy(() => import("./views/HomeView"));
 const ProfileView = lazy(() => import("./views/ProfileView"));
 const MessagesView = lazy(() => import("./views/MessagesView"));
@@ -48,6 +49,10 @@ export default function App() {
   const { user, profile, loading: authLoading } = useAuth();
   const location = useLocation();
   const queryClient = useQueryClient();
+  
+  // Initialize Global Hooks
+  useOnlineStatus();
+
   const { data: notifications = [] } = useGetNotifications(user?.id);
 
   const isPublicRoute =

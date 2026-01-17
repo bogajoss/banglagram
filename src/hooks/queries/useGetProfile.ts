@@ -18,7 +18,7 @@ export const useGetProfile = (
 
       const { data: profileData, error } = await supabase
         .from("profiles")
-        .select("id, username, full_name, avatar_url, bio, is_verified")
+        .select("id, username, full_name, avatar_url, bio, is_verified, is_online, last_seen")
         .eq("username", username)
         .single();
 
@@ -127,6 +127,10 @@ export const useGetProfile = (
           following: followingCount || 0,
         },
         isFollowing,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        isOnline: (profile as any).is_online,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        lastSeen: (profile as any).last_seen,
       };
 
       return { user, posts: formattedPosts };

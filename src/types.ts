@@ -5,6 +5,8 @@ export interface User {
   avatar: string;
   bio?: string;
   isVerified?: boolean;
+  isOnline?: boolean;
+  lastSeen?: string | null;
   stats?: {
     posts: number;
     followers: number;

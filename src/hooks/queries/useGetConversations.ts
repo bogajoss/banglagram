@@ -11,6 +11,8 @@ export interface Conversation {
   lastMessageTime?: string | null;
   isRead?: boolean;
   lastSenderId?: string;
+  isOnline?: boolean;
+  lastSeen?: string | null;
 }
 
 export const CONVERSATIONS_QUERY_KEY = ["conversations"];
@@ -52,6 +54,8 @@ export const useGetConversations = (userId: string | undefined) => {
         lastMessageTime: c.last_message_time,
         isRead: c.is_read,
         lastSenderId: c.sender_id,
+        isOnline: c.is_online,
+        lastSeen: c.last_seen,
       }));
     },
     getNextPageParam: (lastPage, allPages) => {

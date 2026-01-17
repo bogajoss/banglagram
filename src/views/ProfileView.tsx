@@ -32,6 +32,7 @@ import VerifiedBadge from "../components/VerifiedBadge";
 import { Button } from "@/components/ui/button";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { UserStatus } from "../components/UserStatus";
 
 const ProfileView: React.FC = () => {
   const {
@@ -325,7 +326,15 @@ const ProfileView: React.FC = () => {
             </span>
           </div>
           <div className="text-sm px-1 md:px-0">
-            <div className="font-semibold">{profileUser.name}</div>
+            <div className="flex items-center gap-2">
+              <div className="font-semibold">{profileUser.name}</div>
+              {!isMe && (
+                <UserStatus
+                  isOnline={profileUser.isOnline || false}
+                  lastSeen={profileUser.lastSeen || null}
+                />
+              )}
+            </div>
             <div className="flex items-center gap-1 bg-[#262626] w-fit px-2 py-1 rounded-full text-xs text-[#a8a8a8] mt-1 mb-2 cursor-pointer hover:bg-[#363636]">
               <AtSign size={10} /> <span>Threads</span>
             </div>

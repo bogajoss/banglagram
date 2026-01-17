@@ -18,7 +18,6 @@ export interface Database {
           bio: string | null;
           website: string | null;
           is_verified: boolean;
-          role: string;
           last_seen: string | null;
           is_online: boolean;
           updated_at: string;
@@ -31,7 +30,6 @@ export interface Database {
           bio?: string | null;
           website?: string | null;
           is_verified?: boolean;
-          role?: string;
           last_seen?: string | null;
           is_online?: boolean;
           updated_at?: string;
@@ -44,7 +42,6 @@ export interface Database {
           bio?: string | null;
           website?: string | null;
           is_verified?: boolean;
-          role?: string;
           last_seen?: string | null;
           is_online?: boolean;
           updated_at?: string;

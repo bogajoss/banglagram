@@ -11,7 +11,6 @@ export interface User {
     following: number;
   };
   isFollowing?: boolean;
-  role?: string;
 }
 
 

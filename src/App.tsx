@@ -14,7 +14,6 @@ const NotificationsView = lazy(() => import("./views/NotificationsView"));
 const ExploreView = lazy(() => import("./views/ExploreView"));
 const AuthView = lazy(() => import("./views/AuthView"));
 const PostView = lazy(() => import("./views/PostView"));
-const AdminDashboardView = lazy(() => import("./views/admin/AdminDashboardView"));
 
 
 import CreateModal from "./components/modals/CreateModal";
@@ -119,8 +118,6 @@ export default function App() {
           followers: 0,
           following: 0,
         },
-
-        role: profile.role,
       };
       setCurrentUser(appUser);
 
@@ -237,15 +234,6 @@ export default function App() {
                 element={
                   <PageWrapper>
                     <ProfileView />
-                  </PageWrapper>
-                }
-              />
-
-              <Route
-                path="/admin"
-                element={
-                  <PageWrapper>
-                    <AdminDashboardView />
                   </PageWrapper>
                 }
               />

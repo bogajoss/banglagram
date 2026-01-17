@@ -4,10 +4,9 @@ import { Button } from "./ui/button";
 
 interface AudioPlayerProps {
     src: string;
-    theme?: "dark" | "light";
 }
 
-const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, theme = "dark" }) => {
+const AudioPlayer: React.FC<AudioPlayerProps> = ({ src }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
     const [progress, setProgress] = useState(0);
@@ -36,7 +35,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, theme = "dark" }) => {
     };
 
     return (
-        <div className={`flex items-center gap-2 ${theme === "dark" ? "bg-zinc-800" : "bg-zinc-100"} rounded-full px-3 py-1 mt-1 w-fit min-w-[150px]`}>
+        <div className="flex items-center gap-2 bg-muted rounded-full px-3 py-1 mt-1 w-fit min-w-[150px]">
             <Button
                 variant="ghost"
                 size="icon"
@@ -45,9 +44,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, theme = "dark" }) => {
             >
                 {isPlaying ? <Pause size={14} /> : <Play size={14} />}
             </Button>
-            <div className="h-1 flex-grow bg-zinc-300 dark:bg-zinc-600 rounded-full overflow-hidden">
+            <div className="h-1 flex-grow bg-secondary rounded-full overflow-hidden">
                 <div
-                    className={`h-full bg-blue-500 rounded-full transition-all duration-100`}
+                    className="h-full bg-primary rounded-full transition-all duration-100"
                     style={{ width: `${progress}%` }}
                 />
             </div>

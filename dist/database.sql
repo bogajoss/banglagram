@@ -240,66 +240,107 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.saves ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.post_tags ENABLE ROW LEVEL SECURITY;
 
-DO $$
-BEGIN
-    CREATE POLICY "Public profiles are viewable by everyone." ON public.profiles FOR SELECT USING (true);
-    CREATE POLICY "Users can insert their own profile." ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
-    CREATE POLICY "Users can update their own profile." ON public.profiles FOR UPDATE USING (auth.uid() = id);
+-- Profiles
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone." ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile." ON public.profiles;
+DROP POLICY IF EXISTS "Users can update their own profile." ON public.profiles;
+CREATE POLICY "Public profiles are viewable by everyone." ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Users can insert their own profile." ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users can update their own profile." ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
-    CREATE POLICY "Posts are viewable by everyone." ON public.posts FOR SELECT USING (true);
-    CREATE POLICY "Users can insert their own posts." ON public.posts FOR INSERT WITH CHECK (auth.uid() = user_id);
-    CREATE POLICY "Users can update their own posts." ON public.posts FOR UPDATE USING (auth.uid() = user_id);
-    CREATE POLICY "Users can delete their own posts." ON public.posts FOR DELETE USING (
-      auth.uid() = user_id
-    );
+-- Posts
+DROP POLICY IF EXISTS "Posts are viewable by everyone." ON public.posts;
+DROP POLICY IF EXISTS "Users can insert their own posts." ON public.posts;
+DROP POLICY IF EXISTS "Users can update their own posts." ON public.posts;
+DROP POLICY IF EXISTS "Users can delete their own posts." ON public.posts;
+CREATE POLICY "Posts are viewable by everyone." ON public.posts FOR SELECT USING (true);
+CREATE POLICY "Users can insert their own posts." ON public.posts FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own posts." ON public.posts FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own posts." ON public.posts FOR DELETE USING (auth.uid() = user_id);
 
-    CREATE POLICY "Reels are viewable by everyone." ON public.reels FOR SELECT USING (true);
-    CREATE POLICY "Users can insert their own reels." ON public.reels FOR INSERT WITH CHECK (auth.uid() = user_id);
-    CREATE POLICY "Users can delete their own reels." ON public.reels FOR DELETE USING (
-      auth.uid() = user_id
-    );
+-- Reels
+DROP POLICY IF EXISTS "Reels are viewable by everyone." ON public.reels;
+DROP POLICY IF EXISTS "Users can insert their own reels." ON public.reels;
+DROP POLICY IF EXISTS "Users can delete their own reels." ON public.reels;
+CREATE POLICY "Reels are viewable by everyone." ON public.reels FOR SELECT USING (true);
+CREATE POLICY "Users can insert their own reels." ON public.reels FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own reels." ON public.reels FOR DELETE USING (auth.uid() = user_id);
 
-    CREATE POLICY "Likes are viewable by everyone." ON public.likes FOR SELECT USING (true);
-    CREATE POLICY "Users can insert their own likes." ON public.likes FOR INSERT WITH CHECK (auth.uid() = user_id);
-    CREATE POLICY "Users can delete their own likes." ON public.likes FOR DELETE USING (auth.uid() = user_id);
+-- Likes
+DROP POLICY IF EXISTS "Likes are viewable by everyone." ON public.likes;
+DROP POLICY IF EXISTS "Users can insert their own likes." ON public.likes;
+DROP POLICY IF EXISTS "Users can delete their own likes." ON public.likes;
+CREATE POLICY "Likes are viewable by everyone." ON public.likes FOR SELECT USING (true);
+CREATE POLICY "Users can insert their own likes." ON public.likes FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own likes." ON public.likes FOR DELETE USING (auth.uid() = user_id);
 
-    CREATE POLICY "Comments are viewable by everyone." ON public.comments FOR SELECT USING (true);
-    CREATE POLICY "Users can insert their own comments." ON public.comments FOR INSERT WITH CHECK (auth.uid() = user_id);
-    CREATE POLICY "Users can delete their own comments." ON public.comments FOR DELETE USING (
-      auth.uid() = user_id OR 
-      auth.uid() IN (SELECT user_id FROM public.posts WHERE id = post_id) OR
-      auth.uid() IN (SELECT user_id FROM public.reels WHERE id = reel_id)
-    );
+-- Comments
+DROP POLICY IF EXISTS "Comments are viewable by everyone." ON public.comments;
+DROP POLICY IF EXISTS "Users can insert their own comments." ON public.comments;
+DROP POLICY IF EXISTS "Users can delete their own comments." ON public.comments;
+CREATE POLICY "Comments are viewable by everyone." ON public.comments FOR SELECT USING (true);
+CREATE POLICY "Users can insert their own comments." ON public.comments FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own comments." ON public.comments FOR DELETE USING (
+  auth.uid() = user_id OR 
+  auth.uid() IN (SELECT user_id FROM public.posts WHERE id = post_id) OR
+  auth.uid() IN (SELECT user_id FROM public.reels WHERE id = reel_id)
+);
 
-    CREATE POLICY "Follows are viewable by everyone." ON public.follows FOR SELECT USING (true);
-    CREATE POLICY "Users can follow others." ON public.follows FOR INSERT WITH CHECK (auth.uid() = follower_id);
-    CREATE POLICY "Users can unfollow others." ON public.follows FOR DELETE USING (auth.uid() = follower_id);
+-- Follows
+DROP POLICY IF EXISTS "Follows are viewable by everyone." ON public.follows;
+DROP POLICY IF EXISTS "Users can follow others." ON public.follows;
+DROP POLICY IF EXISTS "Users can unfollow others." ON public.follows;
+CREATE POLICY "Follows are viewable by everyone." ON public.follows FOR SELECT USING (true);
+CREATE POLICY "Users can follow others." ON public.follows FOR INSERT WITH CHECK (auth.uid() = follower_id);
+CREATE POLICY "Users can unfollow others." ON public.follows FOR DELETE USING (auth.uid() = follower_id);
 
-    CREATE POLICY "Stories are viewable by everyone." ON public.stories FOR SELECT USING (true);
-    CREATE POLICY "Users can insert their own stories." ON public.stories FOR INSERT WITH CHECK (auth.uid() = user_id);
-    CREATE POLICY "Users can delete their own stories." ON public.stories FOR DELETE USING (auth.uid() = user_id);
+-- Stories
+DROP POLICY IF EXISTS "Stories are viewable by everyone." ON public.stories;
+DROP POLICY IF EXISTS "Users can insert their own stories." ON public.stories;
+DROP POLICY IF EXISTS "Users can delete their own stories." ON public.stories;
+CREATE POLICY "Stories are viewable by everyone." ON public.stories FOR SELECT USING (true);
+CREATE POLICY "Users can insert their own stories." ON public.stories FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own stories." ON public.stories FOR DELETE USING (auth.uid() = user_id);
 
-    CREATE POLICY "Users can view their own messages." ON public.messages FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
-    CREATE POLICY "Users can send messages." ON public.messages FOR INSERT WITH CHECK (auth.uid() = sender_id);
-    CREATE POLICY "Users can update their own messages." ON public.messages FOR UPDATE USING (auth.uid() = sender_id);
-    CREATE POLICY "Users can delete their own messages." ON public.messages FOR DELETE USING (auth.uid() = sender_id);
+-- Messages
+DROP POLICY IF EXISTS "Users can view their own messages." ON public.messages;
+DROP POLICY IF EXISTS "Users can send messages." ON public.messages;
+DROP POLICY IF EXISTS "Users can update their own messages." ON public.messages;
+DROP POLICY IF EXISTS "Users can delete their own messages." ON public.messages;
+CREATE POLICY "Users can view their own messages." ON public.messages FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
+CREATE POLICY "Users can send messages." ON public.messages FOR INSERT WITH CHECK (auth.uid() = sender_id);
+CREATE POLICY "Users can update their own messages." ON public.messages FOR UPDATE USING (auth.uid() = sender_id);
+CREATE POLICY "Users can delete their own messages." ON public.messages FOR DELETE USING (auth.uid() = sender_id);
 
-    CREATE POLICY "Users can view their own notifications." ON public.notifications FOR SELECT USING (auth.uid() = user_id);
-    CREATE POLICY "Users can create notifications they triggered." ON public.notifications FOR INSERT WITH CHECK (auth.uid() = actor_id);
+-- Notifications
+DROP POLICY IF EXISTS "Users can view their own notifications." ON public.notifications;
+DROP POLICY IF EXISTS "Users can create notifications they triggered." ON public.notifications;
+CREATE POLICY "Users can view their own notifications." ON public.notifications FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can create notifications they triggered." ON public.notifications FOR INSERT WITH CHECK (auth.uid() = actor_id);
 
-    CREATE POLICY "Users can view their own saves" ON public.saves FOR SELECT USING (auth.uid() = user_id);
-    CREATE POLICY "Users can save posts" ON public.saves FOR INSERT WITH CHECK (auth.uid() = user_id);
-    CREATE POLICY "Users can unsave posts" ON public.saves FOR DELETE USING (auth.uid() = user_id);
+-- Saves
+DROP POLICY IF EXISTS "Users can view their own saves" ON public.saves;
+DROP POLICY IF EXISTS "Users can save posts" ON public.saves;
+DROP POLICY IF EXISTS "Users can unsave posts" ON public.saves;
+CREATE POLICY "Users can view their own saves" ON public.saves FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can save posts" ON public.saves FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can unsave posts" ON public.saves FOR DELETE USING (auth.uid() = user_id);
 
-    CREATE POLICY "Tags are viewable by everyone" ON public.post_tags FOR SELECT USING (true);
-    CREATE POLICY "Post owners can tag users" ON public.post_tags FOR INSERT WITH CHECK (auth.uid() IN (SELECT user_id FROM public.posts WHERE id = post_id));
-    CREATE POLICY "Post owners or tagged users can remove tags" ON public.post_tags FOR DELETE USING (auth.uid() IN (SELECT user_id FROM public.posts WHERE id = post_id) OR auth.uid() = user_id);
+-- Post Tags
+DROP POLICY IF EXISTS "Tags are viewable by everyone" ON public.post_tags;
+DROP POLICY IF EXISTS "Post owners can tag users" ON public.post_tags;
+DROP POLICY IF EXISTS "Post owners or tagged users can remove tags" ON public.post_tags;
+CREATE POLICY "Tags are viewable by everyone" ON public.post_tags FOR SELECT USING (true);
+CREATE POLICY "Post owners can tag users" ON public.post_tags FOR INSERT WITH CHECK (auth.uid() IN (SELECT user_id FROM public.posts WHERE id = post_id));
+CREATE POLICY "Post owners or tagged users can remove tags" ON public.post_tags FOR DELETE USING (auth.uid() IN (SELECT user_id FROM public.posts WHERE id = post_id) OR auth.uid() = user_id);
 
-EXCEPTION
-    WHEN duplicate_object THEN
-        NULL;
-END
-$$;
+-- Comment Likes
+DROP POLICY IF EXISTS "Comment likes are viewable by everyone" ON public.comment_likes;
+DROP POLICY IF EXISTS "Users can like comments" ON public.comment_likes;
+DROP POLICY IF EXISTS "Users can unlike comments" ON public.comment_likes;
+CREATE POLICY "Comment likes are viewable by everyone" ON public.comment_likes FOR SELECT USING (true);
+CREATE POLICY "Users can like comments" ON public.comment_likes FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can unlike comments" ON public.comment_likes FOR DELETE USING (auth.uid() = user_id);
 
 INSERT INTO storage.buckets (id, name, public)
 VALUES
@@ -311,35 +352,51 @@ VALUES
   ('audio-messages', 'audio-messages', true)
 ON CONFLICT (id) DO UPDATE SET public = excluded.public;
 
-DO $$
-BEGIN
-    CREATE POLICY "Avatar images are publicly accessible." ON storage.objects FOR SELECT USING ( bucket_id = 'avatars' );
-    CREATE POLICY "Anyone can upload an avatar." ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'avatars' AND auth.role() = 'authenticated' );
-    CREATE POLICY "Anyone can update their own avatar." ON storage.objects FOR UPDATE USING ( bucket_id = 'avatars' AND auth.uid() = owner );
+-- Storage Policies
 
-    CREATE POLICY "Post images are publicly accessible." ON storage.objects FOR SELECT USING ( bucket_id = 'posts' );
-    CREATE POLICY "Anyone can upload a post image." ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'posts' AND auth.role() = 'authenticated' );
-    CREATE POLICY "Anyone can delete their own post image." ON storage.objects FOR DELETE USING ( bucket_id = 'posts' AND auth.uid() = owner );
+-- Avatars
+DROP POLICY IF EXISTS "Avatar images are publicly accessible." ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can upload an avatar." ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can update their own avatar." ON storage.objects;
+CREATE POLICY "Avatar images are publicly accessible." ON storage.objects FOR SELECT USING ( bucket_id = 'avatars' );
+CREATE POLICY "Anyone can upload an avatar." ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'avatars' AND auth.role() = 'authenticated' );
+CREATE POLICY "Anyone can update their own avatar." ON storage.objects FOR UPDATE USING ( bucket_id = 'avatars' AND auth.uid() = owner );
 
-    CREATE POLICY "Story images are publicly accessible." ON storage.objects FOR SELECT USING ( bucket_id = 'stories' );
-    CREATE POLICY "Anyone can upload a story." ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'stories' AND auth.role() = 'authenticated' );
-    CREATE POLICY "Anyone can delete their own story." ON storage.objects FOR DELETE USING ( bucket_id = 'stories' AND auth.uid() = owner );
+-- Posts
+DROP POLICY IF EXISTS "Post images are publicly accessible." ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can upload a post image." ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can delete their own post image." ON storage.objects;
+CREATE POLICY "Post images are publicly accessible." ON storage.objects FOR SELECT USING ( bucket_id = 'posts' );
+CREATE POLICY "Anyone can upload a post image." ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'posts' AND auth.role() = 'authenticated' );
+CREATE POLICY "Anyone can delete their own post image." ON storage.objects FOR DELETE USING ( bucket_id = 'posts' AND auth.uid() = owner );
 
-    CREATE POLICY "Reel videos are publicly accessible." ON storage.objects FOR SELECT USING ( bucket_id = 'reels' );
-    CREATE POLICY "Anyone can upload a reel." ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'reels' AND auth.role() = 'authenticated' );
+-- Stories
+DROP POLICY IF EXISTS "Story images are publicly accessible." ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can upload a story." ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can delete their own story." ON storage.objects;
+CREATE POLICY "Story images are publicly accessible." ON storage.objects FOR SELECT USING ( bucket_id = 'stories' );
+CREATE POLICY "Anyone can upload a story." ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'stories' AND auth.role() = 'authenticated' );
+CREATE POLICY "Anyone can delete their own story." ON storage.objects FOR DELETE USING ( bucket_id = 'stories' AND auth.uid() = owner );
 
-    CREATE POLICY "Public Access for Messages" ON storage.objects FOR SELECT USING (bucket_id = 'messages');
-    CREATE POLICY "Users can upload message attachments." ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'messages' AND auth.role() = 'authenticated' );
+-- Reels
+DROP POLICY IF EXISTS "Reel videos are publicly accessible." ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can upload a reel." ON storage.objects;
+CREATE POLICY "Reel videos are publicly accessible." ON storage.objects FOR SELECT USING ( bucket_id = 'reels' );
+CREATE POLICY "Anyone can upload a reel." ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'reels' AND auth.role() = 'authenticated' );
 
-    CREATE POLICY "Public Access for Audio" ON storage.objects FOR SELECT USING (bucket_id = 'audio-messages');
-    CREATE POLICY "Authenticated users can upload audio" ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'audio-messages' AND auth.role() = 'authenticated' );
-    CREATE POLICY "Users can delete their own audio" ON storage.objects FOR DELETE USING ( bucket_id = 'audio-messages' AND auth.uid() = owner );
+-- Messages
+DROP POLICY IF EXISTS "Public Access for Messages" ON storage.objects;
+DROP POLICY IF EXISTS "Users can upload message attachments." ON storage.objects;
+CREATE POLICY "Public Access for Messages" ON storage.objects FOR SELECT USING (bucket_id = 'messages');
+CREATE POLICY "Users can upload message attachments." ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'messages' AND auth.role() = 'authenticated' );
 
-EXCEPTION
-    WHEN duplicate_object THEN
-        NULL;
-END
-$$;
+-- Audio Messages
+DROP POLICY IF EXISTS "Public Access for Audio" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can upload audio" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own audio" ON storage.objects;
+CREATE POLICY "Public Access for Audio" ON storage.objects FOR SELECT USING (bucket_id = 'audio-messages');
+CREATE POLICY "Authenticated users can upload audio" ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'audio-messages' AND auth.role() = 'authenticated' );
+CREATE POLICY "Users can delete their own audio" ON storage.objects FOR DELETE USING ( bucket_id = 'audio-messages' AND auth.uid() = owner );
 
 CREATE INDEX IF NOT EXISTS idx_profiles_is_online ON public.profiles(is_online);
 CREATE INDEX IF NOT EXISTS idx_profiles_last_seen ON public.profiles(last_seen DESC);

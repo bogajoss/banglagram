@@ -4,26 +4,26 @@ import type { User } from "../../types";
 import { useGetSuggestedUsers } from "../../hooks/queries/useGetSuggestedUsers";
 import { useAuth } from "../../hooks/useAuth";
 import { supabase } from "../../lib/supabaseClient";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
+import { useAppStore } from "../../store/useAppStore";
 
 interface ShareModalProps {
   onClose: () => void;
-  theme: string;
-  showToast: (msg: string) => void;
-  glassModal: string;
   shareUrl?: string;
 }
 
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
-import { useNavigate } from "react-router-dom";
-
 const ShareModal: React.FC<ShareModalProps> = ({
   onClose,
-  theme,
-  showToast,
-  glassModal,
   shareUrl,
 }) => {
+  const { showToast } = useAppStore();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const { data: suggestedUsers = [] } = useGetSuggestedUsers(authUser?.id);
@@ -69,132 +69,111 @@ const ShareModal: React.FC<ShareModalProps> = ({
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
-  // If searching, use searchResults, otherwise use suggestedUsers
   const users = searchQuery.trim() ? searchResults : (suggestedUsers.slice(0, 8) as User[]);
 
   return (
-    <div
-      className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4 animate-fade-in"
-      onClick={onClose}
-    >
-      <div
-        className={`w-full max-w-md rounded-xl overflow-hidden shadow-2xl ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div
-          className={`p-3 border-b text-center font-bold relative ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
-        >
-          Share
-          <X
-            className="absolute right-3 top-3 cursor-pointer"
-            onClick={onClose}
-          />
-        </div>
-        <div
-          className={`p-4 border-b ${theme === "dark" ? "border-zinc-700/50" : "border-zinc-200"}`}
-        >
-          <div
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg ${theme === "dark" ? "bg-[#262626]" : "bg-gray-100"}`}
-          >
-            <Search size={18} className="text-[#8e8e8e]" />
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-none outline-none text-sm w-full"
-            />
-            {searchQuery && (
-              <X
-                size={18}
-                className="cursor-pointer text-[#8e8e8e]"
-                onClick={() => setSearchQuery("")}
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md p-0 overflow-hidden border-none rounded-xl">
+        <div className="bg-background text-foreground">
+          <DialogHeader className="p-3 border-b text-center relative">
+            <DialogTitle className="text-center font-bold">Share</DialogTitle>
+          </DialogHeader>
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted">
+              <Search size={18} className="text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-transparent border-none outline-none text-sm w-full"
               />
-            )}
+              {searchQuery && (
+                <X
+                  size={18}
+                  className="cursor-pointer text-muted-foreground"
+                  onClick={() => setSearchQuery("")}
+                />
+              )}
+            </div>
           </div>
-        </div>
-        <div className="h-64 overflow-y-auto p-2">
-          {isSearching ? (
-            <div className="p-4 text-center text-sm text-gray-500">
-              Searching...
-            </div>
-          ) : users.length === 0 ? (
-            <div className="p-4 text-center text-sm text-gray-500">
-              No results found
-            </div>
-          ) : (
-            users.map((user, idx) => (
-              <div
-                key={idx}
-                className={`flex items-center justify-between p-2 rounded-lg ${theme === "dark" ? "hover:bg-white/5" : "hover:bg-black/5"} cursor-pointer transition-colors`}
-              >
-                <div
-                  className="flex items-center gap-3 flex-grow"
-                  onClick={() => {
-                    onClose();
-                    navigate(`/profile/${user.username}`);
-                  }}
-                >
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage src={user.avatar} />
-                    <AvatarFallback>{user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold">{user.username}</span>
-                    <span className="text-xs opacity-70">
-                      {user.name || user.username}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  className={`px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#006a4e] text-white hover:bg-[#00523c] transition-colors`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    showToast(`Sent to ${user.username}`);
-                    onClose();
-                  }}
-                >
-                  Send
-                </button>
+          <div className="h-64 overflow-y-auto p-2">
+            {isSearching ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                Searching...
               </div>
-            )))}
-        </div>
-        <div
-          className={`p-4 border-t ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"} flex gap-4 overflow-x-auto`}
-        >
-          <div
-            className="flex flex-col items-center gap-1 cursor-pointer min-w-[60px]"
-            onClick={() => {
-              const url = shareUrl || window.location.href;
-              navigator.clipboard.writeText(url);
-              showToast("Link copied");
-              onClose();
-            }}
-          >
-            <div
-              className={`w-12 h-12 rounded-full border flex items-center justify-center ${theme === "dark" ? "border-zinc-700 bg-black" : "border-gray-300 bg-white"}`}
-            >
-              <Copy size={20} />
-            </div>
-            <span className="text-xs">Copy Link</span>
+            ) : users.length === 0 ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                No results found
+              </div>
+            ) : (
+              users.map((user, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-2 rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                >
+                  <div
+                    className="flex items-center gap-3 flex-grow"
+                    onClick={() => {
+                      onClose();
+                      navigate(`/profile/${user.username}`);
+                    }}
+                  >
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={user.avatar} />
+                      <AvatarFallback>{user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold">{user.username}</span>
+                      <span className="text-xs opacity-70">
+                        {user.name || user.username}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    className="px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#006a4e] text-white hover:bg-[#00523c] transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      showToast(`Sent to ${user.username}`);
+                      onClose();
+                    }}
+                  >
+                    Send
+                  </button>
+                </div>
+              )))}
           </div>
-          <div
-            className="flex flex-col items-center gap-1 cursor-pointer min-w-[60px]"
-            onClick={() => {
-              showToast("Added to your story");
-              onClose();
-            }}
-          >
+          <div className="p-4 border-t border-border flex gap-4 overflow-x-auto">
             <div
-              className={`w-12 h-12 rounded-full border flex items-center justify-center ${theme === "dark" ? "border-zinc-700 bg-black" : "border-gray-300 bg-white"}`}
+              className="flex flex-col items-center gap-1 cursor-pointer min-w-[60px]"
+              onClick={() => {
+                const url = shareUrl || window.location.href;
+                navigator.clipboard.writeText(url);
+                showToast("Link copied");
+                onClose();
+              }}
             >
-              <PlusSquare size={20} />
+              <div className="w-12 h-12 rounded-full border border-border flex items-center justify-center bg-background">
+                <Copy size={20} />
+              </div>
+              <span className="text-xs">Copy Link</span>
             </div>
-            <span className="text-xs">Add to story</span>
+            <div
+              className="flex flex-col items-center gap-1 cursor-pointer min-w-[60px]"
+              onClick={() => {
+                showToast("Added to your story");
+                onClose();
+              }}
+            >
+              <div className="w-12 h-12 rounded-full border border-border flex items-center justify-center bg-background">
+                <PlusSquare size={20} />
+              </div>
+              <span className="text-xs">Add to story</span>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

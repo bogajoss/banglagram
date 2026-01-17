@@ -1,30 +1,52 @@
 import React, { useState } from "react";
-import { X } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
-import { motion } from "framer-motion";
 import { useUpdateProfile } from "../../hooks/mutations/useUpdateProfile";
 import { useAuth } from "../../hooks/useAuth";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
+const profileSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(50),
+  bio: z.string().max(160, "Bio must be less than 160 characters").optional(),
+});
+
+type ProfileFormValues = z.infer<typeof profileSchema>;
 
 const EditProfileModal: React.FC = () => {
-  const { currentUser, theme, setEditProfileOpen } = useAppStore();
+  const { currentUser, isEditProfileOpen, setEditProfileOpen } = useAppStore();
   const { user } = useAuth();
   const { mutate: updateProfileMutation, isPending } = useUpdateProfile();
 
-  const glassModal =
-    theme === "dark"
-      ? "bg-[#121212]/90 backdrop-blur-2xl border border-white/10"
-      : "bg-white/90 backdrop-blur-2xl border border-black/10";
-
-  const [name, setName] = useState(currentUser.name);
-  const [bio, setBio] = useState(currentUser.bio);
   const [avatar, setAvatar] = useState(currentUser.avatar);
+
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      name: currentUser.name,
+      bio: currentUser.bio || "",
+    },
+  });
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -36,13 +58,13 @@ const EditProfileModal: React.FC = () => {
 
   const onClose = () => setEditProfileOpen(false);
 
-  const handleSave = () => {
+  const onSubmit = (values: ProfileFormValues) => {
     if (!user) return;
     updateProfileMutation(
       {
         userId: user.id,
-        name,
-        bio: bio || "",
+        name: values.name,
+        bio: values.bio || "",
         avatar,
       },
       {
@@ -54,41 +76,24 @@ const EditProfileModal: React.FC = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 50, opacity: 0 }}
-        className={`w-full max-w-md rounded-xl overflow-hidden shadow-2xl ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div
-          className={`p-4 border-b font-bold flex justify-between items-center ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
-        >
-          <span>Edit Profile</span>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-        <div className="p-6 flex flex-col gap-4">
-          <div
-            className={`flex items-center gap-4 p-4 rounded-lg ${theme === "dark" ? "bg-white/5" : "bg-black/5"}`}
-          >
+    <Dialog open={isEditProfileOpen} onOpenChange={setEditProfileOpen}>
+      <DialogContent className="max-w-md p-0 overflow-hidden border-none sm:rounded-xl">
+        <DialogHeader className="p-4 border-b">
+          <DialogTitle className="text-center font-bold">Edit Profile</DialogTitle>
+        </DialogHeader>
+        <div className="p-6 flex flex-col gap-4 bg-background text-foreground">
+          <div className="flex items-center gap-4 p-4 rounded-lg bg-muted">
             <Avatar className="w-16 h-16">
               <AvatarImage src={avatar} />
-              <AvatarFallback>{currentUser.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+              <AvatarFallback>
+                {currentUser.username?.[0]?.toUpperCase() || "?"}
+              </AvatarFallback>
             </Avatar>
             <div>
               <div className="font-semibold text-lg">
                 {currentUser.username}
               </div>
-              <label className="text-[#006a4e] text-sm font-bold cursor-pointer hover:underline">
+              <label className="text-primary text-sm font-bold cursor-pointer hover:underline">
                 Change profile photo
                 <input
                   type="file"
@@ -100,36 +105,54 @@ const EditProfileModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Name</Label>
-              <Input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="bg-transparent"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} className="bg-transparent" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label>Bio</Label>
-              <Textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className="bg-transparent h-24 resize-none"
+              <FormField
+                control={form.control}
+                name="bio"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bio</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        className="bg-transparent h-24 resize-none"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <Button
-              onClick={handleSave}
-              disabled={isPending}
-              className="w-full bg-[#006a4e] hover:bg-[#00523c] text-white font-bold"
-            >
-              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save"}
-            </Button>
-          </div>
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full bg-[#006a4e] hover:bg-[#00523c] text-white font-bold"
+              >
+                {isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  "Save"
+                )}
+              </Button>
+            </form>
+          </Form>
         </div>
-      </motion.div>
-    </motion.div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

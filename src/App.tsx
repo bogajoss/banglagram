@@ -35,12 +35,7 @@ import { Toaster } from "@/components/ui/sonner";
 export default function App() {
   const {
     theme,
-
-    isCreateModalOpen,
-    isEditProfileOpen,
     viewingStory,
-    viewingPost,
-    viewingReel,
     setCurrentUser,
     setUnreadNotificationsCount,
     showToast,
@@ -151,7 +146,6 @@ export default function App() {
           <div
             className="min-h-screen flex items-center justify-center bg-background"
           >
-
             <img
               src="/icon.png"
               className="w-20 h-20 animate-pulse"
@@ -169,17 +163,13 @@ export default function App() {
     <>
       <Toaster />
 
-      <AnimatePresence>{isCreateModalOpen && <CreateModal />}</AnimatePresence>
-      <AnimatePresence>
-        {isEditProfileOpen && <EditProfileModal />}
-      </AnimatePresence>
+      {/* Modals rendered unconditionally as they manage their own Dialog state */}
+      <CreateModal />
+      <EditProfileModal />
+      <PostDetailsModal />
+
       <AnimatePresence>
         {viewingStory !== null && <StoryViewer />}
-      </AnimatePresence>
-      <AnimatePresence>
-        {(viewingPost !== null || viewingReel !== null) && (
-          <PostDetailsModal key={viewingPost?.id || viewingReel?.id} />
-        )}
       </AnimatePresence>
 
       <AnimatePresence mode="wait">

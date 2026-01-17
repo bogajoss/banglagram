@@ -39,6 +39,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import VerifiedBadge from "../components/VerifiedBadge";
 import { UserStatus } from "../components/UserStatus";
 import { TypingIndicator } from "../components/TypingIndicator";
+import { cn } from "@/lib/utils";
 
 type DbMessage = Database["public"]["Tables"]["messages"]["Row"];
 
@@ -46,7 +47,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { useGetProfile } from "../hooks/queries/useGetProfile";
 
 const MessagesView: React.FC = () => {
-  const { theme, showToast } = useAppStore();
+  const { showToast } = useAppStore();
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -77,8 +78,8 @@ const MessagesView: React.FC = () => {
   const [showRecorder, setShowRecorder] = useState(false);
 
 
-  const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
-  const bgHover = theme === "dark" ? "hover:bg-zinc-900" : "hover:bg-gray-100";
+  const borderClass = "border-border";
+  const bgHover = "hover:bg-muted";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -397,10 +398,13 @@ const MessagesView: React.FC = () => {
     <div className="w-full flex h-full md:h-[calc(100vh-2rem)] md:pt-4 md:pb-4 md:px-4 flex-col md:flex-row">
       {/* Sidebar List */}
       <div
-        className={`w-full h-full md:border ${borderClass} rounded-lg flex overflow-hidden relative shadow-lg`}
+        className="w-full h-full md:border border-border rounded-lg flex overflow-hidden relative shadow-lg"
       >
         <div
-          className={`w-full md:w-[397px] border-r ${borderClass} flex flex-col absolute md:relative inset-0 z-10 ${theme === "dark" ? "bg-black" : "bg-white"} ${selectedUser ? "hidden md:flex" : "flex"}`}
+          className={cn(
+            "w-full md:w-[397px] border-r border-border flex flex-col absolute md:relative inset-0 z-10 bg-background",
+            selectedUser ? "hidden md:flex" : "flex"
+          )}
         >
           <div
             className={`h-[75px] px-5 flex items-center justify-between border-b ${borderClass} shrink-0`}
@@ -422,20 +426,20 @@ const MessagesView: React.FC = () => {
 
           <div className="px-5 py-4 shrink-0">
             <div
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg ${theme === "dark" ? "bg-[#262626]" : "bg-gray-100"}`}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted"
             >
-              <Search size={16} className="text-[#8e8e8e]" />
+              <Search size={16} className="text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent border-none outline-none text-sm w-full placeholder-[#8e8e8e]"
+                className="bg-transparent border-none outline-none text-sm w-full placeholder-muted-foreground text-foreground"
               />
               {searchQuery && (
                 <X
                   size={16}
-                  className="cursor-pointer text-[#8e8e8e]"
+                  className="cursor-pointer text-muted-foreground"
                   onClick={() => setSearchQuery("")}
                 />
               )}
@@ -467,13 +471,13 @@ const MessagesView: React.FC = () => {
                         <AvatarImage src={u.avatar} />
                         <AvatarFallback>{u.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
                       </Avatar>
-                      <div className="flex-grow min-w-0">
+                      <div className="flex-grow min-w-0 text-foreground">
                         <div className="text-sm truncate font-bold flex items-center gap-1">
                           {u.username}
                           {u.isVerified && <VerifiedBadge />}
                         </div>
                         <div
-                          className={`text-xs truncate ${theme === "dark" ? "text-[#a8a8a8]" : "text-gray-500"}`}
+                          className="text-xs truncate text-muted-foreground"
                         >
                           {u.name}
                         </div>
@@ -488,23 +492,27 @@ const MessagesView: React.FC = () => {
                 <div
                   key={u.username}
                   onClick={() => handleSelectUser(u)}
-                  className={`flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors ${bgHover} ${selectedUser?.username === u.username ? (theme === "dark" ? "bg-zinc-900" : "bg-gray-100") : ""}`}
+                  className={cn(
+                    "flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors hover:bg-muted",
+                    selectedUser?.username === u.username && "bg-muted"
+                  )}
                 >
                   <Avatar className="relative flex-shrink-0 w-14 h-14">
                     <AvatarImage src={u.avatar} />
                     <AvatarFallback>{u.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
                   </Avatar>
-                  <div className="flex-grow min-w-0">
+                  <div className="flex-grow min-w-0 text-foreground">
                     <div className="text-sm truncate font-bold flex items-center gap-1">
                       {u.username}
                       {u.isVerified && <VerifiedBadge />}
                     </div>
                     <div
-                      className={`text-xs truncate ${
+                      className={cn(
+                        "text-xs truncate",
                         !u.isRead && u.lastSenderId !== user?.id
-                          ? theme === "dark" ? "text-white font-bold" : "text-black font-bold"
-                          : theme === "dark" ? "text-[#a8a8a8]" : "text-gray-500"
-                      }`}
+                          ? "text-foreground font-bold"
+                          : "text-muted-foreground"
+                      )}
                     >
                       {u.lastSenderId === user?.id ? "You: " : ""}{u.lastMessage || "Attachment"}
                     </div>
@@ -528,7 +536,10 @@ const MessagesView: React.FC = () => {
 
         {/* Chat Area */}
         <div
-          className={`w-full flex-grow flex flex-col absolute md:relative inset-0 z-20 ${theme === "dark" ? "bg-black" : "bg-white"} ${!selectedUser ? "hidden md:flex" : "flex"}`}
+          className={cn(
+            "w-full flex-grow flex flex-col absolute md:relative inset-0 z-20 bg-background",
+            !selectedUser ? "hidden md:flex" : "flex"
+          )}
         >
           {selectedUser ? (
             <>
@@ -576,59 +587,62 @@ const MessagesView: React.FC = () => {
                 </div>
               </div>
               <div className="flex-grow flex flex-col p-4 gap-4 overflow-y-auto">
-                {hasNextPage && (
-                  <div className="flex justify-center py-2">
-                    <button
-                      onClick={() => fetchNextPage()}
-                      disabled={isFetchingNextPage}
-                      className="text-xs text-[#006a4e] font-bold py-1 px-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-                    >
-                      {isFetchingNextPage ? "Loading..." : "See older messages"}
-                    </button>
-                  </div>
-                )}
-
-                {messages.map((msg: DbMessage, idx: number) => (
-
-                  <div
-                    key={msg.id || idx}
-                    className={`flex flex-col gap-1 max-w-[85%] ${msg.sender_id === user?.id ? "self-end items-end" : "self-start items-start"}`}
-                  >
-                    {msg.media_url && (
-                      <div className="rounded-2xl overflow-hidden mb-1 border border-zinc-800">
-                        {msg.media_url.endsWith(".webm") ? (
-                          <AudioPlayer src={msg.media_url.includes("/storage/v1/object/messages/") && !msg.media_url.includes("/storage/v1/object/public/")
-                            ? msg.media_url.replace("/storage/v1/object/messages/", "/storage/v1/object/public/messages/")
-                            : msg.media_url}
-                            theme={theme}
-                          />
-                        ) : (
-                          <img
-                            src={msg.media_url.includes("/storage/v1/object/messages/") && !msg.media_url.includes("/storage/v1/object/public/")
-                              ? msg.media_url.replace("/storage/v1/object/messages/", "/storage/v1/object/public/messages/")
-                              : msg.media_url}
-                            className="max-w-full h-auto max-h-[300px] object-cover"
-                            alt="Shared image"
-                            loading="lazy"
-                          />
-                        )}
-                      </div>
-                    )}
-
-                    {msg.content && (
-                      <div
-                        className={`rounded-2xl px-4 py-2 text-sm ${msg.sender_id === user?.id ? "bg-[#006a4e] text-white" : theme === "dark" ? "bg-[#262626] text-white" : "bg-gray-200 text-black"}`}
-                      >
-                        {msg.content}
-                      </div>
-                    )}
-                    {msg.sender_id === user?.id && (
-                      <div className="text-[10px] text-gray-500 flex items-center gap-1">
-                        {msg.is_read ? <CheckCheck size={12} className="text-blue-500" /> : <Check size={12} />}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                                    {hasNextPage && (
+                                      <div className="flex justify-center py-2">
+                                        <button
+                                          onClick={() => fetchNextPage()}
+                                          disabled={isFetchingNextPage}
+                                          className="text-xs text-[#006a4e] font-bold py-1 px-3 rounded-full bg-muted hover:bg-accent transition-colors"
+                                        >
+                                          {isFetchingNextPage ? "Loading..." : "See older messages"}
+                                        </button>
+                                      </div>
+                                    )}
+                
+                                    {messages.map((msg: DbMessage, idx: number) => (
+                
+                                      <div
+                                        key={msg.id || idx}
+                                        className={`flex flex-col gap-1 max-w-[85%] ${msg.sender_id === user?.id ? "self-end items-end" : "self-start items-start"}`}
+                                      >
+                                        {msg.media_url && (
+                                          <div className="rounded-2xl overflow-hidden mb-1 border border-border">
+                                            {msg.media_url.endsWith(".webm") ? (
+                                              <AudioPlayer src={msg.media_url.includes("/storage/v1/object/messages/") && !msg.media_url.includes("/storage/v1/object/public/")
+                                                ? msg.media_url.replace("/storage/v1/object/messages/", "/storage/v1/object/public/messages/")
+                                                : msg.media_url}
+                                              />
+                                            ) : (
+                                              <img
+                                                src={msg.media_url.includes("/storage/v1/object/messages/") && !msg.media_url.includes("/storage/v1/object/public/")
+                                                  ? msg.media_url.replace("/storage/v1/object/messages/", "/storage/v1/object/public/messages/")
+                                                  : msg.media_url}
+                                                className="max-w-full h-auto max-h-[300px] object-cover"
+                                                alt="Shared image"
+                                                loading="lazy"
+                                              />
+                                            )}
+                                          </div>
+                                        )}
+                
+                                        {msg.content && (
+                                          <div
+                                            className={cn(
+                                              "rounded-2xl px-4 py-2 text-sm",
+                                              msg.sender_id === user?.id ? "bg-[#006a4e] text-white" : "bg-muted text-foreground"
+                                            )}
+                                          >
+                                            {msg.content}
+                                          </div>
+                                        )}
+                                        {msg.sender_id === user?.id && (
+                                          <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                            {msg.is_read ? <CheckCheck size={12} className="text-blue-500" /> : <Check size={12} />}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                
                 <div ref={messagesEndRef} />
               </div>
               <div className="p-4 shrink-0 relative">
@@ -639,7 +653,7 @@ const MessagesView: React.FC = () => {
                     className="absolute bottom-20 left-4 z-50 shadow-2xl"
                   >
                     <EmojiPicker
-                      theme={theme === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT}
+                      theme={document.documentElement.classList.contains("dark") ? EmojiTheme.DARK : EmojiTheme.LIGHT}
                       onEmojiClick={handleEmojiClick}
                       lazyLoadEmojis={true}
                       skinTonesDisabled={true}
@@ -656,7 +670,7 @@ const MessagesView: React.FC = () => {
                 )}
 
                 {showRecorder ? (
-                  <div className={`p-2 border ${borderClass} rounded-[24px] ${theme === "dark" ? "bg-black" : "bg-white"}`}>
+                  <div className="p-2 border border-border rounded-[24px] bg-background">
                     <VoiceRecorder
                       onRecordingComplete={handleSendVoiceMessage}
                       onCancel={() => setShowRecorder(false)}
@@ -665,7 +679,7 @@ const MessagesView: React.FC = () => {
                 ) : (
 
                   <form
-                    className={`border ${borderClass} rounded-[24px] min-h-[44px] flex items-end gap-1 p-1 ${theme === "dark" ? "bg-black" : "bg-white"}`}
+                    className="border border-border rounded-[24px] min-h-[44px] flex items-end gap-1 p-1 bg-background"
                     onSubmit={(e) => {
                       e.preventDefault();
                       handleSendMessage();
@@ -673,7 +687,7 @@ const MessagesView: React.FC = () => {
                   >
                     {/* Emoji Button */}
                     <div
-                      className={`p-2 shrink-0 cursor-pointer transition-colors rounded-full ${theme === "dark" ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-gray-100 text-zinc-500"}`}
+                      className="p-2 shrink-0 cursor-pointer transition-colors rounded-full hover:bg-muted text-muted-foreground"
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                     >
                       <Smile size={24} />
@@ -683,7 +697,7 @@ const MessagesView: React.FC = () => {
                       <>
                         {/* Media Upload */}
                         <div
-                          className={`p-2 shrink-0 cursor-pointer transition-colors rounded-full relative overflow-hidden ${theme === "dark" ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-gray-100 text-zinc-500"}`}
+                          className="p-2 shrink-0 cursor-pointer transition-colors rounded-full relative overflow-hidden hover:bg-muted text-muted-foreground"
                         >
                           <Camera size={24} />
                           <input
@@ -698,7 +712,7 @@ const MessagesView: React.FC = () => {
 
                         {/* Voice Mic */}
                         <div
-                          className={`p-2 shrink-0 cursor-pointer transition-colors rounded-full ${theme === "dark" ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-gray-100 text-zinc-500"}`}
+                          className="p-2 shrink-0 cursor-pointer transition-colors rounded-full hover:bg-muted text-muted-foreground"
                           onClick={() => setShowRecorder(true)}
                         >
                           <Mic size={24} />
@@ -713,7 +727,7 @@ const MessagesView: React.FC = () => {
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onFocus={() => setShowEmojiPicker(false)}
-                        className={`bg-transparent border-none outline-none text-sm w-full px-2 py-1 ${theme === "dark" ? "text-white placeholder-[#a8a8a8]" : "text-black placeholder-gray-500"}`}
+                        className="bg-transparent border-none outline-none text-sm w-full px-2 py-1 text-foreground placeholder-muted-foreground"
                       />
                     </div>
 
@@ -733,13 +747,13 @@ const MessagesView: React.FC = () => {
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
+            <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8 bg-background">
               <div
-                className={`w-24 h-24 rounded-full border-2 flex items-center justify-center mb-2 ${theme === "dark" ? "border-white" : "border-black"}`}
+                className="w-24 h-24 rounded-full border-2 border-foreground flex items-center justify-center mb-2 text-foreground"
               >
                 <MessageCircle size={48} strokeWidth={1} />
               </div>
-              <div>
+              <div className="text-foreground">
                 <h2 className="text-xl font-normal mb-1">Your Messages</h2>
                 <button
                   className={`${buttonBg} text-white px-4 py-1.5 rounded-lg text-sm font-semibold`}

@@ -4,208 +4,461 @@ import { useAuth } from "../hooks/useAuth";
 import { useAppStore } from "../store/useAppStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
+const authSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  username: z.string().min(3, "Username must be at least 3 characters").optional(),
+  fullName: z.string().min(2, "Full name must be at least 2 characters").optional(),
+}).refine(() => {
+  // Add custom logic if needed, e.g. username is required for signup
+  return true;
+});
+
+
+
+type AuthFormValues = z.infer<typeof authSchema>;
+
+
+
 export default function AuthView() {
+
   const { signIn, signUp, resetPassword } = useAuth();
-  const { theme, showToast } = useAppStore();
+
+  const { showToast } = useAppStore();
+
   const [isLogin, setIsLogin] = useState(true);
+
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
-  const [fullName, setFullName] = useState("");
+
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
+
   const [isRegistrationSuccess, setIsRegistrationSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+
+
+  const form = useForm<AuthFormValues>({
+
+    resolver: zodResolver(authSchema),
+
+    defaultValues: {
+
+      email: "",
+
+      password: "",
+
+      username: "",
+
+      fullName: "",
+
+    },
+
+  });
+
+
+
+  const onSubmit = async (values: AuthFormValues) => {
+
     setLoading(true);
+
     setError(null);
+
     try {
+
       if (forgotPasswordMode) {
-        const { error: resetError } = await resetPassword(email);
+
+        const { error: resetError } = await resetPassword(values.email);
+
         if (resetError) throw resetError;
+
         showToast("Password reset link sent to your email");
+
         setForgotPasswordMode(false);
+
         setIsLogin(true);
+
       } else if (isLogin) {
-        const { error: signInError } = await signIn(email, password);
+
+        const { error: signInError } = await signIn(values.email, values.password);
+
         if (signInError) throw signInError;
+
       } else {
-        const { error: signUpError } = await signUp(email, password, {
-          username,
-          full_name: fullName,
-          avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=${username}`,
+
+        if (!values.username || !values.fullName) {
+
+          setError("Username and Full Name are required for sign up");
+
+          return;
+
+        }
+
+        const { error: signUpError } = await signUp(values.email, values.password, {
+
+          username: values.username,
+
+          full_name: values.fullName,
+
+          avatar_url: `https://api.dicebear.com/9.x/avataaars/svg?seed=${values.username}`,
+
         });
+
         if (signUpError) throw signUpError;
-        // showToast("Account created! Please log in.");
+
         setIsRegistrationSuccess(true);
+
       }
+
     } catch (err: unknown) {
+
       setError(err instanceof Error ? err.message : String(err));
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
 
-  const containerBg = theme === "dark" ? "bg-black" : "bg-gray-100";
+
 
   if (isRegistrationSuccess) {
+
     return (
+
       <div
-        className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 ${containerBg}`}
+
+        className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 bg-muted"
+
       >
 
+
+
         <Card className="w-full max-w-md shadow-2xl border-none text-center">
+
           <CardContent className="pt-6">
+
             <div className="mx-auto w-16 h-16 bg-[#006a4e]/10 rounded-full flex items-center justify-center mb-6">
+
               <Mail size={32} className="text-[#006a4e]" />
+
             </div>
+
             <h2
-              className={`text-2xl font-bold mb-2 ${theme === "dark" ? "text-white" : "text-gray-900"}`}
+
+              className="text-2xl font-bold mb-2 text-foreground"
+
             >
+
               Check your email
+
             </h2>
-            <p className={`text-sm mb-8 ${theme === "dark" ? "text-zinc-400" : "text-gray-600"}`}>
-              We have sent a verification link to{" "}
-              <span className="font-semibold text-[#006a4e]">{email}</span>.
+
+            <p className="text-sm mb-8 text-muted-foreground">
+
+              We have sent a verification link to your email.
+
               Please verify your email to continue.
+
             </p>
 
+
+
             <Button
+
               onClick={() => {
+
                 setIsRegistrationSuccess(false);
+
                 setIsLogin(true);
+
               }}
+
               className="w-full bg-[#006a4e] hover:bg-[#00523c] text-white font-bold"
+
             >
+
               Back to Login
+
             </Button>
+
           </CardContent>
+
         </Card>
+
       </div>
+
     );
+
   }
 
+
+
   return (
+
     <div
-      className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 ${containerBg}`}
+
+      className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 bg-muted"
+
     >
+
       <Card className="w-full max-w-md shadow-2xl border-none">
+
         <CardHeader className="space-y-1 flex flex-col items-center">
+
           <img src="/icon.png" alt="Banglagram Logo" className="w-16 h-16 object-contain mb-2" />
+
           <CardTitle className="text-3xl font-bold text-[#006a4e]">Banglagram</CardTitle>
+
           <CardDescription className="text-center">
+
             {forgotPasswordMode
+
               ? "Reset your password"
+
               : isLogin
+
                 ? "Log in to your account"
+
                 : "Create new account"}
+
           </CardDescription>
+
         </CardHeader>
+
         <CardContent>
 
+
+
           {error && (
-            <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-lg text-sm mb-6 text-center">
+
+            <div className="bg-destructive/10 border border-destructive/50 text-destructive p-3 rounded-lg text-sm mb-6 text-center">
+
               {error}
+
             </div>
+
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    type="text"
-                    placeholder="Provide a username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    placeholder="Your Full Name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
-                </div>
-              </>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="email@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            {!forgotPasswordMode && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  {isLogin && (
-                    <Button variant="link" className="p-0 h-auto text-xs" onClick={() => setForgotPasswordMode(true)}>
-                      Forgot Password?
-                    </Button>
-                  )}
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-            )}
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#006a4e] hover:bg-[#00523c] text-white font-bold"
-            >
-              {loading ? (
+
+          <Form {...form}>
+
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+
+              {!isLogin && (
+
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
+
+                  <FormField
+
+                    control={form.control}
+
+                    name="username"
+
+                    render={({ field }) => (
+
+                      <FormItem>
+
+                        <FormLabel>Username</FormLabel>
+
+                        <FormControl>
+
+                          <Input placeholder="Provide a username" {...field} />
+
+                        </FormControl>
+
+                        <FormMessage />
+
+                      </FormItem>
+
+                    )}
+
+                  />
+
+                  <FormField
+
+                    control={form.control}
+
+                    name="fullName"
+
+                    render={({ field }) => (
+
+                      <FormItem>
+
+                        <FormLabel>Full Name</FormLabel>
+
+                        <FormControl>
+
+                          <Input placeholder="Your Full Name" {...field} />
+
+                        </FormControl>
+
+                        <FormMessage />
+
+                      </FormItem>
+
+                    )}
+
+                  />
+
                 </>
-              ) : forgotPasswordMode ? (
-                "Reset Password"
-              ) : isLogin ? (
-                "Log In"
-              ) : (
-                "Sign Up"
+
               )}
-            </Button>
-          </form>
+
+              <FormField
+
+                control={form.control}
+
+                name="email"
+
+                render={({ field }) => (
+
+                  <FormItem>
+
+                    <FormLabel>Email</FormLabel>
+
+                    <FormControl>
+
+                      <Input placeholder="email@example.com" {...field} />
+
+                    </FormControl>
+
+                    <FormMessage />
+
+                  </FormItem>
+
+                )}
+
+              />
+
+              {!forgotPasswordMode && (
+
+                <FormField
+
+                  control={form.control}
+
+                  name="password"
+
+                  render={({ field }) => (
+
+                    <FormItem>
+
+                      <div className="flex items-center justify-between">
+
+                        <FormLabel>Password</FormLabel>
+
+                        {isLogin && (
+
+                          <Button variant="link" className="p-0 h-auto text-xs" onClick={() => setForgotPasswordMode(true)}>
+
+                            Forgot Password?
+
+                          </Button>
+
+                        )}
+
+                      </div>
+
+                      <FormControl>
+
+                        <Input type="password" placeholder="••••••••" {...field} />
+
+                      </FormControl>
+
+                      <FormMessage />
+
+                    </FormItem>
+
+                  )}
+
+                />
+
+              )}
+
+
+
+              <Button
+
+                type="submit"
+
+                disabled={loading}
+
+                className="w-full bg-[#006a4e] hover:bg-[#00523c] text-white font-bold"
+
+              >
+
+                {loading ? (
+
+                  <>
+
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+
+                    Processing...
+
+                  </>
+
+                ) : forgotPasswordMode ? (
+
+                  "Reset Password"
+
+                ) : isLogin ? (
+
+                  "Log In"
+
+                ) : (
+
+                  "Sign Up"
+
+                )}
+
+              </Button>
+
+            </form>
+
+          </Form>
+
+
 
           <div className="relative my-8">
+
             <div className="absolute inset-0 flex items-center">
+
               <span className="w-full border-t" />
+
             </div>
+
             <div className="relative flex justify-center text-xs uppercase">
-              <span className={`bg-background px-2 text-muted-foreground ${theme === "dark" ? "bg-black" : "bg-white"}`}>
+
+              <span className="bg-background px-2 text-muted-foreground">
+
                 or continue with
+
               </span>
+
             </div>
+
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+
+              <div className="grid grid-cols-2 gap-4">
             <Button variant="outline" onClick={() => showToast("Google login coming soon")} className="w-full">
               <svg viewBox="0 0 24 24" className="mr-2 h-4 w-4">
                 <path

@@ -1,28 +1,26 @@
 import React from "react";
-import { X, Bell, Lock, Shield, LogOut } from "lucide-react";
+import { Bell, Lock, Shield, LogOut } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
 import { useAuth } from "../../hooks/useAuth";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface SettingsModalProps {
   onClose: () => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
-  const { theme, showToast } = useAppStore();
+  const { showToast } = useAppStore();
   const { signOut } = useAuth();
-
-  const glassModal =
-    theme === "dark"
-      ? "bg-[#121212]/90 backdrop-blur-2xl border border-white/10"
-      : "bg-white/90 backdrop-blur-2xl border border-black/10";
 
   const handleLogout = async () => {
     await signOut();
     onClose();
-    // AuthContext handles redirect / state update
   };
 
   const handleOptionClick = (option: string) => {
@@ -30,29 +28,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className={`w-full max-w-sm rounded-xl overflow-hidden shadow-2xl ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex flex-col">
-          <div
-            className={`p-4 border-b font-bold flex justify-between items-center ${theme === "dark" ? "border-zinc-800" : "border-zinc-200"}`}
-          >
-            <span>Settings</span>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-sm p-0 overflow-hidden border-none rounded-xl">
+        <div className="flex flex-col bg-background text-foreground">
+          <DialogHeader className="p-4 border-b">
+            <DialogTitle className="text-center font-bold">Settings</DialogTitle>
+          </DialogHeader>
 
           <Button
             variant="ghost"
@@ -87,8 +68,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             <span>Log Out</span>
           </Button>
         </div>
-      </motion.div>
-    </motion.div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

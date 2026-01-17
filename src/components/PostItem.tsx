@@ -130,14 +130,6 @@ const PostItem: React.FC<PostItemProps> = memo(
       );
     };
 
-
-    const borderClass =
-      theme === "dark" ? "border-zinc-800" : "border-zinc-200";
-    const glassModal =
-      theme === "dark"
-        ? "bg-[#121212]/90 backdrop-blur-2xl border border-white/10"
-        : "bg-white/90 backdrop-blur-2xl border border-black/10";
-
     return (
       <motion.div
         ref={viewRef}
@@ -145,14 +137,12 @@ const PostItem: React.FC<PostItemProps> = memo(
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
         transition={{ duration: 0.4 }}
-        className={`border-b pb-5 mb-4 ${borderClass}`}
+        className="border-b border-border pb-5 mb-4"
       >
         {isOptionsOpen && (
           <MoreOptionsModal
             onClose={() => setIsOptionsOpen(false)}
             showToast={showToast}
-            theme={theme}
-            glassModal={glassModal}
             shareUrl={shareUrl}
             isOwner={isOwner}
             onEdit={() => setIsEditOpen(true)}
@@ -161,9 +151,6 @@ const PostItem: React.FC<PostItemProps> = memo(
         {isShareOpen && (
           <ShareModal
             onClose={() => setIsShareOpen(false)}
-            theme={theme}
-            showToast={showToast}
-            glassModal={glassModal}
             shareUrl={shareUrl}
           />
         )}
@@ -171,8 +158,6 @@ const PostItem: React.FC<PostItemProps> = memo(
           <EditPostModal
             post={post}
             onClose={() => setIsEditOpen(false)}
-            theme={theme}
-            glassModal={glassModal}
           />
         )}
 
@@ -186,12 +171,12 @@ const PostItem: React.FC<PostItemProps> = memo(
               <AvatarFallback>{post.user.username[0].toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="flex items-center gap-1 text-sm font-semibold">
-              <span className="group-hover:opacity-70 transition-opacity">
+              <span className="group-hover:opacity-70 transition-opacity text-foreground">
                 {post.user.username}
               </span>
               {post.user.isVerified && <VerifiedBadge />}
               <span
-                className={`${theme === "dark" ? "text-zinc-500" : "text-zinc-400"} font-normal`}
+                className="text-muted-foreground font-normal"
               >
                 • {post.createdAt ? dayjs(post.createdAt).fromNow(true) : post.time}
               </span>
@@ -200,14 +185,14 @@ const PostItem: React.FC<PostItemProps> = memo(
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
             <MoreHorizontal
               size={20}
-              className="cursor-pointer hover:opacity-70"
+              className="cursor-pointer hover:opacity-70 text-foreground"
               onClick={() => setIsOptionsOpen(true)}
             />
           </motion.div>
         </div>
 
         <div
-          className={`w-full ${theme === "dark" ? "bg-zinc-900" : "bg-gray-100"} md:rounded-[4px] md:border ${borderClass} overflow-hidden mb-3 aspect-square md:aspect-auto relative cursor-pointer`}
+          className="w-full bg-muted md:rounded-[4px] md:border border-border overflow-hidden mb-3 aspect-square md:aspect-auto relative cursor-pointer"
           onDoubleClick={handleDoubleClick}
         >
           <OptimizedImage
@@ -238,26 +223,26 @@ const PostItem: React.FC<PostItemProps> = memo(
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <Heart
                 size={24}
-                className={`cursor-pointer transition-colors ${liked ? "fill-[#f42a41] text-[#f42a41]" : ""}`}
+                className={`cursor-pointer transition-colors ${liked ? "fill-[#f42a41] text-[#f42a41]" : "text-foreground"}`}
                 onClick={handleLike}
               />
             </motion.div>
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <CommentIcon
                 size={24}
-                className="-scale-x-100 cursor-pointer hover:opacity-70 transition-opacity"
+                className="-scale-x-100 cursor-pointer hover:opacity-70 transition-opacity text-foreground"
                 onClick={() => onPostClick(post)}
               />
             </motion.div>
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <Send
                 size={24}
-                className="cursor-pointer hover:opacity-70 transition-opacity"
+                className="cursor-pointer hover:opacity-70 transition-opacity text-foreground"
                 onClick={() => setIsShareOpen(true)}
               />
             </motion.div>
             
-            <div className="flex items-center gap-1 ml-2 opacity-60" title="Views">
+            <div className="flex items-center gap-1 ml-2 opacity-60 text-foreground" title="Views">
                <BarChart2 size={22} className="" />
                <span className="text-sm font-medium">
                 {Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.views || 0)}
@@ -267,13 +252,13 @@ const PostItem: React.FC<PostItemProps> = memo(
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
             <Bookmark
               size={24}
-              className={`cursor-pointer hover:opacity-70 transition-all ${isSaved ? "fill-current" : ""}`}
+              className={`cursor-pointer hover:opacity-70 transition-all text-foreground ${isSaved ? "fill-current" : ""}`}
               onClick={onToggleSave}
             />
           </motion.div>
         </div>
 
-        <div className="text-sm px-3 md:px-0">
+        <div className="text-sm px-3 md:px-0 text-foreground">
           <div className="font-semibold mb-1">{post.likes} likes</div>
           <div className="mb-1">
             <span
@@ -285,12 +270,12 @@ const PostItem: React.FC<PostItemProps> = memo(
             <span className="whitespace-pre-wrap">{post.caption}</span>
           </div>
           <div
-            className={`${theme === "dark" ? "text-zinc-500" : "text-zinc-500"} cursor-pointer hover:underline`}
+            className="text-muted-foreground cursor-pointer hover:underline"
             onClick={() => onPostClick(post)}
           >
             View all {post.comments} comments
           </div>
-          <div className="text-[10px] text-zinc-500 uppercase mt-1">
+          <div className="text-[10px] text-muted-foreground uppercase mt-1">
             {post.createdAt ? dayjs(post.createdAt).fromNow() : post.time}
           </div>
 
@@ -308,7 +293,7 @@ const PostItem: React.FC<PostItemProps> = memo(
           </div>
 
           {showRecorder ? (
-            <div className="mt-2 bg-zinc-900/50 p-2 rounded-xl">
+            <div className="mt-2 bg-muted p-2 rounded-xl">
               <VoiceRecorder
                 onRecordingComplete={(blob) => handleAddComment(undefined, blob)}
                 onCancel={() => setShowRecorder(false)}
@@ -336,13 +321,13 @@ const PostItem: React.FC<PostItemProps> = memo(
 
               <Smile
                 size={20}
-                className={`cursor-pointer transition-colors ${showEmojiPicker ? "text-[#006a4e]" : "text-zinc-500 hover:text-zinc-300"}`}
+                className={`cursor-pointer transition-colors ${showEmojiPicker ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
               />
               <input
                 type="text"
                 placeholder="Add a comment..."
-                className={`bg-transparent text-sm w-full outline-none ${theme === "dark" ? "text-white" : "text-black"}`}
+                className="bg-transparent text-sm w-full outline-none text-foreground"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 onFocus={() => setShowEmojiPicker(false)}
@@ -352,14 +337,14 @@ const PostItem: React.FC<PostItemProps> = memo(
               {!newComment && (
                 <Mic
                   size={20}
-                  className="text-zinc-500 cursor-pointer hover:text-zinc-300"
+                  className="text-muted-foreground cursor-pointer hover:text-foreground"
                   onClick={() => setShowRecorder(true)}
                 />
               )}
 
               <button
                 type="submit"
-                className="text-[#006a4e] text-sm font-semibold disabled:opacity-50 hover:text-[#004d39]"
+                className="text-primary text-sm font-semibold disabled:opacity-50 hover:text-primary/80"
                 disabled={!newComment || isCommenting}
               >
                 Post

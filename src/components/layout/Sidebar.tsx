@@ -22,7 +22,6 @@ import { cn } from "@/lib/utils";
 
 const Sidebar: React.FC = () => {
   const {
-    theme,
     toggleTheme,
     currentUser,
     setCreateModalOpen,
@@ -192,7 +191,8 @@ const Sidebar: React.FC = () => {
             whileTap={{ scale: 0.98 }}
             className="w-full h-full flex items-center"
           >
-            {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
+            <Sun size={24} className="dark:hidden" />
+            <Moon size={24} className="hidden dark:block" />
             {isSidebarExpanded && <span className="text-base ml-4 font-normal">Switch Appearance</span>}
           </motion.div>
         </Button>

@@ -24,9 +24,7 @@ import { useViewTracker } from "../hooks/useViewTracker";
 interface ReelItemProps {
   reel: Reel;
   showToast: (msg: string) => void;
-  theme: string;
   onUserClick: (user: User) => void;
-  glassModal: string;
 }
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,7 +35,7 @@ import VerifiedBadge from "./VerifiedBadge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const ReelItem: React.FC<ReelItemProps> = memo(
-  ({ reel, showToast, theme, onUserClick, glassModal }) => {
+  ({ reel, showToast, onUserClick }) => {
     const { setViewingReel } = useAppStore();
     const { user } = useAuth();
     const { mutate: toggleLike } = useToggleLike();
@@ -95,10 +93,8 @@ const ReelItem: React.FC<ReelItemProps> = memo(
     const togglePlay = () => {
       if (videoTagRef.current) {
         if (isPlaying) {
-          // videoTagRef.current.pause(); // ReactPlayer is declarative
           setIsPlaying(false);
         } else {
-          // videoTagRef.current.play(); // ReactPlayer is declarative
           setIsPlaying(true);
         }
       }
@@ -108,11 +104,9 @@ const ReelItem: React.FC<ReelItemProps> = memo(
       const observer = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting) {
-            // videoTagRef.current?.play().catch(() => {});
             setIsPlaying(true);
             setIsMuted(false);
           } else {
-            // videoTagRef.current?.pause();
             setIsPlaying(false);
             setIsMuted(true);
           }
@@ -142,24 +136,19 @@ const ReelItem: React.FC<ReelItemProps> = memo(
           <MoreOptionsModal
             onClose={() => setIsOptionsOpen(false)}
             showToast={showToast}
-            theme={theme}
-            glassModal={glassModal}
             shareUrl={shareUrl}
           />
         )}
         {isShareOpen && (
           <ShareModal
             onClose={() => setIsShareOpen(false)}
-            theme={theme}
-            showToast={showToast}
-            glassModal={glassModal}
             shareUrl={shareUrl}
           />
         )}
 
         <div
           ref={videoRef}
-          className="relative h-full md:h-[95vh] w-full md:w-[400px] bg-zinc-900 md:rounded-lg overflow-hidden border-zinc-800 md:border group shadow-2xl"
+          className="relative h-full md:h-[95vh] w-full md:w-[400px] bg-black md:rounded-lg overflow-hidden border-border md:border group shadow-2xl"
           onDoubleClick={handleDoubleClick}
         >
           {/* Render Video instead of Image for Reels if src is video */}

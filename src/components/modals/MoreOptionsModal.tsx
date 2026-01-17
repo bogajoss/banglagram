@@ -1,10 +1,13 @@
 import React from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface MoreOptionsModalProps {
   onClose: () => void;
   showToast: (msg: string) => void;
-  theme: string;
-  glassModal: string;
   shareUrl?: string;
   isOwner?: boolean;
   onEdit?: () => void;
@@ -13,25 +16,18 @@ interface MoreOptionsModalProps {
 const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
   onClose,
   showToast,
-  theme,
-  glassModal,
   shareUrl,
   isOwner,
   onEdit,
 }) => {
   return (
-    <div
-      className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className={`w-full max-w-[300px] rounded-xl overflow-hidden shadow-2xl ${glassModal} ${theme === "dark" ? "text-white" : "text-black"}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex flex-col text-sm font-semibold">
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-[300px] p-0 overflow-hidden border-none rounded-xl">
+        <DialogTitle className="sr-only">Post Options</DialogTitle>
+        <div className="flex flex-col text-sm font-semibold bg-background">
           {isOwner && (
             <button
-              className="py-3.5 border-b border-zinc-700/30 hover:bg-white/5 transition-colors"
+              className="py-3.5 border-b border-border hover:bg-muted transition-colors"
               onClick={() => {
                 onEdit?.();
                 onClose();
@@ -41,7 +37,7 @@ const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
             </button>
           )}
           <button
-            className="py-3.5 text-[#f42a41] border-b border-zinc-700/30 hover:bg-white/5 transition-colors"
+            className="py-3.5 text-[#f42a41] border-b border-border hover:bg-muted transition-colors"
             onClick={() => {
               showToast("Reported");
               onClose();
@@ -50,7 +46,7 @@ const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
             Report
           </button>
           <button
-            className="py-3.5 text-[#f42a41] border-b border-zinc-700/30 hover:bg-white/5 transition-colors"
+            className="py-3.5 text-[#f42a41] border-b border-border hover:bg-muted transition-colors"
             onClick={() => {
               showToast("Unfollowed");
               onClose();
@@ -59,7 +55,7 @@ const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
             Unfollow
           </button>
           <button
-            className="py-3.5 border-b border-zinc-700/30 hover:bg-white/5 transition-colors"
+            className="py-3.5 border-b border-border hover:bg-muted transition-colors"
             onClick={() => {
               showToast("Added to favorites");
               onClose();
@@ -68,7 +64,7 @@ const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
             Add to favorites
           </button>
           <button
-            className="py-3.5 border-b border-zinc-700/30 hover:bg-white/5 transition-colors"
+            className="py-3.5 border-b border-border hover:bg-muted transition-colors"
             onClick={() => {
               const url = shareUrl || window.location.href;
               navigator.clipboard.writeText(url);
@@ -79,14 +75,14 @@ const MoreOptionsModal: React.FC<MoreOptionsModalProps> = ({
             Copy link
           </button>
           <button
-            className="py-3.5 hover:bg-white/5 transition-colors"
+            className="py-3.5 hover:bg-muted transition-colors"
             onClick={onClose}
           >
             Cancel
           </button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

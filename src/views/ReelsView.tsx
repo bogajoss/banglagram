@@ -2,22 +2,19 @@ import React from "react";
 import ReelItem from "../components/ReelItem";
 import { useAppStore } from "../store/useAppStore";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Clapperboard } from "lucide-react";
 import type { User } from "../types";
 import { useGetReels } from "../hooks/queries/useGetReels";
 import { useGetReel } from "../hooks/queries/useGetReel";
 import { useAuth } from "../hooks/useAuth";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 const ReelsView: React.FC = () => {
-  const { theme, showToast } = useAppStore();
+  const { showToast } = useAppStore();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-
-  const glassModal =
-    theme === "dark"
-      ? "bg-[#121212]/90 backdrop-blur-2xl border border-white/10"
-      : "bg-white/90 backdrop-blur-2xl border border-black/10";
 
   // If ID is provided, we only want that one reel
   const { data: singleReel, isLoading: isLoadingSingle } = useGetReel(
@@ -47,16 +44,25 @@ const ReelsView: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-black text-white">
-        Loading reel...
+      <div className="h-screen w-full flex items-center justify-center bg-black">
+        <Skeleton className="w-full md:w-[400px] h-full rounded-none bg-zinc-900" />
       </div>
     );
   }
 
   if (displayReels.length === 0) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-black text-white">
-        {id ? "Reel not found" : "No reels yet"}
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-black text-white gap-4">
+        <div className="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center">
+          <Clapperboard size={40} className="text-zinc-500" />
+        </div>
+        <p className="text-zinc-400 font-medium">{id ? "Reel not found" : "No reels yet"}</p>
+        <button 
+          onClick={() => navigate("/")}
+          className="text-sm font-bold hover:underline"
+        >
+          Go back home
+        </button>
       </div>
     );
   }
@@ -77,9 +83,7 @@ const ReelsView: React.FC = () => {
             key={reel.id}
             reel={reel}
             showToast={showToast}
-            theme={theme}
             onUserClick={onUserClick}
-            glassModal={glassModal}
           />
         ))}
 

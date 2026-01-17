@@ -13,8 +13,10 @@ import VerifiedBadge from "../components/VerifiedBadge";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 const ExploreView: React.FC = () => {
-  const { theme, setViewingPost } = useAppStore();
+  const { setViewingPost } = useAppStore();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState<"accounts" | "posts">("accounts");
@@ -100,26 +102,26 @@ const ExploreView: React.FC = () => {
     <div className="w-full max-w-[935px] py-4 px-2">
       {/* Search Bar */}
       <div
-        className={`mb-4 sticky top-0 z-30 py-2 ${theme === "dark" ? "bg-black" : "bg-white"}`}
+        className="mb-4 sticky top-0 z-30 py-2 bg-background"
       >
         <div
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg ${theme === "dark" ? "bg-[#262626]" : "bg-gray-100"}`}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted"
         >
           <Search
             size={18}
-            className={theme === "dark" ? "text-[#8e8e8e]" : "text-gray-500"}
+            className="text-muted-foreground"
           />
           <input
             type="text"
             placeholder="Search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={`bg-transparent border-none outline-none text-sm w-full p-0 h-auto ${theme === "dark" ? "text-white" : "text-black"}`}
+            className="bg-transparent border-none outline-none text-sm w-full p-0 h-auto text-foreground"
           />
           {searchQuery && (
             <X
               size={18}
-              className="cursor-pointer"
+              className="cursor-pointer text-muted-foreground"
               onClick={() => setSearchQuery("")}
             />
           )}
@@ -127,15 +129,15 @@ const ExploreView: React.FC = () => {
 
         {/* Search Type Tabs */}
         {searchQuery && (
-          <div className="flex mt-2 border-b border-zinc-700">
+          <div className="flex mt-2 border-b border-border">
             <button
-              className={`flex-1 py-2 text-sm font-semibold ${searchType === "accounts" ? (theme === "dark" ? "text-white border-b-2 border-white" : "text-black border-b-2 border-black") : "text-zinc-500"}`}
+              className={`flex-1 py-2 text-sm font-semibold transition-colors ${searchType === "accounts" ? "text-foreground border-b-2 border-foreground" : "text-muted-foreground hover:text-foreground"}`}
               onClick={() => setSearchType("accounts")}
             >
               Accounts
             </button>
             <button
-              className={`flex-1 py-2 text-sm font-semibold ${searchType === "posts" ? (theme === "dark" ? "text-white border-b-2 border-white" : "text-black border-b-2 border-black") : "text-zinc-500"}`}
+              className={`flex-1 py-2 text-sm font-semibold transition-colors ${searchType === "posts" ? "text-foreground border-b-2 border-foreground" : "text-muted-foreground hover:text-foreground"}`}
               onClick={() => setSearchType("posts")}
             >
               Posts
@@ -149,9 +151,21 @@ const ExploreView: React.FC = () => {
           {/* Accounts Results */}
           {searchType === "accounts" && (
             <>
-              {isSearching && <div className="p-4 text-center">Searching...</div>}
+              {isSearching && (
+                <div className="space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-3 p-2">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               {!isSearching && userResults.length === 0 && (
-                <div className="p-4 text-center text-gray-500">
+                <div className="p-4 text-center text-muted-foreground">
                   No accounts found
                 </div>
               )}
@@ -159,18 +173,18 @@ const ExploreView: React.FC = () => {
                 <div
                   key={user.username}
                   onClick={() => navigate(`/profile/${user.username}`)}
-                  className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer ${theme === "dark" ? "hover:bg-white/10" : "hover:bg-gray-100"}`}
+                  className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted transition-colors"
                 >
                   <Avatar className="w-10 h-10">
                     <AvatarImage src={user.avatar} />
                     <AvatarFallback>{user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 text-foreground">
                       <span className="font-semibold text-sm">{user.username}</span>
                       {user.isVerified && <VerifiedBadge />}
                     </div>
-                    <span className="text-xs text-gray-500">{user.name}</span>
+                    <span className="text-xs text-muted-foreground">{user.name}</span>
                   </div>
                 </div>
               ))}
@@ -180,9 +194,15 @@ const ExploreView: React.FC = () => {
           {/* Posts Results */}
           {searchType === "posts" && (
             <>
-              {isPostsLoading && <div className="p-4 text-center">Searching posts...</div>}
+              {isPostsLoading && (
+                <div className="grid grid-cols-3 gap-1 md:gap-4">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <Skeleton key={i} className="aspect-square" />
+                  ))}
+                </div>
+              )}
               {!isPostsLoading && postResults.length === 0 && (
-                <div className="p-4 text-center text-gray-500">
+                <div className="p-4 text-center text-muted-foreground">
                   No posts found
                 </div>
               )}
@@ -223,7 +243,11 @@ const ExploreView: React.FC = () => {
       ) : (
         <>
           {isExploreLoading ? (
-            <div className="p-10 text-center">Loading explore...</div>
+            <div className="grid grid-cols-3 gap-1 md:gap-4">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
+                <Skeleton key={i} className="aspect-square" />
+              ))}
+            </div>
           ) : (
             <motion.div
               variants={containerVariants}
@@ -266,7 +290,7 @@ const ExploreView: React.FC = () => {
               ))}
             </motion.div>
           )}
-          <div ref={ref} className="h-10 text-center py-4 text-gray-500">
+          <div ref={ref} className="h-10 text-center py-4 text-muted-foreground">
             {isFetchingNextPage
               ? "Loading more..."
               : hasNextPage

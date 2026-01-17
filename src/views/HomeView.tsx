@@ -112,7 +112,7 @@ const HomeView: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-[630px] pt-0 md:pt-[30px] flex flex-col">
+    <div className="w-full max-w-[630px] lg:max-w-5xl pt-0 md:pt-[30px] flex flex-col lg:flex-row lg:items-start lg:gap-16">
       <div
         className={`md:hidden sticky top-0 z-10 border-b ${borderClass} px-4 h-[60px] flex items-center justify-between ${theme === "dark" ? "bg-black" : "bg-white"}`}
       >
@@ -136,7 +136,7 @@ const HomeView: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-grow w-full max-w-[470px] mx-auto px-0 md:px-0">
+      <div className="flex-grow w-full max-w-[470px] mx-auto lg:mx-0 px-0 md:px-0">
         <motion.div
           variants={containerVariants}
           initial="hidden"

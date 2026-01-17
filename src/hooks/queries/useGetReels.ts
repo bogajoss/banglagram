@@ -38,6 +38,7 @@ export const useGetReels = (currentUserId?: string) => {
         } | null;
         likes: { count: number }[];
         comments: { count: number }[];
+        view_count?: number;
       };
 
       const reelsData = (data || []) as unknown as ReelWithProfile[];
@@ -95,6 +96,7 @@ export const useGetReels = (currentUserId?: string) => {
         src: reel.video_url,
         likes: reel.likes?.[0]?.count || 0,
         comments: reel.comments?.[0]?.count || 0,
+        views: reel.view_count || 0,
         caption: reel.caption || "",
         audio: reel.audio_track_name || "Original Audio",
         hasLiked: likedReelIds.has(reel.id),

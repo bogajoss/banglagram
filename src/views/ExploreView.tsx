@@ -6,11 +6,9 @@ import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { useGetExplorePosts } from "../hooks/queries/useGetExplorePosts";
 import { useSearchPosts } from "../hooks/queries/useSearchPosts";
+import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 
-import { motion } from "framer-motion";
-
-import OptimizedImage from "../components/OptimizedImage";
 import VerifiedBadge from "../components/VerifiedBadge";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -197,11 +195,11 @@ const ExploreView: React.FC = () => {
                     className="relative aspect-square group cursor-pointer overflow-hidden"
                     onClick={() => setViewingPost(post as Post)}
                   >
-                    <OptimizedImage
+                    <img
                       src={post.content.src || post.content.poster}
-                      width={400}
-                      className="w-full h-full transition-transform duration-300 group-hover:scale-110"
+                      className="w-full h-full transition-transform duration-300 group-hover:scale-110 object-cover"
                       alt="search result"
+                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200 z-20">
                       <div className="flex items-center gap-1">
@@ -243,11 +241,11 @@ const ExploreView: React.FC = () => {
                       className="relative aspect-square group cursor-pointer overflow-hidden"
                       onClick={() => setViewingPost(post as Post)}
                     >
-                      <OptimizedImage
+                      <img
                         src={post.content.src || post.content.poster}
-                        width={400}
-                        className="w-full h-full transition-transform duration-300 group-hover:scale-110"
+                        className="w-full h-full transition-transform duration-300 group-hover:scale-110 object-cover"
                         alt="explore"
+                        loading="lazy"
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200 z-20">
                         <div className="flex items-center gap-1">

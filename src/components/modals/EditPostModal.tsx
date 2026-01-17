@@ -4,7 +4,6 @@ import { useUpdatePost } from "../../hooks/mutations/useUpdatePost";
 import { motion } from "framer-motion";
 import type { Post } from "../../types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import OptimizedImage from "../OptimizedImage";
 
 interface EditPostModalProps {
   post: Post;
@@ -62,11 +61,11 @@ const EditPostModal: React.FC<EditPostModalProps> = ({
           {post.content.type === "video" ? (
             <video src={post.content.src} className="max-h-full max-w-full" />
           ) : (
-            <OptimizedImage
+            <img
               src={post.content.src || post.content.poster}
-              className="max-h-full max-w-full"
-              imgClassName="object-contain"
+              className="max-h-full max-w-full object-contain"
               alt="preview"
+              loading="lazy"
             />
           )}
         </div>

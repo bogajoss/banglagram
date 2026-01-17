@@ -26,8 +26,8 @@ import { useGetSavedPosts } from "../hooks/queries/useGetSavedPosts";
 import { useGetTaggedPosts } from "../hooks/queries/useGetTaggedPosts";
 import SettingsModal from "../components/modals/SettingsModal";
 import ArchiveModal from "../components/modals/ArchiveModal";
+import { supabase } from "../lib/supabaseClient";
 
-import OptimizedImage from "../components/OptimizedImage";
 import VerifiedBadge from "../components/VerifiedBadge";
 import { Button } from "@/components/ui/button";
 
@@ -80,6 +80,18 @@ const ProfileView: React.FC = () => {
   const userPosts = data?.posts || [];
 
   const userIsFollowing = profileUser?.isFollowing || false;
+
+  React.useEffect(() => {
+    if (profileUser?.id && !isMe) {
+        supabase.rpc("track_user_interaction", { 
+        target_user_id: profileUser.id, 
+        interaction_type: "visit" 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any).then(({ error }) => {
+        if (error) console.error("Tracking error", error);
+      });
+    }
+  }, [profileUser?.id, isMe]);
 
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const textSecondary = theme === "dark" ? "text-[#a8a8a8]" : "text-zinc-500";
@@ -375,14 +387,14 @@ const ProfileView: React.FC = () => {
           {displayPosts.map((post) => (
             <div
               key={post.id}
-              className="relative aspect-square group cursor-pointer"
+              className="relative aspect-square group cursor-pointer overflow-hidden"
               onClick={() => setViewingPost(post)}
             >
-              <OptimizedImage
+              <img
                 src={post.content.src || post.content.poster}
-                width={400}
-                className="w-full h-full"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                 alt="post grid"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white font-bold z-20">
                 <div className="flex items-center gap-2">

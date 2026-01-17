@@ -7,8 +7,10 @@ import {
   MoreHorizontal,
   Smile,
   Mic,
+  BarChart2,
 } from "lucide-react";
 import VoiceRecorder from "./VoiceRecorder";
+import OptimizedImage from "./OptimizedImage";
 
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import MoreOptionsModal from "./modals/MoreOptionsModal";
@@ -19,16 +21,15 @@ import type { Post, User } from "../types";
 import { useToggleLike } from "../hooks/mutations/useToggleLike";
 import { useCreateComment } from "../hooks/mutations/useCreateComment";
 import { useAuth } from "../hooks/useAuth";
+import { useViewTracker } from "../hooks/useViewTracker";
 
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import OptimizedImage from "./OptimizedImage";
 import VerifiedBadge from "./VerifiedBadge";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/en";
-import RichText from "./RichText";
 
 dayjs.extend(relativeTime);
 dayjs.locale("en");
@@ -50,7 +51,11 @@ const PostItem: React.FC<PostItemProps> = memo(
     const { mutate: createComment, isPending: isCommenting } =
       useCreateComment();
 
+    // View Tracking
+    const { ref: viewRef } = useViewTracker(post.id, 'post');
+
     const [showHeart, setShowHeart] = useState(false);
+
     const [newComment, setNewComment] = useState("");
     const [isOptionsOpen, setIsOptionsOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
@@ -135,6 +140,7 @@ const PostItem: React.FC<PostItemProps> = memo(
 
     return (
       <motion.div
+        ref={viewRef}
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
@@ -206,9 +212,9 @@ const PostItem: React.FC<PostItemProps> = memo(
         >
           <OptimizedImage
             src={post.content.src || post.content.poster}
-            width={800}
-            className="w-full h-full"
+            className="w-full h-full object-cover"
             alt="Post content"
+            loading="lazy"
           />
           <AnimatePresence>
             {showHeart && (
@@ -250,6 +256,13 @@ const PostItem: React.FC<PostItemProps> = memo(
                 onClick={() => setIsShareOpen(true)}
               />
             </motion.div>
+            
+            <div className="flex items-center gap-1 ml-2 opacity-60" title="Views">
+               <BarChart2 size={22} className="" />
+               <span className="text-sm font-medium">
+                {Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.views || 0)}
+               </span>
+            </div>
           </div>
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
             <Bookmark
@@ -269,7 +282,7 @@ const PostItem: React.FC<PostItemProps> = memo(
             >
               {post.user.username}
             </span>
-            <RichText text={post.caption} truncateLength={150} />
+            <span className="whitespace-pre-wrap">{post.caption}</span>
           </div>
           <div
             className={`${theme === "dark" ? "text-zinc-500" : "text-zinc-500"} cursor-pointer hover:underline`}

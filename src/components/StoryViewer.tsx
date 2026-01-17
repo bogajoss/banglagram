@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { X, ChevronLeft, ChevronRight, Heart, Send } from "lucide-react";
 import { useAppStore } from "../store/useAppStore";
 import { motion, AnimatePresence } from "framer-motion";
-import OptimizedImage from "./OptimizedImage";
 import VerifiedBadge from "./VerifiedBadge";
 import { useGetStories } from "../hooks/queries/useGetStories";
 import { useAuth } from "../hooks/useAuth";
@@ -161,10 +160,11 @@ const StoryViewer: React.FC = () => {
               exit={{ opacity: 0, x: -20 }}
               className="w-full h-full"
             >
-              <OptimizedImage
+              <img
                 src={currentStory.img}
-                className="w-full h-full"
+                className="w-full h-full object-contain"
                 alt="story"
+                loading="lazy"
               />
             </motion.div>
           </AnimatePresence>

@@ -11,7 +11,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-import OptimizedImage from "../OptimizedImage";
 import FileUploader from "../FileUploader";
 
 const CreateModal: React.FC = () => {
@@ -162,10 +161,9 @@ const CreateModal: React.FC = () => {
                       className="max-h-full max-w-full object-contain"
                     />
                   ) : (
-                    <OptimizedImage
+                    <img
                       src={preview}
-                      className="max-h-full max-w-full"
-                      imgClassName="object-contain"
+                      className="max-h-full max-w-full object-contain"
                       alt="preview"
                     />
                   )}

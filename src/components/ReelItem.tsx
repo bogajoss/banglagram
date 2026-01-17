@@ -11,6 +11,7 @@ import {
   VolumeX,
   Music2,
   Play,
+  BarChart2,
 } from "lucide-react";
 import MoreOptionsModal from "./modals/MoreOptionsModal";
 import ShareModal from "./modals/ShareModal";
@@ -18,6 +19,7 @@ import type { Reel, User } from "../types";
 import { useToggleLike } from "../hooks/mutations/useToggleLike";
 import { useFollowUser } from "../hooks/mutations/useFollowUser";
 import { useAuth } from "../hooks/useAuth";
+import { useViewTracker } from "../hooks/useViewTracker";
 
 interface ReelItemProps {
   reel: Reel;
@@ -29,7 +31,6 @@ interface ReelItemProps {
 
 import { motion, AnimatePresence } from "framer-motion";
 
-import OptimizedImage from "./OptimizedImage";
 import { useAppStore } from "../store/useAppStore";
 import VerifiedBadge from "./VerifiedBadge";
 
@@ -41,10 +42,14 @@ const ReelItem: React.FC<ReelItemProps> = memo(
     const { user } = useAuth();
     const { mutate: toggleLike } = useToggleLike();
     const { mutate: followUser } = useFollowUser();
+    
+    // View Tracking
+    const { ref: viewRef } = useViewTracker(reel.id, 'reel');
 
     const [showHeart, setShowHeart] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     const [isPlaying, setIsPlaying] = useState(true);
+
     const [isOptionsOpen, setIsOptionsOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const videoRef = useRef<HTMLDivElement>(null);
@@ -126,6 +131,7 @@ const ReelItem: React.FC<ReelItemProps> = memo(
 
     return (
       <motion.div
+        ref={viewRef}
         initial={{ opacity: 0, scale: 0.95 }}
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true }}
@@ -173,12 +179,12 @@ const ReelItem: React.FC<ReelItemProps> = memo(
               />
             </div>
           ) : (
-            <OptimizedImage
+            <img
               src={reel.src}
-              width={400}
-              className="w-full h-full"
+              className="w-full h-full object-cover"
               onClick={() => setIsMuted(!isMuted)}
               alt="reel"
+              loading="lazy"
             />
           )}
 
@@ -294,6 +300,18 @@ const ReelItem: React.FC<ReelItemProps> = memo(
                 onClick={() => setIsShareOpen(true)}
               />
             </motion.div>
+
+            <div className="flex flex-col items-center gap-1">
+              <BarChart2
+                size={28}
+                strokeWidth={1.5}
+                className="text-white drop-shadow-md"
+              />
+               <span className="text-xs font-semibold drop-shadow-md">
+                 {Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(reel.views || 0)}
+               </span>
+            </div>
+
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <MoreHorizontal
                 size={28}

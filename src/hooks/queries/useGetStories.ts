@@ -52,7 +52,7 @@ export const useGetStories = (currentUserId: string | undefined) => {
       // Current UI (HomeView) shows list of circles. 1 circle per user? Or per story?
       // Instagram shows 1 circle per user.
       // But StoryViewer iterates through all stories.
-      // SysMed UI seems to show individual stories in the list?
+      // Banglagram UI seems to show individual stories in the list?
       // Let's check HomeView mock data.
       /*
       stories: [

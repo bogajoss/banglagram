@@ -37,6 +37,7 @@ export interface Post {
   likes: string | number;
   caption: string;
   comments: string | number;
+  views?: number;
   time: string;
   createdAt?: string;
   isVerified?: boolean;
@@ -83,6 +84,7 @@ export interface Reel {
   poster?: string;
   likes: number;
   comments: number;
+  views?: number;
   caption: string;
   audio: string;
   hasLiked?: boolean;

@@ -117,7 +117,7 @@ const HomeView: React.FC = () => {
         className={`md:hidden sticky top-0 z-10 border-b ${borderClass} px-4 h-[60px] flex items-center justify-between ${theme === "dark" ? "bg-black" : "bg-white"}`}
       >
         <h1 className="text-2xl font-bold tracking-tight text-[#006a4e]">
-          SysMed
+          Banglagram
         </h1>
         <div className="flex items-center gap-5">
           <motion.div whileTap={{ scale: 0.9 }}>
@@ -309,7 +309,7 @@ const HomeView: React.FC = () => {
             <span>API</span>•<span>Jobs</span>•<span>Privacy</span>•
             <span>Terms</span>
           </div>
-          <div>© 2026 INSTAGRAM FROM META (BD)</div>
+          <div>© 2026 BANGLAGRAM FROM BOGAJOSS</div>
         </div>
       </div>
     </div>

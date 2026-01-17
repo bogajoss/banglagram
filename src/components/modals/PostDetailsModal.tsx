@@ -26,13 +26,11 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import VoiceRecorder from "../VoiceRecorder";
 
-import OptimizedImage from "../OptimizedImage";
 import VerifiedBadge from "../VerifiedBadge";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/en";
-import RichText from "../RichText";
 import { CommentsSection } from "../CommentsSection";
 import type { Comment } from "../../hooks/queries/useGetComments";
 
@@ -187,14 +185,14 @@ const PostDetailsModal: React.FC = () => {
               loop
             />
           ) : (
-            <OptimizedImage
+            <img
               src={
                 (activeItem as Post).content?.src ||
                 (activeItem as Post).content?.poster || ""
               }
-              className="max-h-full max-w-full"
-              imgClassName="object-contain"
+              className="max-h-full max-w-full object-contain"
               alt="post detail"
+              loading="lazy"
             />
           )}
         </div>
@@ -267,7 +265,7 @@ const PostDetailsModal: React.FC = () => {
                       </span>
                       {activeItem.user.isVerified && <VerifiedBadge />}
                     </div>
-                    <RichText text={activeItem.caption} />
+                    <span className="whitespace-pre-wrap">{activeItem.caption}</span>
                     <div className="text-xs text-zinc-500 mt-1">
                       {"createdAt" in activeItem && activeItem.createdAt ? dayjs(activeItem.createdAt).fromNow() : "time" in activeItem ? activeItem.time : ""}
                     </div>

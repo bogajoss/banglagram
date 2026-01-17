@@ -595,3 +595,615 @@ CREATE TRIGGER on_comment_like_change
 -- 7. Add index for performance
 CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON public.comments(parent_id);
 CREATE INDEX IF NOT EXISTS idx_comment_likes_comment_id ON public.comment_likes(comment_id);
+CREATE OR REPLACE FUNCTION public.handle_new_comment()
+RETURNS trigger AS $$
+DECLARE
+  target_owner_id uuid;
+  notification_type text := 'comment';
+  mention_record RECORD;
+  mentioned_user_id uuid;
+BEGIN
+  -- Notify Post/Reel Owner
+  IF new.post_id IS NOT NULL THEN
+    SELECT user_id INTO target_owner_id FROM public.posts WHERE id = new.post_id;
+    IF target_owner_id IS NOT NULL AND target_owner_id != new.user_id THEN
+      INSERT INTO public.notifications (user_id, actor_id, type, post_id)
+      VALUES (target_owner_id, new.user_id, notification_type, new.post_id);
+    END IF;
+  ELSIF new.reel_id IS NOT NULL THEN
+    SELECT user_id INTO target_owner_id FROM public.reels WHERE id = new.reel_id;
+    IF target_owner_id IS NOT NULL AND target_owner_id != new.user_id THEN
+      INSERT INTO public.notifications (user_id, actor_id, type, reel_id)
+      VALUES (target_owner_id, new.user_id, notification_type, new.reel_id);
+    END IF;
+  END IF;
+
+  -- Handle Mentions (@username)
+  FOR mention_record IN 
+    SELECT DISTINCT (regexp_matches(new.text, '@([a-zA-Z0-9_]+)', 'g'))[1] as username
+  LOOP
+    SELECT id INTO mentioned_user_id FROM public.profiles WHERE username = mention_record.username;
+    
+    IF mentioned_user_id IS NOT NULL 
+       AND mentioned_user_id != new.user_id 
+       AND (target_owner_id IS NULL OR mentioned_user_id != target_owner_id) 
+    THEN
+      INSERT INTO public.notifications (user_id, actor_id, type, post_id, reel_id)
+      VALUES (mentioned_user_id, new.user_id, 'mention', new.post_id, new.reel_id);
+    END IF;
+  END LOOP;
+
+  return new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+-- Enhance Comments: Nested Replies and Heart Reactions
+
+-- 1. Add parent_id for nested replies
+ALTER TABLE public.comments 
+ADD COLUMN IF NOT EXISTS parent_id uuid REFERENCES public.comments(id) ON DELETE CASCADE;
+
+-- 2. Add likes_count for heart reactions caching
+ALTER TABLE public.comments 
+ADD COLUMN IF NOT EXISTS likes_count bigint DEFAULT 0;
+
+-- 3. Create comment_likes table
+CREATE TABLE IF NOT EXISTS public.comment_likes (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid DEFAULT auth.uid() REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  comment_id uuid REFERENCES public.comments(id) ON DELETE CASCADE NOT NULL,
+  created_at timestamp with time zone DEFAULT now() NOT NULL,
+  UNIQUE(user_id, comment_id)
+);
+
+-- 4. Enable RLS on new table
+ALTER TABLE public.comment_likes ENABLE ROW LEVEL SECURITY;
+
+-- 5. Add RLS Policies for comment_likes
+DO $$
+BEGIN
+    CREATE POLICY "Comment likes are viewable by everyone" ON public.comment_likes FOR SELECT USING (true);
+    CREATE POLICY "Users can like comments" ON public.comment_likes FOR INSERT WITH CHECK (auth.uid() = user_id);
+    CREATE POLICY "Users can unlike comments" ON public.comment_likes FOR DELETE USING (auth.uid() = user_id);
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END
+$$;
+
+-- 6. Trigger to update comment likes count
+CREATE OR REPLACE FUNCTION public.update_comment_likes_count()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'INSERT') THEN
+        UPDATE public.comments SET likes_count = likes_count + 1 WHERE id = NEW.comment_id;
+        RETURN NEW;
+    ELSIF (TG_OP = 'DELETE') THEN
+        UPDATE public.comments SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = OLD.comment_id;
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_comment_like_change ON public.comment_likes;
+CREATE TRIGGER on_comment_like_change
+  AFTER INSERT OR DELETE ON public.comment_likes
+  FOR EACH ROW EXECUTE PROCEDURE public.update_comment_likes_count();
+
+-- 7. Add index for performance
+CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON public.comments(parent_id);
+CREATE INDEX IF NOT EXISTS idx_comment_likes_comment_id ON public.comment_likes(comment_id);
+-- 1. Add Viral Metrics Columns
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS view_count bigint DEFAULT 0;
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS share_count bigint DEFAULT 0;
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS engagement_score float DEFAULT 0;
+
+ALTER TABLE public.reels ADD COLUMN IF NOT EXISTS view_count bigint DEFAULT 0;
+ALTER TABLE public.reels ADD COLUMN IF NOT EXISTS share_count bigint DEFAULT 0;
+ALTER TABLE public.reels ADD COLUMN IF NOT EXISTS engagement_score float DEFAULT 0;
+
+ALTER TABLE public.comments ADD COLUMN IF NOT EXISTS likes_count int DEFAULT 0;
+
+-- 2. User Affinity Tracking (The "Bond" between users)
+CREATE TABLE IF NOT EXISTS public.user_affinities (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    target_user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    score float DEFAULT 0,
+    last_interaction timestamp with time zone DEFAULT now(),
+    UNIQUE(user_id, target_user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_affinities_user ON public.user_affinities(user_id);
+
+-- 3. Function to Calculate Engagement Score
+CREATE OR REPLACE FUNCTION public.calculate_engagement_score(
+    p_likes bigint,
+    p_comments bigint,
+    p_shares bigint,
+    p_views bigint,
+    p_created_at timestamp with time zone
+) RETURNS float AS $$
+DECLARE
+    w_like constant float := 1.0;
+    w_comment constant float := 3.0;
+    w_share constant float := 5.0;
+    w_save constant float := 4.0; 
+    age_hours float;
+    raw_score float;
+    decay_factor float;
+BEGIN
+    -- Base score from interactions
+    raw_score := (p_likes * w_like) + 
+                 (p_comments * w_comment) + 
+                 (p_shares * w_share);
+                 
+    -- Normalize by views (High signals with low views = Quality)
+    -- If views are 0, we treat it as 1 to avoid division by zero or weird boosts
+    IF p_views > 0 THEN
+       -- Logarithmic dampening of views so super-viral posts don't break the scale
+       raw_score := raw_score * (1 + (1.0 / GREATEST(log(p_views + 1), 1.0))); 
+    END IF;
+
+    -- Time Decay: The "Gravity"
+    age_hours := EXTRACT(EPOCH FROM (now() - p_created_at)) / 3600;
+    
+    -- Gravity Formula: Score / (Age + 2)^1.5
+    -- This ensures fresh content (<2h) competes with viral content (24h+)
+    decay_factor := POWER(GREATEST(age_hours, 0.0) + 2.0, 1.5);
+    
+    RETURN raw_score / decay_factor;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- 4. Trigger to Auto-Update Score on New Like/Comment
+CREATE OR REPLACE FUNCTION public.update_post_score()
+RETURNS trigger AS $$
+DECLARE
+    target_post_id uuid;
+    target_reel_id uuid;
+    v_likes bigint;
+    v_comments bigint;
+    v_shares bigint;
+    v_views bigint;
+    v_created_at timestamp with time zone;
+    new_score float;
+BEGIN
+    -- Determine if it's a post or reel update
+    IF (TG_TABLE_NAME = 'likes') THEN
+        target_post_id := NEW.post_id;
+        target_reel_id := NEW.reel_id;
+    ELSIF (TG_TABLE_NAME = 'comments') THEN
+        target_post_id := NEW.post_id;
+        target_reel_id := NEW.reel_id;
+    END IF;
+
+    IF target_post_id IS NOT NULL THEN
+        SELECT count(*) INTO v_likes FROM public.likes WHERE post_id = target_post_id;
+        SELECT count(*) INTO v_comments FROM public.comments WHERE post_id = target_post_id;
+        -- SELECT count(*) INTO v_shares FROM public.shares WHERE post_id = target_post_id; -- Pending shares table
+        v_shares := 0; 
+        
+        SELECT view_count, created_at, share_count INTO v_views, v_created_at, v_shares 
+        FROM public.posts WHERE id = target_post_id;
+        
+        new_score := public.calculate_engagement_score(v_likes, v_comments, v_shares, v_views, v_created_at);
+        
+        UPDATE public.posts SET engagement_score = new_score WHERE id = target_post_id;
+    
+    ELSIF target_reel_id IS NOT NULL THEN
+        -- Same logic for reels
+         SELECT count(*) INTO v_likes FROM public.likes WHERE reel_id = target_reel_id;
+         SELECT count(*) INTO v_comments FROM public.comments WHERE reel_id = target_reel_id;
+         
+         SELECT view_count, created_at, share_count INTO v_views, v_created_at, v_shares
+         FROM public.reels WHERE id = target_reel_id;
+         
+         new_score := public.calculate_engagement_score(v_likes, v_comments, v_shares, v_views, v_created_at);
+         
+         UPDATE public.reels SET engagement_score = new_score WHERE id = target_reel_id;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Apply triggers
+DROP TRIGGER IF EXISTS tr_update_score_likes ON public.likes;
+CREATE TRIGGER tr_update_score_likes
+AFTER INSERT OR DELETE ON public.likes
+FOR EACH ROW EXECUTE PROCEDURE public.update_post_score();
+
+DROP TRIGGER IF EXISTS tr_update_score_comments ON public.comments;
+CREATE TRIGGER tr_update_score_comments
+AFTER INSERT OR DELETE ON public.comments
+FOR EACH ROW EXECUTE PROCEDURE public.update_post_score();
+
+
+-- 5. RPC Function to Increment View Count (Called from Frontend)
+-- Usage: supabase.rpc('increment_view_count', { target_id: '...', type: 'post' })
+CREATE OR REPLACE FUNCTION public.increment_view_count(target_id uuid, type text)
+RETURNS void AS $$
+BEGIN
+  IF type = 'post' THEN
+    UPDATE public.posts 
+    SET view_count = view_count + 1 
+    WHERE id = target_id;
+  ELSIF type = 'reel' THEN
+    UPDATE public.reels 
+    SET view_count = view_count + 1 
+    WHERE id = target_id;
+  END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- 6. The "BanglaRank" Feed Algorithm
+-- Returns mixed feed of posts based on score and affinity
+CREATE OR REPLACE FUNCTION public.get_ranked_feed(
+  current_user_id uuid,
+  limit_count int DEFAULT 10,
+  offset_count int DEFAULT 0
+)
+RETURNS TABLE (
+  id uuid,
+  user_id uuid,
+  caption text,
+  image_url text, -- For posts
+  video_url text, -- For reels (null if post)
+  created_at timestamp with time zone,
+  likes_count bigint,
+  comments_count bigint,
+  has_liked boolean,
+  has_saved boolean,
+  type text,
+  username text,
+  full_name text,
+  avatar_url text,
+  is_verified boolean
+) AS $$
+BEGIN
+  RETURN QUERY
+  WITH all_content AS (
+      -- Select Posts
+      SELECT 
+          p.id, p.user_id, p.caption, p.image_url, NULL::text as video_url, 
+          p.created_at, p.engagement_score, 'post' as content_type,
+          (SELECT count(*) FROM public.likes l WHERE l.post_id = p.id) as likes_count,
+          (SELECT count(*) FROM public.comments c WHERE c.post_id = p.id) as comments_count
+      FROM public.posts p
+      
+      UNION ALL
+      
+      -- Select Reels
+      SELECT 
+          r.id, r.user_id, r.caption, NULL::text as image_url, r.video_url, 
+          r.created_at, r.engagement_score, 'reel' as content_type,
+          (SELECT count(*) FROM public.likes l WHERE l.reel_id = r.id) as likes_count,
+          (SELECT count(*) FROM public.comments c WHERE c.reel_id = r.id) as comments_count
+      FROM public.reels r
+  ),
+  scored_content AS (
+      SELECT 
+          ac.*,
+          -- Final Rank = Algorithm Score + Affinity Boost
+          (
+              (coalesce(ac.engagement_score, 0) * 0.4) + 
+              (coalesce(ua.score, 0) * 0.6)
+          ) as final_rank
+      FROM all_content ac
+      JOIN public.profiles pr ON ac.user_id = pr.id
+      -- Join Affinity to boost friends posts
+      LEFT JOIN public.user_affinities ua ON ua.user_id = current_user_id AND ua.target_user_id = ac.user_id
+      WHERE 
+          -- Logic: 
+          -- 1. Content from people I follow
+          ac.user_id IN (SELECT following_id FROM public.follows WHERE follower_id = current_user_id)
+          -- 2. OR high viral content (My personal explore in feed)
+          OR (ac.engagement_score > 50)
+          -- 3. OR Content from people I interact with a lot even if not following (Shadow follow)
+          OR (ua.score > 20)
+  )
+  SELECT 
+      sc.id,
+      sc.user_id,
+      sc.caption,
+      sc.image_url,
+      sc.video_url,
+      sc.created_at,
+      sc.likes_count,
+      sc.comments_count,
+      EXISTS(SELECT 1 FROM public.likes l WHERE (l.post_id = sc.id OR l.reel_id = sc.id) AND l.user_id = current_user_id) as has_liked,
+      EXISTS(SELECT 1 FROM public.saves s WHERE s.post_id = sc.id AND s.user_id = current_user_id) as has_saved,
+      sc.content_type as type,
+      pr.username,
+      pr.full_name,
+      pr.avatar_url,
+      pr.is_verified
+  FROM scored_content sc
+  JOIN public.profiles pr ON sc.user_id = pr.id
+  ORDER BY sc.final_rank DESC, sc.created_at DESC
+  LIMIT limit_count OFFSET offset_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 7. Interaction Tracker (Updates Affinity)
+-- Call this RPC whenever a user visits a profile or DMs someone
+CREATE OR REPLACE FUNCTION public.track_user_interaction(
+    target_user_id uuid,
+    interaction_type text -- 'visit', 'like', 'comment', 'dm'
+) RETURNS void AS $$
+DECLARE
+    score_increment float := 0;
+BEGIN
+    CASE interaction_type
+        WHEN 'visit' THEN score_increment := 0.5;
+        WHEN 'like' THEN score_increment := 1.0;
+        WHEN 'comment' THEN score_increment := 3.0;
+        WHEN 'dm' THEN score_increment := 5.0;
+        ELSE score_increment := 0.1;
+    END CASE;
+
+    INSERT INTO public.user_affinities (user_id, target_user_id, score, last_interaction)
+    VALUES (auth.uid(), target_user_id, score_increment, now())
+    ON CONFLICT (user_id, target_user_id) 
+    DO UPDATE SET 
+        score = public.user_affinities.score + EXCLUDED.score,
+        last_interaction = now();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- 8. Auto-Update Affinity on Like/Comment
+CREATE OR REPLACE FUNCTION public.auto_update_affinity()
+RETURNS trigger AS $$
+DECLARE
+    target_owner_id uuid;
+    interaction_score float;
+BEGIN
+    -- Determine Interaction Type & Target Owner
+    IF (TG_TABLE_NAME = 'likes') THEN
+        interaction_score := 1.0;
+        IF NEW.post_id IS NOT NULL THEN
+             SELECT user_id INTO target_owner_id FROM public.posts WHERE id = NEW.post_id;
+        ELSIF NEW.reel_id IS NOT NULL THEN
+             SELECT user_id INTO target_owner_id FROM public.reels WHERE id = NEW.reel_id;
+        END IF;
+    ELSIF (TG_TABLE_NAME = 'comments') THEN
+        interaction_score := 3.0;
+         IF NEW.post_id IS NOT NULL THEN
+             SELECT user_id INTO target_owner_id FROM public.posts WHERE id = NEW.post_id;
+        ELSIF NEW.reel_id IS NOT NULL THEN
+             SELECT user_id INTO target_owner_id FROM public.reels WHERE id = NEW.reel_id;
+        END IF;
+    ELSIF (TG_TABLE_NAME = 'follows') THEN
+        interaction_score := 5.0;
+        target_owner_id := NEW.following_id;
+    END IF;
+
+    -- Update Affinity if target is found and not self-interaction
+    IF target_owner_id IS NOT NULL AND target_owner_id != NEW.user_id THEN
+        -- Calls the interaction tracker logic internally or duplicates simple update
+        INSERT INTO public.user_affinities (user_id, target_user_id, score, last_interaction)
+        VALUES (NEW.user_id, target_owner_id, interaction_score, now())
+        ON CONFLICT (user_id, target_user_id) 
+        DO UPDATE SET 
+            score = public.user_affinities.score + EXCLUDED.score,
+            last_interaction = now();
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Apply Affinity Triggers
+DROP TRIGGER IF EXISTS tr_affinity_likes ON public.likes;
+CREATE TRIGGER tr_affinity_likes
+AFTER INSERT ON public.likes
+FOR EACH ROW EXECUTE PROCEDURE public.auto_update_affinity();
+
+DROP TRIGGER IF EXISTS tr_affinity_comments ON public.comments;
+CREATE TRIGGER tr_affinity_comments
+AFTER INSERT ON public.comments
+FOR EACH ROW EXECUTE PROCEDURE public.auto_update_affinity();
+
+DROP TRIGGER IF EXISTS tr_affinity_follows ON public.follows;
+CREATE TRIGGER tr_affinity_follows
+AFTER INSERT ON public.follows
+FOR EACH ROW EXECUTE PROCEDURE public.auto_update_affinity();
+-- 1. BACKFILL: Force calculate scores for existing content ensuring they are non-zero
+UPDATE public.posts 
+SET engagement_score = GREATEST(
+    public.calculate_engagement_score(
+        (SELECT count(*) FROM public.likes WHERE post_id = public.posts.id),
+        (SELECT count(*) FROM public.comments WHERE post_id = public.posts.id),
+        0, 
+        view_count,
+        created_at
+    ),
+    1.0 
+);
+
+UPDATE public.reels
+SET engagement_score = GREATEST(
+    public.calculate_engagement_score(
+        (SELECT count(*) FROM public.likes WHERE reel_id = public.reels.id),
+        (SELECT count(*) FROM public.comments WHERE reel_id = public.reels.id),
+        0, 
+        view_count,
+        created_at
+    ),
+    1.0
+);
+
+-- 2. DROP AND RECREATE FUNCTION
+-- CRITICAL: We MUST drop the function first because we are changing the return return type (adding views_count)
+-- Postgres will NOT allow replacing a function if the return table signature changes.
+DROP FUNCTION IF EXISTS public.get_ranked_feed(uuid, int, int);
+
+CREATE OR REPLACE FUNCTION public.get_ranked_feed(
+  current_user_id uuid,
+  limit_count int DEFAULT 10,
+  offset_count int DEFAULT 0
+)
+RETURNS TABLE (
+  id uuid,
+  user_id uuid,
+  caption text,
+  image_url text,
+  video_url text,
+  created_at timestamp with time zone,
+  likes_count bigint,
+  comments_count bigint,
+  views_count bigint, -- <--- Added this column
+  has_liked boolean,
+  has_saved boolean,
+  type text,
+  username text,
+  full_name text,
+  avatar_url text,
+  is_verified boolean
+) AS $$
+BEGIN
+  RETURN QUERY
+  WITH all_content AS (
+      SELECT 
+          p.id, p.user_id, p.caption, p.image_url, NULL::text as video_url, 
+          p.created_at, p.engagement_score, 'post' as content_type,
+          (SELECT count(*) FROM public.likes l WHERE l.post_id = p.id) as likes_count,
+          (SELECT count(*) FROM public.comments c WHERE c.post_id = p.id) as comments_count,
+          p.view_count as views_count
+      FROM public.posts p
+      UNION ALL
+      SELECT 
+          r.id, r.user_id, r.caption, NULL::text as image_url, r.video_url, 
+          r.created_at, r.engagement_score, 'reel' as content_type,
+          (SELECT count(*) FROM public.likes l WHERE l.reel_id = r.id) as likes_count,
+          (SELECT count(*) FROM public.comments c WHERE c.reel_id = r.id) as comments_count,
+          r.view_count as views_count
+      FROM public.reels r
+  ),
+  scored_content AS (
+      SELECT 
+          ac.*,
+          (
+              (coalesce(ac.engagement_score, 0) * 0.4) + 
+              (coalesce(ua.score, 0) * 0.6)
+          ) as final_rank
+      FROM all_content ac
+      JOIN public.profiles pr ON ac.user_id = pr.id
+      LEFT JOIN public.user_affinities ua ON ua.user_id = current_user_id AND ua.target_user_id = ac.user_id
+  )
+  SELECT 
+      sc.id,
+      sc.user_id,
+      sc.caption,
+      sc.image_url,
+      sc.video_url,
+      sc.created_at,
+      sc.likes_count,
+      sc.comments_count,
+      sc.views_count,
+      EXISTS(SELECT 1 FROM public.likes l WHERE (l.post_id = sc.id OR l.reel_id = sc.id) AND l.user_id = current_user_id) as has_liked,
+      EXISTS(SELECT 1 FROM public.saves s WHERE s.post_id = sc.id AND s.user_id = current_user_id) as has_saved,
+      sc.content_type as type,
+      pr.username,
+      pr.full_name,
+      pr.avatar_url,
+      pr.is_verified
+  FROM scored_content sc
+  JOIN public.profiles pr ON sc.user_id = pr.id
+  WHERE 
+    (true)
+  ORDER BY 
+    (CASE WHEN sc.user_id IN (SELECT following_id FROM public.follows WHERE follower_id = current_user_id) THEN 1 ELSE 0 END) DESC,
+    sc.final_rank DESC, 
+    sc.created_at DESC
+  LIMIT limit_count OFFSET offset_count;
+END;
+$$ LANGUAGE plpgsql;
+-- VERSION 2 OF THE FEED ALGORITHM
+-- We are creating a NEW function to ensure no caching/update conflicts occur.
+
+DROP FUNCTION IF EXISTS public.get_ranked_feed_v2(uuid, int, int);
+
+CREATE OR REPLACE FUNCTION public.get_ranked_feed_v2(
+  current_user_id uuid,
+  limit_count int DEFAULT 10,
+  offset_count int DEFAULT 0
+)
+RETURNS TABLE (
+  id uuid,
+  user_id uuid,
+  caption text,
+  image_url text,
+  video_url text,
+  created_at timestamp with time zone,
+  likes_count bigint,
+  comments_count bigint,
+  view_count bigint,    -- NAMED EXACTLY LIKE THE TABLE COLUMN
+  has_liked boolean,
+  has_saved boolean,
+  type text,
+  username text,
+  full_name text,
+  avatar_url text,
+  is_verified boolean
+) AS $$
+BEGIN
+  RETURN QUERY
+  WITH all_content AS (
+      SELECT 
+          p.id, p.user_id, p.caption, p.image_url, NULL::text as video_url, 
+          p.created_at, p.engagement_score, 'post' as content_type,
+          (SELECT count(*) FROM public.likes l WHERE l.post_id = p.id) as likes_count,
+          (SELECT count(*) FROM public.comments c WHERE c.post_id = p.id) as comments_count,
+          p.view_count
+      FROM public.posts p
+      UNION ALL
+      SELECT 
+          r.id, r.user_id, r.caption, NULL::text as image_url, r.video_url, 
+          r.created_at, r.engagement_score, 'reel' as content_type,
+          (SELECT count(*) FROM public.likes l WHERE l.reel_id = r.id) as likes_count,
+          (SELECT count(*) FROM public.comments c WHERE c.reel_id = r.id) as comments_count,
+          r.view_count
+      FROM public.reels r
+  ),
+  scored_content AS (
+      SELECT 
+          ac.*,
+          (
+              (coalesce(ac.engagement_score, 0) * 0.4) + 
+              (coalesce(ua.score, 0) * 0.6)
+          ) as final_rank
+      FROM all_content ac
+      JOIN public.profiles pr ON ac.user_id = pr.id
+      LEFT JOIN public.user_affinities ua ON ua.user_id = current_user_id AND ua.target_user_id = ac.user_id
+  )
+  SELECT 
+      sc.id,
+      sc.user_id,
+      sc.caption,
+      sc.image_url,
+      sc.video_url,
+      sc.created_at,
+      sc.likes_count,
+      sc.comments_count,
+      sc.view_count,
+      EXISTS(SELECT 1 FROM public.likes l WHERE (l.post_id = sc.id OR l.reel_id = sc.id) AND l.user_id = current_user_id) as has_liked,
+      EXISTS(SELECT 1 FROM public.saves s WHERE s.post_id = sc.id AND s.user_id = current_user_id) as has_saved,
+      sc.content_type as type,
+      pr.username,
+      pr.full_name,
+      pr.avatar_url,
+      pr.is_verified
+  FROM scored_content sc
+  JOIN public.profiles pr ON sc.user_id = pr.id
+  WHERE 
+    true -- Show everything
+  ORDER BY 
+    (CASE WHEN sc.user_id IN (SELECT following_id FROM public.follows WHERE follower_id = current_user_id) THEN 1 ELSE 0 END) DESC,
+    sc.final_rank DESC, 
+    sc.created_at DESC
+  LIMIT limit_count OFFSET offset_count;
+END;
+$$ LANGUAGE plpgsql;

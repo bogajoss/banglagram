@@ -76,12 +76,12 @@ const Sidebar: React.FC = () => {
             <div className="flex items-center gap-2">
               <img src="/icon.png" alt="Logo" className="w-8 h-8 object-contain" />
               <h1 className="text-xl font-bold tracking-tight text-[#006a4e]">
-                SysMed
+                Banglagram
               </h1>
             </div>
           ) : (
             <Link to="/" className="flex justify-center items-center">
-              <img src="/icon.png" alt="SysMed" className="w-8 h-8 object-contain" />
+              <img src="/icon.png" alt="Banglagram" className="w-8 h-8 object-contain" />
             </Link>
           )}
         </div>

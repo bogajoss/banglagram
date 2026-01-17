@@ -97,8 +97,8 @@ export default function AuthView() {
     >
       <Card className="w-full max-w-md shadow-2xl border-none">
         <CardHeader className="space-y-1 flex flex-col items-center">
-          <img src="/icon.png" alt="SysMed Logo" className="w-16 h-16 object-contain mb-2" />
-          <CardTitle className="text-3xl font-bold text-[#006a4e]">SysMed</CardTitle>
+          <img src="/icon.png" alt="Banglagram Logo" className="w-16 h-16 object-contain mb-2" />
+          <CardTitle className="text-3xl font-bold text-[#006a4e]">Banglagram</CardTitle>
           <CardDescription className="text-center">
             {forgotPasswordMode
               ? "Reset your password"

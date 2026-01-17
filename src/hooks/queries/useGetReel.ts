@@ -39,6 +39,7 @@ export const useGetReel = (
         } | null;
         likes: { count: number }[];
         comments: { count: number }[];
+        view_count?: number;
       };
 
       const reel = data as unknown as ReelWithProfile;
@@ -79,6 +80,7 @@ export const useGetReel = (
         src: reel.video_url,
         likes: reel.likes?.[0]?.count || 0,
         comments: reel.comments?.[0]?.count || 0,
+        views: reel.view_count || 0,
         caption: reel.caption || "",
         audio: reel.audio_track_name || "Original Audio",
         hasLiked,

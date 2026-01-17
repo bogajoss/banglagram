@@ -9,10 +9,8 @@ import { useGetSuggestedUsers } from "../hooks/queries/useGetSuggestedUsers";
 import { useAuth } from "../hooks/useAuth";
 import { useFollowUser } from "../hooks/mutations/useFollowUser";
 
-import { supabase } from "../lib/supabaseClient";
-import OptimizedImage from "../components/OptimizedImage";
 import VerifiedBadge from "../components/VerifiedBadge";
-
+import { supabase } from "../lib/supabaseClient";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const NotificationsView: React.FC = () => {
@@ -196,7 +194,7 @@ const NotificationsView: React.FC = () => {
                     <div
                       className={`w-11 h-11 rounded-full border ${borderClass} flex items-center justify-center flex-shrink-0 overflow-hidden`}
                     >
-                      <OptimizedImage
+                      <img
                         src="https://www.instagram.com/static/images/activity/meta-logo-pano-manual-padding-notif@2x.png/c2173431433e.png"
                         className="w-6 h-6 object-contain"
                         alt="Meta"

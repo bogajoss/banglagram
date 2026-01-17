@@ -36,7 +36,6 @@ import type { Database } from "../database.types";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
-import OptimizedImage from "../components/OptimizedImage";
 import VerifiedBadge from "../components/VerifiedBadge";
 import { UserStatus } from "../components/UserStatus";
 import { TypingIndicator } from "../components/TypingIndicator";
@@ -604,13 +603,13 @@ const MessagesView: React.FC = () => {
                             theme={theme}
                           />
                         ) : (
-                          <OptimizedImage
+                          <img
                             src={msg.media_url.includes("/storage/v1/object/messages/") && !msg.media_url.includes("/storage/v1/object/public/")
                               ? msg.media_url.replace("/storage/v1/object/messages/", "/storage/v1/object/public/messages/")
                               : msg.media_url}
-                            width={300}
                             className="max-w-full h-auto max-h-[300px] object-cover"
                             alt="Shared image"
+                            loading="lazy"
                           />
                         )}
                       </div>

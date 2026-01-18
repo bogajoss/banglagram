@@ -112,6 +112,8 @@ const PostDetailsModal: React.FC = () => {
 
   const isSaved = savedPostIds.has(activeItem.id);
   const liked = activeItem.hasLiked || false;
+  
+  const isVideoPost = !isReel && (activeItem as Post).content?.type === "video";
 
   const handleLike = () => {
     if (!user) {
@@ -175,32 +177,33 @@ const PostDetailsModal: React.FC = () => {
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl h-[95vh] md:h-[650px] md:max-h-[90vh] p-0 overflow-hidden border-none sm:rounded-lg">
+      <DialogContent className="max-w-full md:max-w-[1200px] h-[95vh] md:h-[750px] p-0 overflow-hidden border-none sm:rounded-lg w-full">
         <DialogTitle className="sr-only">
           Post by {activeItem.user.username}
         </DialogTitle>
-        <div className="flex flex-col md:flex-row h-full w-full bg-background">
+        <div className="flex flex-col md:flex-row h-full w-full bg-background md:overflow-hidden">
           {/* Media Section */}
-          <div className="hidden md:flex flex-1 bg-black items-center justify-center h-full border-r border-border relative group">
-            {isReel || (activeItem as Post).content.type === "video" ? (
+          <div className="w-full md:flex-[1.5] bg-black relative group h-[300px] md:h-full border-b md:border-b-0 md:border-r border-border flex items-center justify-center overflow-hidden">
+            {isReel || isVideoPost ? (
                 <VideoPlayer 
-                    src={mediaList[0]}
-                    poster={(activeItem as Post).content?.poster}
-                    className="max-h-full max-w-full"
+                    src={isReel ? (activeItem as Reel).src : (activeItem as Post).content.src || ""}
+                    poster={isReel ? (activeItem as Reel).poster : (activeItem as Post).content?.poster}
+                    className="w-full h-full"
                     autoPlay={true}
                     controls={true}
                 />
             ) : (
                 <ImageCarousel 
                     images={mediaList}
-                    className="w-full h-full bg-black"
-                    aspectRatio="max-h-full max-w-full"
+                    className="w-full h-full"
+                    aspectRatio="w-full h-full"
+                    imageClassName="object-cover"
                 />
             )}
           </div>
 
           {/* Details Section */}
-          <div className="w-full md:w-[400px] flex flex-col h-full overflow-hidden">
+          <div className="w-full md:w-[400px] flex flex-col h-auto md:h-full overflow-hidden shrink-0 bg-background">
             <div className="p-4 flex items-center justify-between shrink-0">
               {/* Mobile Header: Comments Title */}
               <div className="md:hidden w-full text-center font-bold text-sm">

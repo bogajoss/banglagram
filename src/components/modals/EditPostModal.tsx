@@ -74,23 +74,30 @@ const EditPostModal: React.FC<EditPostModalProps> = ({ post, onClose }) => {
     
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden border-none sm:rounded-xl">
+      <DialogContent className="max-w-5xl h-[80vh] p-0 overflow-hidden border-none sm:rounded-xl">
         <div className="flex flex-col md:flex-row h-full">
           {/* Media Preview (Left/Top) */}
-          <div className="md:w-1/2 bg-black flex items-center justify-center relative aspect-square md:aspect-auto group">
+          <div className="w-full md:flex-[1.2] bg-black flex items-center justify-center relative group overflow-hidden md:h-full">
             {post.content.type === "video" ? (
-              <video src={post.content.src} className="max-h-full max-w-full" />
+              <VideoPlayer 
+                src={post.content.src || ""} 
+                poster={post.content.poster}
+                className="w-full h-full"
+                autoPlay={false}
+                controls={true}
+              />
             ) : (
                 <ImageCarousel 
                     images={mediaList}
                     className="w-full h-full bg-black"
-                    aspectRatio="max-h-full max-w-full"
+                    aspectRatio="w-full h-full"
+                    imageClassName="object-cover"
                 />
             )}
           </div>
 
           {/* Edit Form (Right/Bottom) */}
-          <div className="md:w-1/2 flex flex-col bg-background">
+          <div className="w-full md:w-[400px] flex flex-col bg-background h-auto md:h-full shrink-0 border-l border-border">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}

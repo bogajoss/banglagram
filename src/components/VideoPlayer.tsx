@@ -7,6 +7,7 @@ interface VideoPlayerProps {
   src: string;
   poster?: string;
   className?: string;
+  videoClassName?: string;
   autoPlay?: boolean; // If true, tries to autoplay when in view
   controls?: boolean; // Whether to show custom controls
   loop?: boolean;
@@ -19,6 +20,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   src,
   poster,
   className,
+  videoClassName,
   autoPlay = true,
   controls = true,
   loop = true,
@@ -82,7 +84,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         ref={setRefs}
         src={src}
         poster={poster}
-        className="w-full h-full object-cover"
+        className={cn("w-full h-full", videoClassName || "object-cover")}
         loop={loop}
         muted={isMuted}
         playsInline

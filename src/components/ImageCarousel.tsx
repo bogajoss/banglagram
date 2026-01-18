@@ -8,13 +8,15 @@ interface ImageCarouselProps {
   images: string[];
   aspectRatio?: string; // e.g., "aspect-square", "aspect-[4/5]"
   className?: string;
+  imageClassName?: string;
   onDoubleClick?: () => void;
 }
 
 const ImageCarousel: React.FC<ImageCarouselProps> = ({
   images,
-  aspectRatio = "aspect-square",
+  aspectRatio = "",
   className,
+  imageClassName,
   onDoubleClick,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -30,7 +32,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
         {images.length === 1 && (
           <OptimizedImage
             src={images[0]}
-            className="w-full h-full object-cover"
+            className={cn("w-full h-full", imageClassName || "object-cover")}
             alt="Post content"
           />
         )}
@@ -106,7 +108,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
         >
           <OptimizedImage
             src={images[currentIndex]}
-            className="w-full h-full object-cover pointer-events-none" // prevent dragging the image element itself
+            className={cn("w-full h-full pointer-events-none", imageClassName || "object-cover")} // prevent dragging the image element itself
             alt={`Slide ${currentIndex + 1}`}
           />
         </motion.div>

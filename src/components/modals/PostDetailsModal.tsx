@@ -5,7 +5,6 @@ import {
   Send,
   Bookmark,
   Smile,
-  MoreHorizontal,
   Loader2,
   Mic,
   X,
@@ -35,6 +34,7 @@ import type { Comment } from "../../hooks/queries/useGetComments";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import ImageCarousel from "../ImageCarousel";
 import VideoPlayer from "../VideoPlayer";
+import ShareModal from "./ShareModal";
 
 dayjs.extend(relativeTime);
 dayjs.locale("en");
@@ -61,11 +61,16 @@ const PostDetailsModal: React.FC = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showRecorder, setShowRecorder] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   
   const emojiPickerRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const activeItem = viewingPost || viewingReel;
+  const isReel = !!viewingReel;
+
+  // ShareURL
+  const shareUrl = activeItem ? `${window.location.origin}/${isReel ? "reel" : "post"}/${activeItem.id}` : "";
 
   // Handle clicking outside emoji picker to close it
   React.useEffect(() => {
@@ -85,7 +90,6 @@ const PostDetailsModal: React.FC = () => {
     setNewComment((prev) => prev + emojiData.emoji);
   };
 
-  const isReel = !!viewingReel;
   const type = isReel ? "reel" : "post";
   const itemId = activeItem ? String(activeItem.id) : "";
   
@@ -176,8 +180,15 @@ const PostDetailsModal: React.FC = () => {
   };
 
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-full md:max-w-[1200px] h-[95vh] md:h-[750px] p-0 overflow-hidden border-none sm:rounded-lg w-full">
+    <>
+      {isShareOpen && (
+        <ShareModal
+          onClose={() => setIsShareOpen(false)}
+          shareUrl={shareUrl}
+        />
+      )}
+      <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-full md:max-w-[1200px] h-[95vh] md:h-[750px] p-0 overflow-hidden border-none sm:rounded-lg w-full md:scale-75">
         <DialogTitle className="sr-only">
           Post by {activeItem.user.username}
         </DialogTitle>
@@ -229,11 +240,7 @@ const PostDetailsModal: React.FC = () => {
                 </div>
               </div>
 
-              {/* Desktop Options Icon */}
-              <MoreHorizontal
-                size={20}
-                className="hidden md:block cursor-pointer hover:opacity-70"
-              />
+
             </div>
 
             <Separator />
@@ -323,7 +330,7 @@ const PostDetailsModal: React.FC = () => {
                   <Send
                     size={24}
                     className="cursor-pointer hover:opacity-70"
-                    onClick={() => showToast("Shared")}
+                    onClick={() => setIsShareOpen(true)}
                   />
                 </div>
                 <Bookmark
@@ -436,6 +443,7 @@ const PostDetailsModal: React.FC = () => {
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 };
 

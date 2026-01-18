@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, Search, Copy, PlusSquare } from "lucide-react";
+import { X, Search, Copy, PlusSquare, Loader2 } from "lucide-react";
 import type { User } from "../../types";
 import { useGetSuggestedUsers } from "../../hooks/queries/useGetSuggestedUsers";
 import { useAuth } from "../../hooks/useAuth";
@@ -28,6 +28,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareUrl }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [sendingTo, setSendingTo] = useState<string | null>(null);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
@@ -134,14 +135,45 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareUrl }) => {
                     </div>
                   </div>
                   <button
-                    className="px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#006a4e] text-white hover:bg-[#00523c] transition-colors"
-                    onClick={(e) => {
+                    disabled={sendingTo === user.id}
+                    className="px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#006a4e] text-white hover:bg-[#00523c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    onClick={async (e) => {
                       e.stopPropagation();
-                      showToast(`Sent to ${user.username}`);
-                      onClose();
+                      if (!authUser?.id) {
+                        showToast("Please login first");
+                        return;
+                      }
+                      
+                      setSendingTo(user.id);
+                      try {
+                        const { error } = await supabase.from("messages").insert([
+                          {
+                            sender_id: authUser.id,
+                            receiver_id: user.id,
+                            content: `Check this out: ${shareUrl || window.location.href}`,
+                            created_at: new Date().toISOString(),
+                          },
+                        ]);
+
+                        if (error) throw error;
+                        showToast(`Sent to ${user.username}`);
+                        onClose();
+                      } catch (err) {
+                        console.error("Error sending message:", err);
+                        showToast("Failed to send message");
+                      } finally {
+                        setSendingTo(null);
+                      }
                     }}
                   >
-                    Send
+                    {sendingTo === user.id ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        <span>Sending...</span>
+                      </>
+                    ) : (
+                      "Send"
+                    )}
                   </button>
                 </div>
               ))

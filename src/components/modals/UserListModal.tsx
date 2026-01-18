@@ -46,7 +46,9 @@ const UserListModal: React.FC<UserListModalProps> = ({
                   <div className="flex items-center gap-3">
                     <Avatar className="w-12 h-12">
                       <AvatarImage src={user.avatar} />
-                      <AvatarFallback>{user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                      <AvatarFallback>
+                        {user.username?.[0]?.toUpperCase() || "?"}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
                       <div className="flex items-center gap-1">
@@ -60,9 +62,7 @@ const UserListModal: React.FC<UserListModalProps> = ({
                       </span>
                     </div>
                   </div>
-                  <button
-                    className="px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#006a4e] text-white hover:bg-[#00523c]"
-                  >
+                  <button className="px-4 py-1.5 rounded-lg text-sm font-semibold bg-[#006a4e] text-white hover:bg-[#00523c]">
                     Follow
                   </button>
                 </div>

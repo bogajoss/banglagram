@@ -47,7 +47,7 @@ export const useGetComments = (targetId: string, type: "post" | "reel") => {
             avatar_url,
             is_verified
           )
-        `
+        `,
         )
         .eq(column, targetId)
         .order("created_at", { ascending: false });
@@ -59,26 +59,33 @@ export const useGetComments = (targetId: string, type: "post" | "reel") => {
 
       const likedCommentIds = new Set<string>();
       if (user) {
-         const commentIds = commentsData.map(c => c.id);
-         if (commentIds.length > 0) {
-             const { data: rawLikesData } = await supabase
-                .from("comment_likes")
-                .select("comment_id")
-                .eq("user_id", user.id)
-                .in("comment_id", commentIds);
-             
-             if (rawLikesData) {
-                 const likesData = rawLikesData as { comment_id: string }[];
-                 likesData.forEach(l => likedCommentIds.add(l.comment_id));
-             }
-         }
+        const commentIds = commentsData.map((c) => c.id);
+        if (commentIds.length > 0) {
+          const { data: rawLikesData } = await supabase
+            .from("comment_likes")
+            .select("comment_id")
+            .eq("user_id", user.id)
+            .in("comment_id", commentIds);
+
+          if (rawLikesData) {
+            const likesData = rawLikesData as { comment_id: string }[];
+            likesData.forEach((l) => likedCommentIds.add(l.comment_id));
+          }
+        }
       }
 
       return commentsData.map((comment) => {
         let audioUrl = comment.audio_url || undefined;
         // Fix for missing /public/ in storage URLs
-        if (audioUrl && audioUrl.includes("/storage/v1/object/audio-messages/") && !audioUrl.includes("/storage/v1/object/public/")) {
-            audioUrl = audioUrl.replace("/storage/v1/object/audio-messages/", "/storage/v1/object/public/audio-messages/");
+        if (
+          audioUrl &&
+          audioUrl.includes("/storage/v1/object/audio-messages/") &&
+          !audioUrl.includes("/storage/v1/object/public/")
+        ) {
+          audioUrl = audioUrl.replace(
+            "/storage/v1/object/audio-messages/",
+            "/storage/v1/object/public/audio-messages/",
+          );
         }
 
         return {

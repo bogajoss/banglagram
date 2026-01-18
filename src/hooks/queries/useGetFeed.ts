@@ -8,19 +8,18 @@ export const useGetFeed = (userId?: string) => {
   return useInfiniteQuery({
     queryKey: FEED_QUERY_KEY,
     queryFn: async ({ pageParam = 0 }) => {
-      
       const { data, error } = await supabase.rpc("get_ranked_feed_v2", {
         current_user_id: userId,
         limit_count: 10,
         offset_count: pageParam * 10,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       if (error) throw error;
-      
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const posts = (data as any[]) || [];
-      
+
       // Debug logging to verify incoming data structure
       if (posts.length > 0) {
         console.log("FIRST POST RAW DATA V2:", posts[0]);
@@ -38,8 +37,8 @@ export const useGetFeed = (userId?: string) => {
           isVerified: item.is_verified || false,
         },
         content: {
-          type: (item.type === 'reel' ? 'video' : 'image') as "image" | "video",
-          src: item.type === 'reel' ? item.video_url : item.image_url,
+          type: (item.type === "reel" ? "video" : "image") as "image" | "video",
+          src: item.type === "reel" ? item.video_url : item.image_url,
         },
         likes: item.likes_count || 0,
         caption: item.caption || "",

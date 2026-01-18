@@ -46,7 +46,6 @@ export type Database = {
           is_online?: boolean;
           updated_at?: string;
         };
-
       };
       posts: {
         Row: {
@@ -373,4 +372,4 @@ export type Database = {
       [_ in never]: never;
     };
   };
-}
+};

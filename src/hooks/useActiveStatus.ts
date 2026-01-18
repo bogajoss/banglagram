@@ -12,7 +12,9 @@ export interface UserPresence {
 
 export const useActiveStatus = (roomId: string) => {
   const { user, profile } = useAuth();
-  const [presenceState, setPresenceState] = useState<Record<string, UserPresence>>({});
+  const [presenceState, setPresenceState] = useState<
+    Record<string, UserPresence>
+  >({});
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   // Subscribe to presence changes
@@ -41,7 +43,7 @@ export const useActiveStatus = (roomId: string) => {
             isOnline?: boolean;
             lastSeen?: string;
           }>;
-          
+
           if (userPresence && userPresence.length > 0) {
             const p = userPresence[0];
             if (p.userId && p.username) {

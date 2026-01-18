@@ -22,11 +22,15 @@ const CreateModal: React.FC = () => {
   const { isCreateModalOpen, setCreateModalOpen, showToast } = useAppStore();
   const { user, profile } = useAuth();
 
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
+  
   const [caption, setCaption] = useState("");
   const [isVideo, setIsVideo] = useState(false);
-  const [createType, setCreateType] = useState<"post" | "reel" | "story" | null>(null);
+  const [createType, setCreateType] = useState<
+    "post" | "reel" | "story" | null
+  >(null);
 
   const { mutate: createPost, isPending: isPostPending } = useCreatePost();
   const { mutate: createReel, isPending: isReelPending } = useCreateReel();
@@ -34,12 +38,16 @@ const CreateModal: React.FC = () => {
 
   const isPending = isPostPending || isReelPending || isStoryPending;
 
-  const onFileSelect = (selected: File) => {
-    if (selected) {
-      setFile(selected);
-      const isVid = selected.type.startsWith("video/");
+  const onFileSelect = (selectedFiles: File[]) => {
+    if (selectedFiles && selectedFiles.length > 0) {
+      setFiles(selectedFiles);
+      const isVid = selectedFiles[0].type.startsWith("video/");
       setIsVideo(isVid);
-      setPreview(URL.createObjectURL(selected));
+      
+      const newPreviews = selectedFiles.map(f => URL.createObjectURL(f));
+      setPreviews(newPreviews);
+      setCurrentPreviewIndex(0);
+
       // Default type based on file
       if (isVid) {
         setCreateType("reel");
@@ -50,11 +58,11 @@ const CreateModal: React.FC = () => {
   };
 
   const handleShare = async () => {
-    if (!file || !user || !profile) return;
+    if (files.length === 0 || !user || !profile) return;
 
     if (createType === "reel") {
       createReel(
-        { file, caption, userId: user.id, username: profile.username },
+        { file: files[0], caption, userId: user.id, username: profile.username },
         {
           onSuccess: () => {
             showToast("Reel shared");
@@ -66,7 +74,7 @@ const CreateModal: React.FC = () => {
       );
     } else if (createType === "story") {
       createStory(
-        { file, userId: user.id },
+        { file: files[0], userId: user.id },
         {
           onSuccess: () => {
             showToast("Story shared");
@@ -78,7 +86,7 @@ const CreateModal: React.FC = () => {
       );
     } else {
       createPost(
-        { file, caption, userId: user.id, username: profile.username },
+        { files, caption, userId: user.id, username: profile.username },
         {
           onSuccess: () => {
             showToast("Post shared");
@@ -92,8 +100,9 @@ const CreateModal: React.FC = () => {
   };
 
   const resetForm = () => {
-    setFile(null);
-    setPreview(null);
+    setFiles([]);
+    setPreviews([]);
+    setCurrentPreviewIndex(0);
     setCaption("");
     setIsVideo(false);
     setCreateType(null);
@@ -106,19 +115,27 @@ const CreateModal: React.FC = () => {
     }
   };
 
+  const nextPreview = () => {
+    setCurrentPreviewIndex((prev) => (prev + 1) % previews.length);
+  };
+
+  const prevPreview = () => {
+    setCurrentPreviewIndex((prev) => (prev - 1 + previews.length) % previews.length);
+  };
+
   return (
     <Dialog open={isCreateModalOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-5xl h-[85vh] p-0 overflow-hidden flex flex-col gap-0 border-none sm:rounded-2xl">
         <DialogHeader className="px-4 h-14 border-b flex flex-row items-center justify-between shrink-0 space-y-0">
           <div className="w-20 flex justify-start">
-            {preview && (
+            {previews.length > 0 && (
               <Button
                 variant="ghost"
                 size="icon"
                 className="-ml-2"
                 onClick={() => {
-                  setPreview(null);
-                  setFile(null);
+                  setPreviews([]);
+                  setFiles([]);
                   setCreateType(null);
                 }}
               >
@@ -128,7 +145,7 @@ const CreateModal: React.FC = () => {
           </div>
 
           <DialogTitle className="font-semibold text-lg text-center flex-grow">
-            {preview
+            {previews.length > 0
               ? createType === "reel"
                 ? "New Reel"
                 : createType === "story"
@@ -138,7 +155,7 @@ const CreateModal: React.FC = () => {
           </DialogTitle>
 
           <div className="w-20 flex justify-end">
-            {preview && (
+            {previews.length > 0 && (
               <Button
                 variant="ghost"
                 onClick={handleShare}
@@ -161,34 +178,63 @@ const CreateModal: React.FC = () => {
           <div
             className={cn(
               "flex-1 bg-black relative flex items-center justify-center overflow-hidden",
-              preview ? "md:border-r border-border" : ""
+              previews.length > 0 ? "md:border-r border-border" : "",
             )}
           >
-            {preview ? (
+            {previews.length > 0 ? (
               <div className="relative w-full h-full flex items-center justify-center bg-[#1a1a1a]">
                 {isVideo ? (
                   <video
-                    src={preview}
+                    src={previews[currentPreviewIndex]}
                     controls
                     className="max-h-full max-w-full object-contain"
                   />
                 ) : (
-                  <img
-                    src={preview}
-                    className="max-h-full max-w-full object-contain"
-                    alt="preview"
-                  />
+                  <>
+                     <img
+                      src={previews[currentPreviewIndex]}
+                      className="max-h-full max-w-full object-contain"
+                      alt="preview"
+                    />
+                    {previews.length > 1 && (
+                      <>
+                        <button 
+                          onClick={prevPreview}
+                          className="absolute left-4 p-1 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
+                        >
+                          <ArrowLeft size={20} />
+                        </button>
+                        <button 
+                          onClick={nextPreview}
+                          className="absolute right-4 p-1 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
+                        >
+                          <ChevronRight size={20} />
+                        </button>
+                        <div className="absolute bottom-4 flex gap-1">
+                          {previews.map((_, idx) => (
+                            <div 
+                              key={idx}
+                              className={cn(
+                                "w-1.5 h-1.5 rounded-full transition-colors",
+                                idx === currentPreviewIndex ? "bg-white" : "bg-white/50"
+                              )}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </>
                 )}
               </div>
             ) : (
               <div className="w-full h-full p-8 flex flex-col items-center justify-center bg-background">
-                <FileUploader onFileSelect={onFileSelect} />
+                <FileUploader onFileSelect={onFileSelect} multiple={true} />
               </div>
             )}
           </div>
 
           {/* Right: Details Form */}
-          {preview && (
+          {previews.length > 0 && (
             <div className="w-full md:w-[400px] flex flex-col bg-background">
               {/* User Profile Row */}
               <div className="p-4 flex items-center gap-3">
@@ -261,7 +307,7 @@ const CreateModal: React.FC = () => {
                         "text-sm font-semibold py-2 rounded-md transition-all",
                         createType === "post"
                           ? "bg-background text-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground"
+                          : "text-muted-foreground hover:text-foreground",
                       )}
                     >
                       Post
@@ -273,7 +319,7 @@ const CreateModal: React.FC = () => {
                       "text-sm font-semibold py-2 rounded-md transition-all",
                       createType === (isVideo ? "reel" : "story")
                         ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
+                        : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     {isVideo ? "Reel" : "Story"}

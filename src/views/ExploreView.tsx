@@ -19,7 +19,9 @@ const ExploreView: React.FC = () => {
   const { setViewingPost } = useAppStore();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchType, setSearchType] = useState<"accounts" | "posts">("accounts");
+  const [searchType, setSearchType] = useState<"accounts" | "posts">(
+    "accounts",
+  );
   const [userResults, setUserResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { ref, inView } = useInView({
@@ -35,7 +37,7 @@ const ExploreView: React.FC = () => {
   } = useGetExplorePosts();
 
   const { data: postResults = [], isLoading: isPostsLoading } = useSearchPosts(
-    searchType === "posts" ? searchQuery : ""
+    searchType === "posts" ? searchQuery : "",
   );
 
   useEffect(() => {
@@ -101,16 +103,9 @@ const ExploreView: React.FC = () => {
   return (
     <div className="w-full max-w-[935px] py-4 px-2">
       {/* Search Bar */}
-      <div
-        className="mb-4 sticky top-0 z-30 py-2 bg-background"
-      >
-        <div
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted"
-        >
-          <Search
-            size={18}
-            className="text-muted-foreground"
-          />
+      <div className="mb-4 sticky top-0 z-30 py-2 bg-background">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted">
+          <Search size={18} className="text-muted-foreground" />
           <input
             type="text"
             placeholder="Search"
@@ -177,14 +172,20 @@ const ExploreView: React.FC = () => {
                 >
                   <Avatar className="w-10 h-10">
                     <AvatarImage src={user.avatar} />
-                    <AvatarFallback>{user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                    <AvatarFallback>
+                      {user.username?.[0]?.toUpperCase() || "?"}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
                     <div className="flex items-center gap-1 text-foreground">
-                      <span className="font-semibold text-sm">{user.username}</span>
+                      <span className="font-semibold text-sm">
+                        {user.username}
+                      </span>
                       {user.isVerified && <VerifiedBadge />}
                     </div>
-                    <span className="text-xs text-muted-foreground">{user.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {user.name}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -206,91 +207,113 @@ const ExploreView: React.FC = () => {
                   No posts found
                 </div>
               )}
-              <div className="grid grid-cols-3 gap-1 md:gap-4">
-                {postResults.map((post) => (
-                  <motion.div
-                    key={post.id}
-                    variants={itemVariants}
-                    whileHover={{ scale: 0.98 }}
-                    className="relative aspect-square group cursor-pointer overflow-hidden"
-                    onClick={() => setViewingPost(post as Post)}
-                  >
-                    <img
-                      src={post.content.src || post.content.poster}
-                      className="w-full h-full transition-transform duration-300 group-hover:scale-110 object-cover"
-                      alt="search result"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200 z-20">
-                      <div className="flex items-center gap-1">
-                        <Heart fill="white" size={16} /> {post.likes}
+                                <div className="grid grid-cols-3 gap-1 md:gap-4">
+                              {postResults.map((post) => {
+                                let thumb = post.content.src || post.content.poster;
+                                try {
+                                  if (thumb && thumb.startsWith("[")) {
+                                    thumb = JSON.parse(thumb)[0];
+                                  }
+                                } catch (e) {
+                                  // ignore
+                                }
+                                return (
+                                  <motion.div
+                                    key={post.id}
+                                    variants={itemVariants}
+                                    whileHover={{ scale: 0.98 }}
+                                    className="relative aspect-square group cursor-pointer overflow-hidden"
+                                    onClick={() => setViewingPost(post as Post)}
+                                  >
+                                    <img
+                                      src={thumb}
+                                      className="w-full h-full transition-transform duration-300 group-hover:scale-110 object-cover"
+                                      alt="search result"
+                                      loading="lazy"
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200 z-20">
+                                      <div className="flex items-center gap-1">
+                                        <Heart fill="white" size={16} /> {post.likes}
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <CommentIcon
+                                          fill="white"
+                                          size={16}
+                                          className="-scale-x-100"
+                                        />{" "}
+                                        {post.comments}
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                );
+                              })}
+                            </div>
+                          </>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1">
-                        <CommentIcon
-                          fill="white"
-                          size={16}
-                          className="-scale-x-100"
-                        />{" "}
-                        {post.comments}
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      ) : (
-        <>
-          {isExploreLoading ? (
-            <div className="grid grid-cols-3 gap-1 md:gap-4">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
-                <Skeleton key={i} className="aspect-square" />
-              ))}
-            </div>
-          ) : (
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid grid-cols-3 gap-1 md:gap-4"
-            >
-              {exploreData?.pages.map((page, i) => (
-                <React.Fragment key={i}>
-                  {page.map((post) => (
-                    <motion.div
-                      key={post.id}
-                      variants={itemVariants}
-                      whileHover={{ scale: 0.98 }}
-                      className="relative aspect-square group cursor-pointer overflow-hidden"
-                      onClick={() => setViewingPost(post as Post)}
-                    >
-                      <img
-                        src={post.content.src || post.content.poster}
-                        className="w-full h-full transition-transform duration-300 group-hover:scale-110 object-cover"
-                        alt="explore"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200 z-20">
-                        <div className="flex items-center gap-1">
-                          <Heart fill="white" size={16} /> {post.likes}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <CommentIcon
-                            fill="white"
-                            size={16}
-                            className="-scale-x-100"
-                          />{" "}
-                          {post.comments}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </React.Fragment>
-              ))}
-            </motion.div>
-          )}
-          <div ref={ref} className="h-10 text-center py-4 text-muted-foreground">
+                    ) : (
+                      <>
+                        {isExploreLoading ? (
+                          <div className="grid grid-cols-3 gap-1 md:gap-4">
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
+                              <Skeleton key={i} className="aspect-square" />
+                            ))}
+                          </div>
+                        ) : (
+                          <motion.div
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            className="grid grid-cols-3 gap-1 md:gap-4"
+                          >
+                            {exploreData?.pages.map((page, i) => (
+                              <React.Fragment key={i}>
+                                {page.map((post) => {
+                                  let thumb = post.content.src || post.content.poster;
+                                  try {
+                                    if (thumb && thumb.startsWith("[")) {
+                                      thumb = JSON.parse(thumb)[0];
+                                    }
+                                  } catch (e) {
+                                    // ignore
+                                  }
+                                  return (
+                                    <motion.div
+                                      key={post.id}
+                                      variants={itemVariants}
+                                      whileHover={{ scale: 0.98 }}
+                                      className="relative aspect-square group cursor-pointer overflow-hidden"
+                                      onClick={() => setViewingPost(post as Post)}
+                                    >
+                                      <img
+                                        src={thumb}
+                                        className="w-full h-full transition-transform duration-300 group-hover:scale-110 object-cover"
+                                        alt="explore"
+                                        loading="lazy"
+                                      />
+                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 text-white font-bold transition-opacity duration-200 z-20">
+                                        <div className="flex items-center gap-1">
+                                          <Heart fill="white" size={16} /> {post.likes}
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                          <CommentIcon
+                                            fill="white"
+                                            size={16}
+                                            className="-scale-x-100"
+                                          />{" "}
+                                          {post.comments}
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  );
+                                })}
+                              </React.Fragment>
+                            ))}
+                          </motion.div>
+                        )}          <div
+            ref={ref}
+            className="h-10 text-center py-4 text-muted-foreground"
+          >
             {isFetchingNextPage
               ? "Loading more..."
               : hasNextPage

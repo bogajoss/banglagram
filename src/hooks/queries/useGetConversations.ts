@@ -30,7 +30,7 @@ export const useGetConversations = (userId: string | undefined) => {
         current_user_id: userId,
         limit_count: 20,
         offset_count: pageParam * 20,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       if (error) {

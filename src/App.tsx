@@ -16,7 +16,6 @@ const ExploreView = lazy(() => import("./views/ExploreView"));
 const AuthView = lazy(() => import("./views/AuthView"));
 const PostView = lazy(() => import("./views/PostView"));
 
-
 import CreateModal from "./components/modals/CreateModal";
 import EditProfileModal from "./components/modals/EditProfileModal";
 import StoryViewer from "./components/StoryViewer";
@@ -44,7 +43,7 @@ export default function App() {
   const { user, profile, loading: authLoading } = useAuth();
   const location = useLocation();
   const queryClient = useQueryClient();
-  
+
   // Initialize Global Hooks
   useOnlineStatus();
 
@@ -120,16 +119,12 @@ export default function App() {
         },
       };
       setCurrentUser(appUser);
-
     }
   }, [profile, user, setCurrentUser]);
 
   if (authLoading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center bg-background"
-      >
-
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <img
           src="/icon.png"
           className="w-20 h-20 animate-pulse"
@@ -143,9 +138,7 @@ export default function App() {
     return (
       <Suspense
         fallback={
-          <div
-            className="min-h-screen flex items-center justify-center bg-background"
-          >
+          <div className="min-h-screen flex items-center justify-center bg-background">
             <img
               src="/icon.png"
               className="w-20 h-20 animate-pulse"
@@ -233,7 +226,6 @@ export default function App() {
                 }
               />
             </Route>
-
           </Routes>
         </Suspense>
       </AnimatePresence>

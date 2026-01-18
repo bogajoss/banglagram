@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Heart,
   MessageCircle as CommentIcon,
@@ -9,6 +9,8 @@ import {
   Loader2,
   Mic,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
@@ -32,11 +34,8 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/en";
 import { CommentsSection } from "../CommentsSection";
 import type { Comment } from "../../hooks/queries/useGetComments";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 dayjs.extend(relativeTime);
 dayjs.locale("en");
@@ -64,6 +63,8 @@ const PostDetailsModal: React.FC = () => {
   const [showRecorder, setShowRecorder] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
   
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   const emojiPickerRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -90,6 +91,25 @@ const PostDetailsModal: React.FC = () => {
   const isReel = !!viewingReel;
   const type = isReel ? "reel" : "post";
   const itemId = activeItem ? String(activeItem.id) : "";
+  
+  const mediaList = useMemo(() => {
+        if (!activeItem) return [];
+        if (isReel) return [(activeItem as Reel).src];
+        
+        const post = activeItem as Post;
+        const src = post.content?.src;
+        
+        if (!src) return [post.content?.poster || ""];
+        
+        try {
+            if (src.startsWith("[")) {
+                return JSON.parse(src) as string[];
+            }
+            return [src];
+        } catch (e) {
+            return [src];
+        }
+    }, [activeItem, isReel]);
 
   if (!activeItem) return null;
 
@@ -110,8 +130,8 @@ const PostDetailsModal: React.FC = () => {
   };
 
   const handleReply = (comment: Comment) => {
-      setReplyingTo(comment);
-      inputRef.current?.focus();
+    setReplyingTo(comment);
+    inputRef.current?.focus();
   };
 
   const handleAddComment = (e?: React.FormEvent, audioBlob?: Blob) => {
@@ -131,7 +151,7 @@ const PostDetailsModal: React.FC = () => {
         text: audioBlob ? "Voice Message" : newComment,
         userId: user.id,
         audioBlob,
-        parentId: replyingTo?.id
+        parentId: replyingTo?.id,
       },
       {
         onSuccess: () => {
@@ -149,38 +169,90 @@ const PostDetailsModal: React.FC = () => {
     if (viewingPost) setViewingPost(null);
     if (viewingReel) setViewingReel(null);
     setReplyingTo(null);
+    setCurrentImageIndex(0);
   };
 
   const onUserClick = (user: User) => {
     onClose();
     navigate(`/profile/${user.username}`);
   };
+  
+    const nextImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (currentImageIndex < mediaList.length - 1) {
+            setCurrentImageIndex(prev => prev + 1);
+        }
+    };
+
+    const prevImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (currentImageIndex > 0) {
+            setCurrentImageIndex(prev => prev - 1);
+        }
+    };
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-5xl h-[95vh] md:h-[650px] md:max-h-[90vh] p-0 overflow-hidden border-none sm:rounded-lg">
-        <DialogTitle className="sr-only">Post by {activeItem.user.username}</DialogTitle>
+        <DialogTitle className="sr-only">
+          Post by {activeItem.user.username}
+        </DialogTitle>
         <div className="flex flex-col md:flex-row h-full w-full bg-background">
           {/* Media Section */}
-          <div className="hidden md:flex flex-1 bg-black items-center justify-center h-full border-r border-border relative">
+          <div className="hidden md:flex flex-1 bg-black items-center justify-center h-full border-r border-border relative group">
             {isReel ? (
               <video
-                src={(activeItem as Reel).src}
+                src={mediaList[0]}
                 className="max-h-full max-w-full"
                 controls
                 autoPlay
                 loop
               />
             ) : (
-              <img
-                src={
-                  (activeItem as Post).content?.src ||
-                  (activeItem as Post).content?.poster || ""
-                }
-                className="max-h-full max-w-full object-contain"
-                alt="post detail"
-                loading="lazy"
-              />
+                <>
+                  <img
+                    src={mediaList[currentImageIndex]}
+                    className="max-h-full max-w-full object-contain"
+                    alt="post detail"
+                    loading="lazy"
+                  />
+                  
+                   {/* Navigation Buttons */}
+                    {mediaList.length > 1 && (
+                        <>
+                            {currentImageIndex > 0 && (
+                                <button 
+                                    onClick={prevImage}
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
+                                >
+                                    <ChevronLeft size={24} />
+                                </button>
+                            )}
+                            
+                            {currentImageIndex < mediaList.length - 1 && (
+                                <button 
+                                    onClick={nextImage}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
+                                >
+                                    <ChevronRight size={24} />
+                                </button>
+                            )}
+                            
+                            {/* Dots */}
+                            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5">
+                                {mediaList.map((_, idx) => (
+                                    <div 
+                                        key={idx}
+                                        className={cn(
+                                            "w-1.5 h-1.5 rounded-full transition-colors shadow-sm",
+                                            idx === currentImageIndex ? "bg-white" : "bg-white/40"
+                                        )}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </>
             )}
           </div>
 
@@ -199,7 +271,9 @@ const PostDetailsModal: React.FC = () => {
               >
                 <Avatar className="w-8 h-8 border border-border">
                   <AvatarImage src={activeItem.user.avatar} />
-                  <AvatarFallback>{activeItem.user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                  <AvatarFallback>
+                    {activeItem.user.username?.[0]?.toUpperCase() || "?"}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex items-center">
                   <span className="font-semibold text-sm hover:opacity-70">
@@ -210,7 +284,10 @@ const PostDetailsModal: React.FC = () => {
               </div>
 
               {/* Desktop Options Icon */}
-              <MoreHorizontal size={20} className="hidden md:block cursor-pointer hover:opacity-70" />
+              <MoreHorizontal
+                size={20}
+                className="hidden md:block cursor-pointer hover:opacity-70"
+              />
             </div>
 
             <Separator />
@@ -224,7 +301,9 @@ const PostDetailsModal: React.FC = () => {
                       onClick={() => onUserClick(activeItem.user)}
                     >
                       <AvatarImage src={activeItem.user.avatar} />
-                      <AvatarFallback>{activeItem.user.username[0].toUpperCase()}</AvatarFallback>
+                      <AvatarFallback>
+                        {activeItem.user.username[0].toUpperCase()}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="text-sm">
                       <div className="flex items-center">
@@ -236,14 +315,20 @@ const PostDetailsModal: React.FC = () => {
                         </span>
                         {activeItem.user.isVerified && <VerifiedBadge />}
                       </div>
-                      <span className="whitespace-pre-wrap">{activeItem.caption}</span>
+                      <span className="whitespace-pre-wrap">
+                        {activeItem.caption}
+                      </span>
                       <div className="text-xs text-muted-foreground mt-1">
-                        {"createdAt" in activeItem && activeItem.createdAt ? dayjs(activeItem.createdAt).fromNow() : "time" in activeItem ? activeItem.time : ""}
+                        {"createdAt" in activeItem && activeItem.createdAt
+                          ? dayjs(activeItem.createdAt).fromNow()
+                          : "time" in activeItem
+                            ? activeItem.time
+                            : ""}
                       </div>
                     </div>
                   </div>
 
-                  <CommentsSection 
+                  <CommentsSection
                     targetId={itemId}
                     type={type}
                     onReply={handleReply}
@@ -255,23 +340,27 @@ const PostDetailsModal: React.FC = () => {
             <Separator />
 
             <div className="px-4 py-3 relative shrink-0">
-            {/* Emoji Picker */}
-            {showEmojiPicker && (
-              <div
-                ref={emojiPickerRef}
-                className="absolute bottom-full left-0 z-50 shadow-2xl mb-2"
-              >
-                <EmojiPicker
-                  theme={document.documentElement.classList.contains("dark") ? EmojiTheme.DARK : EmojiTheme.LIGHT}
-                  onEmojiClick={handleEmojiClick}
-                  lazyLoadEmojis={true}
-                  skinTonesDisabled={true}
-                  searchDisabled={false}
-                  width={300}
-                  height={400}
-                />
-              </div>
-            )}
+              {/* Emoji Picker */}
+              {showEmojiPicker && (
+                <div
+                  ref={emojiPickerRef}
+                  className="absolute bottom-full left-0 z-50 shadow-2xl mb-2"
+                >
+                  <EmojiPicker
+                    theme={
+                      document.documentElement.classList.contains("dark")
+                        ? EmojiTheme.DARK
+                        : EmojiTheme.LIGHT
+                    }
+                    onEmojiClick={handleEmojiClick}
+                    lazyLoadEmojis={true}
+                    skinTonesDisabled={true}
+                    searchDisabled={false}
+                    width={300}
+                    height={400}
+                  />
+                </div>
+              )}
 
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-4">
@@ -311,38 +400,46 @@ const PostDetailsModal: React.FC = () => {
                   {activeItem.likes + " likes"}
                 </span>
                 <span className="text-[10px] text-muted-foreground uppercase">
-                  {"createdAt" in activeItem && activeItem.createdAt ? dayjs(activeItem.createdAt).fromNow() : "time" in activeItem ? activeItem.time : ""}
+                  {"createdAt" in activeItem && activeItem.createdAt
+                    ? dayjs(activeItem.createdAt).fromNow()
+                    : "time" in activeItem
+                      ? activeItem.time
+                      : ""}
                 </span>
               </div>
 
               {/* Quick Emojis */}
               {!showRecorder && (
                 <div className="flex gap-4 mt-2 mb-1 overflow-x-auto scrollbar-hide py-1">
-                  {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😮", "😂"].map((emoji) => (
-                    <span
-                      key={emoji}
-                      className="text-xl cursor-pointer hover:scale-125 transition-transform"
-                      onClick={() => setNewComment((prev) => prev + emoji)}
-                    >
-                      {emoji}
-                    </span>
-                  ))}
+                  {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😮", "😂"].map(
+                    (emoji) => (
+                      <span
+                        key={emoji}
+                        className="text-xl cursor-pointer hover:scale-125 transition-transform"
+                        onClick={() => setNewComment((prev) => prev + emoji)}
+                      >
+                        {emoji}
+                      </span>
+                    ),
+                  )}
                 </div>
               )}
 
               <div className="flex bg-muted rounded-full px-3 py-1.5 focus-within:ring-1 ring-primary/50 items-center justify-between border border-transparent transition-all">
-                 {replyingTo && (
+                {replyingTo && (
                   <div className="flex items-center gap-2 mr-2 bg-primary/10 px-2 py-0.5 rounded text-xs text-primary whitespace-nowrap">
-                     <span>@{replyingTo.user.username}</span>
-                     <button onClick={() => setReplyingTo(null)}>
-                         <X className="w-3 h-3" />
-                     </button>
+                    <span>@{replyingTo.user.username}</span>
+                    <button onClick={() => setReplyingTo(null)}>
+                      <X className="w-3 h-3" />
+                    </button>
                   </div>
-                 )}
+                )}
 
                 {showRecorder ? (
                   <VoiceRecorder
-                    onRecordingComplete={(blob) => handleAddComment(undefined, blob)}
+                    onRecordingComplete={(blob) =>
+                      handleAddComment(undefined, blob)
+                    }
                     onCancel={() => setShowRecorder(false)}
                   />
                 ) : (
@@ -379,7 +476,11 @@ const PostDetailsModal: React.FC = () => {
                       className="text-primary text-sm font-semibold disabled:opacity-50 hover:text-primary/80 flex-shrink-0"
                       disabled={!newComment || isCommenting}
                     >
-                      {isCommenting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Post"}
+                      {isCommenting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Post"
+                      )}
                     </button>
                   </form>
                 )}

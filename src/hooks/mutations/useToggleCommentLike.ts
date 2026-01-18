@@ -15,10 +15,7 @@ export const useToggleCommentLike = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({
-      commentId,
-      hasLiked,
-    }: ToggleCommentLikeVariables) => {
+    mutationFn: async ({ commentId, hasLiked }: ToggleCommentLikeVariables) => {
       if (!user) throw new Error("Not authenticated");
 
       if (hasLiked) {
@@ -30,11 +27,14 @@ export const useToggleCommentLike = () => {
         if (error) throw error;
       } else {
         // Like
-        const { error } = await (supabase
-          .from("comment_likes") as unknown as {
-            insert: (data: { user_id: string; comment_id: string }) => Promise<{ error: Error | null }>;
-          })
-          .insert({ user_id: user.id, comment_id: commentId });
+        const { error } = await (
+          supabase.from("comment_likes") as unknown as {
+            insert: (data: {
+              user_id: string;
+              comment_id: string;
+            }) => Promise<{ error: Error | null }>;
+          }
+        ).insert({ user_id: user.id, comment_id: commentId });
         if (error) throw error;
       }
     },

@@ -26,7 +26,6 @@ export const useGetReels = (currentUserId?: string) => {
         .order("created_at", { ascending: false })
         .range(from, to);
 
-
       if (error) throw error;
 
       type ReelWithProfile = Database["public"]["Tables"]["reels"]["Row"] & {
@@ -107,4 +106,3 @@ export const useGetReels = (currentUserId?: string) => {
     },
   });
 };
-

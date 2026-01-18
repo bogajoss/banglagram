@@ -24,16 +24,11 @@ import "dayjs/locale/en";
 dayjs.extend(relativeTime);
 dayjs.locale("en");
 
-
 import { Skeleton } from "@/components/ui/skeleton";
 
 const HomeView: React.FC = () => {
-  const {
-    currentUser,
-    setViewingStory,
-    setViewingPost,
-    setCreateModalOpen,
-  } = useAppStore();
+  const { currentUser, setViewingStory, setViewingPost, setCreateModalOpen } =
+    useAppStore();
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -120,9 +115,7 @@ const HomeView: React.FC = () => {
 
   return (
     <div className="w-full max-w-[630px] lg:max-w-5xl mx-auto pt-0 md:pt-[30px] flex flex-col lg:flex-row lg:items-start lg:justify-center lg:gap-8">
-      <div
-        className="md:hidden sticky top-0 z-10 border-b border-border px-4 h-[60px] flex items-center justify-between bg-background"
-      >
+      <div className="md:hidden sticky top-0 z-10 border-b border-border px-4 h-[60px] flex items-center justify-between bg-background">
         <h1 className="text-2xl font-bold tracking-tight text-[#006a4e]">
           Banglagram
         </h1>
@@ -160,12 +153,12 @@ const HomeView: React.FC = () => {
             <div
               className={`w-[66px] h-[66px] rounded-full p-[2px] ${userStories.length > 0 ? "bg-gradient-to-tr from-[#006a4e] to-[#004d39]" : "border border-muted-foreground/50"} group-hover:scale-105 transition-transform duration-200 relative`}
             >
-              <div
-                className="w-full h-full rounded-full p-[2px] bg-background"
-              >
+              <div className="w-full h-full rounded-full p-[2px] bg-background">
                 <Avatar className="w-full h-full">
                   <AvatarImage src={currentUser.avatar} />
-                  <AvatarFallback>{currentUser.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                  <AvatarFallback>
+                    {currentUser.username?.[0]?.toUpperCase() || "?"}
+                  </AvatarFallback>
                 </Avatar>
               </div>
               {userStories.length === 0 && (
@@ -174,9 +167,7 @@ const HomeView: React.FC = () => {
                 </div>
               )}
             </div>
-            <span
-              className="text-xs truncate w-full text-center text-muted-foreground"
-            >
+            <span className="text-xs truncate w-full text-center text-muted-foreground">
               Your Story
             </span>
           </motion.div>
@@ -190,17 +181,16 @@ const HomeView: React.FC = () => {
               onClick={() => setViewingStory(story.id)}
             >
               <div className="w-[66px] h-[66px] rounded-full p-[2px] bg-gradient-to-tr from-[#006a4e] to-[#004d39] group-hover:scale-105 transition-transform duration-200">
-                <div
-                  className="w-full h-full rounded-full p-[2px] bg-background"
-                >
+                <div className="w-full h-full rounded-full p-[2px] bg-background">
                   <Avatar className="w-full h-full">
                     <AvatarImage src={story.userAvatar || story.img} />
-                    <AvatarFallback>{story.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                    <AvatarFallback>
+                      {story.username?.[0]?.toUpperCase() || "?"}
+                    </AvatarFallback>
                   </Avatar>
-                </div>              </div>
-              <span
-                className="text-xs truncate w-full text-center text-foreground"
-              >
+                </div>{" "}
+              </div>
+              <span className="text-xs truncate w-full text-center text-foreground">
                 {story.username}
               </span>
             </motion.div>
@@ -247,14 +237,21 @@ const HomeView: React.FC = () => {
           <div className="flex items-center gap-3">
             <Avatar className="w-11 h-11">
               <AvatarImage src={currentUser.avatar} />
-              <AvatarFallback>{currentUser.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+              <AvatarFallback>
+                {currentUser.username?.[0]?.toUpperCase() || "?"}
+              </AvatarFallback>
             </Avatar>
             <div className="text-sm">
-              <div className="font-semibold text-foreground">{currentUser.username}</div>
+              <div className="font-semibold text-foreground">
+                {currentUser.username}
+              </div>
               <div className="text-muted-foreground">{currentUser.name}</div>
             </div>
           </div>
-          <Button variant="ghost" className="text-xs font-semibold text-[#006a4e] hover:text-[#004d39] h-auto p-0">
+          <Button
+            variant="ghost"
+            className="text-xs font-semibold text-[#006a4e] hover:text-[#004d39] h-auto p-0"
+          >
             Switch
           </Button>
         </motion.div>
@@ -281,10 +278,14 @@ const HomeView: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={u.avatar} />
-                  <AvatarFallback>{u.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                  <AvatarFallback>
+                    {u.username?.[0]?.toUpperCase() || "?"}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold text-foreground">{u.username}</span>
+                  <span className="text-xs font-semibold text-foreground">
+                    {u.username}
+                  </span>
                   <span className="text-[10px] text-muted-foreground">
                     {u.subtitle}
                   </span>

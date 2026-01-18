@@ -18,7 +18,9 @@ export const useGetProfile = (
 
       const { data: profileData, error } = await supabase
         .from("profiles")
-        .select("id, username, full_name, avatar_url, bio, is_verified, is_online, last_seen")
+        .select(
+          "id, username, full_name, avatar_url, bio, is_verified, is_online, last_seen",
+        )
         .eq("username", username)
         .single();
 

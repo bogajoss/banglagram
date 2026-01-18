@@ -49,11 +49,11 @@ export const useCreateComment = () => {
           .upload(filename, audioBlob);
 
         if (uploadError) throw uploadError;
-        
+
         const { data } = supabase.storage
           .from("audio-messages")
           .getPublicUrl(filename);
-          
+
         audioUrl = data.publicUrl;
       }
 
@@ -67,14 +67,16 @@ export const useCreateComment = () => {
           audio_url: audioUrl,
           parent_id: parentId,
         })
-        .select(`
+        .select(
+          `
           *,
           user:profiles(username, avatar_url, is_verified)
-        `)
+        `,
+        )
         .single();
 
       if (error) throw error;
-      
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const anyData = data as any;
       return {
@@ -89,10 +91,10 @@ export const useCreateComment = () => {
         hasLiked: false,
         audioUrl: anyData.audio_url,
         user: {
-           username: anyData.user?.username,
-           avatar_url: anyData.user?.avatar_url,
-           isVerified: anyData.user?.is_verified,
-        }
+          username: anyData.user?.username,
+          avatar_url: anyData.user?.avatar_url,
+          isVerified: anyData.user?.is_verified,
+        },
       } as unknown as Comment;
     },
     onMutate: async ({ targetId, type, text, userId, audioBlob, parentId }) => {

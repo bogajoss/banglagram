@@ -128,7 +128,9 @@ const StoryViewer: React.FC = () => {
             }}
           >
             <AvatarImage src={currentStory.userAvatar || currentStory.img} />
-            <AvatarFallback>{currentStory.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+            <AvatarFallback>
+              {currentStory.username?.[0]?.toUpperCase() || "?"}
+            </AvatarFallback>
           </Avatar>
           <div className="flex items-center">
             <span

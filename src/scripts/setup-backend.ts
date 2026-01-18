@@ -66,7 +66,10 @@ async function runSqlFile(filePath: string) {
     const { data, error } = await supabase.rpc("exec_sql", { query: stmt });
 
     if (data !== undefined && data !== null) {
-        console.log(`Result of statement ${i + 1}:`, JSON.stringify(data, null, 2));
+      console.log(
+        `Result of statement ${i + 1}:`,
+        JSON.stringify(data, null, 2),
+      );
     }
 
     if (error) {

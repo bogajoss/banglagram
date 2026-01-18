@@ -29,16 +29,17 @@ export const useGetExplorePosts = () => {
 
       if (error) throw error;
 
-      type PostWithStatsAndProfile = Database["public"]["Tables"]["posts"]["Row"] & {
-        profiles: {
-          username: string;
-          full_name: string | null;
-          avatar_url: string | null;
-          is_verified: boolean | null;
-        } | null;
-        likes: { count: number }[];
-        comments: { count: number }[];
-      };
+      type PostWithStatsAndProfile =
+        Database["public"]["Tables"]["posts"]["Row"] & {
+          profiles: {
+            username: string;
+            full_name: string | null;
+            avatar_url: string | null;
+            is_verified: boolean | null;
+          } | null;
+          likes: { count: number }[];
+          comments: { count: number }[];
+        };
 
       const posts = data as unknown as PostWithStatsAndProfile[];
 

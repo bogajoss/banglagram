@@ -26,14 +26,13 @@ const ReelsView: React.FC = () => {
     isLoading: isLoadingAll,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage
+    isFetchingNextPage,
   } = useGetReels(user?.id);
 
   const allReels = React.useMemo(() => {
     if (!allReelsData) return [];
     return allReelsData.pages.flat();
   }, [allReelsData]);
-
 
   const onUserClick = (user: User) => {
     navigate(`/profile/${user.username}`);
@@ -56,8 +55,10 @@ const ReelsView: React.FC = () => {
         <div className="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center">
           <Clapperboard size={40} className="text-zinc-500" />
         </div>
-        <p className="text-zinc-400 font-medium">{id ? "Reel not found" : "No reels yet"}</p>
-        <button 
+        <p className="text-zinc-400 font-medium">
+          {id ? "Reel not found" : "No reels yet"}
+        </p>
+        <button
           onClick={() => navigate("/")}
           className="text-sm font-bold hover:underline"
         >
@@ -98,7 +99,6 @@ const ReelsView: React.FC = () => {
             </button>
           </div>
         )}
-
       </div>
     </div>
   );

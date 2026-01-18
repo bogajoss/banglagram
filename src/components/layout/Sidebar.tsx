@@ -34,7 +34,6 @@ const Sidebar: React.FC = () => {
   const borderClass = "border-border";
   const themeClasses = "bg-background text-foreground";
 
-
   const menuItems = [
     { icon: <Home size={24} />, label: "Home", path: "/" },
     { icon: <Search size={24} />, label: "Explore", path: "/explore" },
@@ -73,14 +72,22 @@ const Sidebar: React.FC = () => {
         >
           {isSidebarExpanded ? (
             <div className="flex items-center gap-2">
-              <img src="/icon.png" alt="Logo" className="w-8 h-8 object-contain" />
+              <img
+                src="/icon.png"
+                alt="Logo"
+                className="w-8 h-8 object-contain"
+              />
               <h1 className="text-xl font-bold tracking-tight text-[#006a4e]">
                 Banglagram
               </h1>
             </div>
           ) : (
             <Link to="/" className="flex justify-center items-center">
-              <img src="/icon.png" alt="Banglagram" className="w-8 h-8 object-contain" />
+              <img
+                src="/icon.png"
+                alt="Banglagram"
+                className="w-8 h-8 object-contain"
+              />
             </Link>
           )}
         </div>
@@ -134,8 +141,7 @@ const Sidebar: React.FC = () => {
             onClick={() => setCreateModalOpen(true)}
             className={cn(
               "flex items-center justify-start w-full gap-4 px-3 py-6 rounded-lg transition-colors cursor-pointer group hover:bg-muted",
-              !isSidebarExpanded && "justify-center px-0"
-
+              !isSidebarExpanded && "justify-center px-0",
             )}
             asChild
           >
@@ -147,7 +153,9 @@ const Sidebar: React.FC = () => {
                 <PlusSquare size={24} />
               </div>
               {isSidebarExpanded && (
-                <span className="text-base truncate ml-2 font-normal">Create</span>
+                <span className="text-base truncate ml-2 font-normal">
+                  Create
+                </span>
               )}
             </motion.div>
           </Button>
@@ -164,9 +172,16 @@ const Sidebar: React.FC = () => {
                 whileTap={{ scale: 0.98 }}
                 className={`flex items-center ${isSidebarExpanded ? "gap-4 px-3" : "justify-center"} py-3 rounded-lg hover:bg-muted`}
               >
-                <Avatar className={cn("w-6 h-6", isActive && "border-2 border-[#006a4e]")}>
+                <Avatar
+                  className={cn(
+                    "w-6 h-6",
+                    isActive && "border-2 border-[#006a4e]",
+                  )}
+                >
                   <AvatarImage src={currentUser.avatar} />
-                  <AvatarFallback>{currentUser.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                  <AvatarFallback>
+                    {currentUser.username?.[0]?.toUpperCase() || "?"}
+                  </AvatarFallback>
                 </Avatar>
                 {isSidebarExpanded && (
                   <span className="text-base truncate">Profile</span>
@@ -182,8 +197,7 @@ const Sidebar: React.FC = () => {
           onClick={toggleTheme}
           className={cn(
             "flex items-center justify-start w-full gap-4 px-3 py-6 rounded-lg transition-colors cursor-pointer group hover:bg-muted",
-            !isSidebarExpanded && "justify-center px-0"
-
+            !isSidebarExpanded && "justify-center px-0",
           )}
           asChild
         >
@@ -193,7 +207,11 @@ const Sidebar: React.FC = () => {
           >
             <Sun size={24} className="dark:hidden" />
             <Moon size={24} className="hidden dark:block" />
-            {isSidebarExpanded && <span className="text-base ml-4 font-normal">Switch Appearance</span>}
+            {isSidebarExpanded && (
+              <span className="text-base ml-4 font-normal">
+                Switch Appearance
+              </span>
+            )}
           </motion.div>
         </Button>
 
@@ -202,8 +220,7 @@ const Sidebar: React.FC = () => {
           onClick={toggleSidebar}
           className={cn(
             "flex items-center justify-start w-full gap-4 px-3 py-6 rounded-lg transition-colors cursor-pointer group hover:bg-muted",
-            !isSidebarExpanded && "justify-center px-0"
-
+            !isSidebarExpanded && "justify-center px-0",
           )}
           asChild
         >
@@ -216,7 +233,9 @@ const Sidebar: React.FC = () => {
             ) : (
               <PanelLeftOpen size={24} />
             )}
-            {isSidebarExpanded && <span className="text-base ml-4 font-normal">Collapse</span>}
+            {isSidebarExpanded && (
+              <span className="text-base ml-4 font-normal">Collapse</span>
+            )}
           </motion.div>
         </Button>
 
@@ -225,8 +244,7 @@ const Sidebar: React.FC = () => {
           onClick={() => signOut()}
           className={cn(
             "flex items-center justify-start w-full gap-4 px-3 py-6 rounded-lg transition-colors cursor-pointer group hover:bg-muted text-destructive hover:text-destructive/80",
-            !isSidebarExpanded && "justify-center px-0"
-
+            !isSidebarExpanded && "justify-center px-0",
           )}
           asChild
         >
@@ -235,7 +253,9 @@ const Sidebar: React.FC = () => {
             className="w-full h-full flex items-center"
           >
             <LogOut size={24} />
-            {isSidebarExpanded && <span className="text-base ml-4 font-normal">Log Out</span>}
+            {isSidebarExpanded && (
+              <span className="text-base ml-4 font-normal">Log Out</span>
+            )}
           </motion.div>
         </Button>
       </div>

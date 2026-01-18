@@ -26,8 +26,10 @@ export const useFollowUser = () => {
         if (error) throw error;
       } else {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase.from("follows") as any)
-          .insert({ follower_id: currentUserId, following_id: targetUserId });
+        const { error } = await (supabase.from("follows") as any).insert({
+          follower_id: currentUserId,
+          following_id: targetUserId,
+        });
         if (error) throw error;
       }
     },

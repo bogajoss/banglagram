@@ -30,7 +30,7 @@ export const useCreateStory = () => {
 
       // 3. Create Record
       // Expires in 24 hours
-      const expiresAt = dayjs().add(24, 'hour');
+      const expiresAt = dayjs().add(24, "hour");
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: dbError } = await (supabase.from("stories") as any).insert(

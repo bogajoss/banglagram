@@ -32,7 +32,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
       <DialogContent className="max-w-sm p-0 overflow-hidden border-none rounded-xl">
         <div className="flex flex-col bg-background text-foreground">
           <DialogHeader className="p-4 border-b">
-            <DialogTitle className="text-center font-bold">Settings</DialogTitle>
+            <DialogTitle className="text-center font-bold">
+              Settings
+            </DialogTitle>
           </DialogHeader>
 
           <Button

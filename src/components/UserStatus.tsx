@@ -18,7 +18,11 @@ export const UserStatus: React.FC<UserStatusProps> = ({
   className = "",
 }) => {
   if (isOnline) {
-    return <span className={`text-green-500 text-xs font-medium ${className}`}>Active now</span>;
+    return (
+      <span className={`text-green-500 text-xs font-medium ${className}`}>
+        Active now
+      </span>
+    );
   }
 
   if (lastSeen) {
@@ -48,5 +52,9 @@ export const UserStatus: React.FC<UserStatusProps> = ({
     );
   }
 
-  return <span className={`text-gray-500 text-xs font-medium ${className}`}>Unknown status</span>;
+  return (
+    <span className={`text-gray-500 text-xs font-medium ${className}`}>
+      Unknown status
+    </span>
+  );
 };

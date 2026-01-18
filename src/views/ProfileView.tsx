@@ -37,12 +37,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { Post } from "../types";
 
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ProfileView: React.FC = () => {
   const {
@@ -93,13 +88,15 @@ const ProfileView: React.FC = () => {
 
   React.useEffect(() => {
     if (profileUser?.id && !isMe) {
-        supabase.rpc("track_user_interaction", { 
-        target_user_id: profileUser.id, 
-        interaction_type: "visit" 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any).then(({ error }) => {
-        if (error) console.error("Tracking error", error);
-      });
+      supabase
+        .rpc("track_user_interaction", {
+          target_user_id: profileUser.id,
+          interaction_type: "visit",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
+        .then(({ error }) => {
+          if (error) console.error("Tracking error", error);
+        });
     }
   }, [profileUser?.id, isMe]);
 
@@ -120,7 +117,6 @@ const ProfileView: React.FC = () => {
       isFollowing: userIsFollowing,
       targetUsername: profileUser.username,
     });
-
   };
 
   const handleStoryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,15 +153,17 @@ const ProfileView: React.FC = () => {
       </div>
     );
   if (isError || !profileUser)
-    return <div className="flex justify-center p-10 text-muted-foreground">Profile not found</div>;
+    return (
+      <div className="flex justify-center p-10 text-muted-foreground">
+        Profile not found
+      </div>
+    );
 
   const renderPostGrid = (posts: Post[]) => {
     if (posts.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div
-            className="w-16 h-16 rounded-full border-2 border-foreground flex items-center justify-center mb-4"
-          >
+          <div className="w-16 h-16 rounded-full border-2 border-foreground flex items-center justify-center mb-4">
             <Camera size={34} strokeWidth={1} className="text-foreground" />
           </div>
           <h2 className="text-xl font-bold mb-2 text-muted-foreground">
@@ -177,33 +175,43 @@ const ProfileView: React.FC = () => {
 
     return (
       <div className="grid grid-cols-3 gap-1 md:gap-8">
-        {posts.map((post) => (
-          <div
-            key={post.id}
-            className="relative aspect-square group cursor-pointer overflow-hidden"
-            onClick={() => setViewingPost(post)}
-          >
-            <img
-              src={post.content.src || post.content.poster}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-              alt="post grid"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white font-bold z-20">
-              <div className="flex items-center gap-2">
-                <Heart fill="white" size={20} /> {post.likes}
-              </div>
-              <div className="flex items-center gap-2">
-                <CommentIcon
-                  fill="white"
-                  size={20}
-                  className="-scale-x-100"
-                />{" "}
-                {post.comments}
+        {posts.map((post) => {
+          let thumb = post.content.src || post.content.poster;
+          try {
+            if (thumb && thumb.startsWith("[")) {
+              thumb = JSON.parse(thumb)[0];
+            }
+          } catch (e) {
+            // ignore
+          }
+          return (
+            <div
+              key={post.id}
+              className="relative aspect-square group cursor-pointer overflow-hidden"
+              onClick={() => setViewingPost(post)}
+            >
+              <img
+                src={thumb}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                alt="post grid"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white font-bold z-20">
+                <div className="flex items-center gap-2">
+                  <Heart fill="white" size={20} /> {post.likes}
+                </div>
+                <div className="flex items-center gap-2">
+                  <CommentIcon
+                    fill="white"
+                    size={20}
+                    className="-scale-x-100"
+                  />{" "}
+                  {post.comments}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };
@@ -229,9 +237,7 @@ const ProfileView: React.FC = () => {
         <ArchiveModal onClose={() => setIsArchiveOpen(false)} />
       )}
 
-      <div
-        className="md:hidden sticky top-0 z-10 border-b border-border px-4 h-[44px] flex items-center justify-between bg-background/90 backdrop-blur-md"
-      >
+      <div className="md:hidden sticky top-0 z-10 border-b border-border px-4 h-[44px] flex items-center justify-between bg-background/90 backdrop-blur-md">
         <div className="flex items-center gap-1 font-bold text-lg text-foreground">
           {!isMe && (
             <ChevronLeft
@@ -262,7 +268,9 @@ const ProfileView: React.FC = () => {
           <div className="flex-shrink-0 md:w-[290px] flex justify-start md:justify-center relative">
             <Avatar className="w-[77px] h-[77px] md:w-[150px] md:h-[150px] border border-border cursor-pointer">
               <AvatarImage src={profileUser.avatar} />
-              <AvatarFallback className="text-2xl">{profileUser.username[0].toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="text-2xl">
+                {profileUser.username[0].toUpperCase()}
+              </AvatarFallback>
             </Avatar>
             {isMe && (
               <label className="absolute bottom-0 right-10 md:right-16 bg-[#0095f6] rounded-full p-1 border-2 border-background cursor-pointer">
@@ -331,7 +339,11 @@ const ProfileView: React.FC = () => {
                 <>
                   <Button
                     onClick={handleFollow}
-                    className={cn("text-sm font-semibold h-8", !userIsFollowing && "bg-[#006a4e] text-white hover:bg-[#00523c]")}
+                    className={cn(
+                      "text-sm font-semibold h-8",
+                      !userIsFollowing &&
+                        "bg-[#006a4e] text-white hover:bg-[#00523c]",
+                    )}
                     variant={userIsFollowing ? "secondary" : "default"}
                   >
                     {userIsFollowing ? "Following" : "Follow"}
@@ -409,9 +421,7 @@ const ProfileView: React.FC = () => {
       {isMe && (
         <div className="mb-10 flex gap-4 overflow-x-auto pb-2 scrollbar-hide px-4 md:px-0">
           <div className="flex flex-col items-center gap-2 cursor-pointer group">
-            <div
-              className="w-[64px] h-[64px] md:w-[77px] md:h-[77px] rounded-full border border-border bg-background flex items-center justify-center group-hover:bg-muted transition-colors"
-            >
+            <div className="w-[64px] h-[64px] md:w-[77px] md:h-[77px] rounded-full border border-border bg-background flex items-center justify-center group-hover:bg-muted transition-colors">
               <div className="w-[60px] h-[60px] md:w-[74px] md:h-[74px] rounded-full border-[2px] border-inherit flex items-center justify-center">
                 <PlusSquare
                   size={24}
@@ -425,9 +435,14 @@ const ProfileView: React.FC = () => {
         </div>
       )}
 
-      <Tabs defaultValue="posts" value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs
+        defaultValue="posts"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
         <TabsList className="w-full justify-around md:justify-center gap-0 md:gap-12 bg-transparent border-t border-border rounded-none h-auto p-0">
-          <TabsTrigger 
+          <TabsTrigger
             value="posts"
             className="data-[state=active]:border-foreground data-[state=active]:text-foreground border-t-2 border-transparent rounded-none flex items-center gap-2 h-[44px] md:h-[52px] bg-transparent px-0 flex-1 md:flex-none text-xs font-semibold tracking-widest uppercase transition-all shadow-none"
           >
@@ -435,7 +450,7 @@ const ProfileView: React.FC = () => {
             <span className="hidden md:block">Posts</span>
           </TabsTrigger>
           {isMe && (
-            <TabsTrigger 
+            <TabsTrigger
               value="saved"
               className="data-[state=active]:border-foreground data-[state=active]:text-foreground border-t-2 border-transparent rounded-none flex items-center gap-2 h-[44px] md:h-[52px] bg-transparent px-0 flex-1 md:flex-none text-xs font-semibold tracking-widest uppercase transition-all shadow-none"
             >
@@ -443,7 +458,7 @@ const ProfileView: React.FC = () => {
               <span className="hidden md:block">Saved</span>
             </TabsTrigger>
           )}
-          <TabsTrigger 
+          <TabsTrigger
             value="tagged"
             className="data-[state=active]:border-foreground data-[state=active]:text-foreground border-t-2 border-transparent rounded-none flex items-center gap-2 h-[44px] md:h-[52px] bg-transparent px-0 flex-1 md:flex-none text-xs font-semibold tracking-widest uppercase transition-all shadow-none"
           >
@@ -451,11 +466,9 @@ const ProfileView: React.FC = () => {
             <span className="hidden md:block">Tagged</span>
           </TabsTrigger>
         </TabsList>
-        
+
         <div className="mt-4">
-          <TabsContent value="posts">
-            {renderPostGrid(userPosts)}
-          </TabsContent>
+          <TabsContent value="posts">{renderPostGrid(userPosts)}</TabsContent>
           {isMe && (
             <TabsContent value="saved">
               {renderPostGrid(realSavedPosts)}

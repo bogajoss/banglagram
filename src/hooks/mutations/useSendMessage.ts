@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { supabase } from "../../lib/supabaseClient";
 import { MESSAGES_QUERY_KEY } from "../queries/useGetMessages";
@@ -42,7 +46,8 @@ export const useSendMessage = () => {
       const queryKey = MESSAGES_QUERY_KEY(newMsg.receiverId);
       await queryClient.cancelQueries({ queryKey });
 
-      const previousMessages = queryClient.getQueryData<InfiniteData<DbMessage[]>>(queryKey);
+      const previousMessages =
+        queryClient.getQueryData<InfiniteData<DbMessage[]>>(queryKey);
 
       // Optimistic update
       if (previousMessages) {
@@ -59,7 +64,7 @@ export const useSendMessage = () => {
         queryClient.setQueryData<InfiniteData<DbMessage[]>>(queryKey, {
           ...previousMessages,
           pages: previousMessages.pages.map((page, i) =>
-            i === 0 ? [optimisticMsg, ...page] : page
+            i === 0 ? [optimisticMsg, ...page] : page,
           ),
         });
       }

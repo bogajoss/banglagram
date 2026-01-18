@@ -27,7 +27,9 @@ export const useUpdatePost = () => {
       // Invalidate feed
       queryClient.invalidateQueries({ queryKey: FEED_QUERY_KEY });
       // Invalidate single post if viewing
-      queryClient.invalidateQueries({ queryKey: POST_QUERY_KEY(variables.postId) });
+      queryClient.invalidateQueries({
+        queryKey: POST_QUERY_KEY(variables.postId),
+      });
       // Also invalidate profile posts if we could guess the key, but feed is usually enough or specific invalidation
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     },

@@ -14,8 +14,7 @@ import { supabase } from "../lib/supabaseClient";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const NotificationsView: React.FC = () => {
-  const { theme, setUnreadNotificationsCount } =
-    useAppStore();
+  const { theme, setUnreadNotificationsCount } = useAppStore();
   const { mutate: followUser } = useFollowUser();
 
   const navigate = useNavigate();
@@ -160,7 +159,9 @@ const NotificationsView: React.FC = () => {
       </div>
 
       <div className="px-4 md:px-2 py-2 md:py-8 flex flex-col gap-6">
-        <h1 className="text-2xl font-bold px-2 hidden md:block">Notifications</h1>
+        <h1 className="text-2xl font-bold px-2 hidden md:block">
+          Notifications
+        </h1>
         <div>
           <h2 className="text-base font-bold mb-4 px-2">Earlier</h2>
           <div className="flex flex-col gap-4">
@@ -186,7 +187,9 @@ const NotificationsView: React.FC = () => {
                     >
                       <Avatar className="w-11 h-11">
                         <AvatarImage src={notif.user.avatar} />
-                        <AvatarFallback>{notif.user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                        <AvatarFallback>
+                          {notif.user.username?.[0]?.toUpperCase() || "?"}
+                        </AvatarFallback>
                       </Avatar>
                     </div>
                   )}
@@ -242,9 +245,7 @@ const NotificationsView: React.FC = () => {
           </div>
         </div>
         <div className={`border-t ${borderClass} pt-4`}>
-          <h2 className="text-base font-bold mb-4 px-2">
-            Suggested for you
-          </h2>
+          <h2 className="text-base font-bold mb-4 px-2">Suggested for you</h2>
           <div className="flex flex-col gap-4">
             {suggestedUsers.map((user, index) => {
               const u = user as User;
@@ -258,7 +259,9 @@ const NotificationsView: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <Avatar className="w-11 h-11 flex-shrink-0">
                       <AvatarImage src={u.avatar} />
-                      <AvatarFallback>{u.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                      <AvatarFallback>
+                        {u.username?.[0]?.toUpperCase() || "?"}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col text-sm overflow-hidden">
                       <div className="flex items-center gap-1">

@@ -51,67 +51,71 @@ export const CommentItem: React.FC<CommentItemProps> = ({
     <div className={cn("flex gap-3 mb-4", isNested && "ml-8 md:ml-12")}>
       <Avatar className="w-8 h-8 shrink-0">
         <AvatarImage src={comment.user.avatar_url} />
-        <AvatarFallback>{comment.user.username[0]?.toUpperCase()}</AvatarFallback>
+        <AvatarFallback>
+          {comment.user.username[0]?.toUpperCase()}
+        </AvatarFallback>
       </Avatar>
 
       <div className="flex-1 min-w-0">
         <div className="flex flex-col">
-            <div className="flex items-center gap-1">
-                <span className="font-semibold text-sm">
-                    {comment.user.username}
-                </span>
-                {comment.user.isVerified && <VerifiedBadge />}
-                <span className="text-xs text-muted-foreground ml-1">
-                    {dayjs(comment.created_at).fromNow(true)}
-                </span>
-            </div>
+          <div className="flex items-center gap-1">
+            <span className="font-semibold text-sm">
+              {comment.user.username}
+            </span>
+            {comment.user.isVerified && <VerifiedBadge />}
+            <span className="text-xs text-muted-foreground ml-1">
+              {dayjs(comment.created_at).fromNow(true)}
+            </span>
+          </div>
 
-            {comment.audioUrl ? (
-                <div className="mt-1">
-                <AudioPlayer src={comment.audioUrl} />
-                </div>
-            ) : (
-                <p className="text-sm dark:text-gray-200 leading-normal whitespace-pre-wrap break-words">
-                {comment.text}
-                </p>
+          {comment.audioUrl ? (
+            <div className="mt-1">
+              <AudioPlayer src={comment.audioUrl} />
+            </div>
+          ) : (
+            <p className="text-sm dark:text-gray-200 leading-normal whitespace-pre-wrap break-words">
+              {comment.text}
+            </p>
+          )}
+
+          {/* Actions */}
+          <div className="flex items-center gap-4 mt-1">
+            <button
+              onClick={() => onReply(comment)}
+              className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Reply
+            </button>
+            {replies.length > 0 && (
+              <button
+                onClick={() => setShowReplies(!showReplies)}
+                className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                <div className="w-6 h-[1px] bg-muted-foreground" />
+                {showReplies
+                  ? "Hide replies"
+                  : `View ${replies.length} replies`}
+              </button>
             )}
-
-            {/* Actions */}
-            <div className="flex items-center gap-4 mt-1">
-                <button
-                    onClick={() => onReply(comment)}
-                    className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                >
-                    Reply
-                </button>
-                {replies.length > 0 && (
-                     <button
-                        onClick={() => setShowReplies(!showReplies)}
-                        className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-                     >
-                        <div className="w-6 h-[1px] bg-muted-foreground" />
-                        {showReplies ? "Hide replies" : `View ${replies.length} replies`}
-                     </button>
-                )}
-            </div>
+          </div>
         </div>
 
         {/* Nested Replies */}
         {showReplies && replies.length > 0 && (
-            <div className="mt-4">
+          <div className="mt-4">
             {replies.map((reply) => (
-                <CommentItem
-                    key={reply.id}
-                    comment={reply}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    replies={(reply as any).replies || []}
-                    depth={depth + 1}
-                    onReply={onReply}
-                    targetId={targetId}
-                    type={type}
-                />
+              <CommentItem
+                key={reply.id}
+                comment={reply}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                replies={(reply as any).replies || []}
+                depth={depth + 1}
+                onReply={onReply}
+                targetId={targetId}
+                type={type}
+              />
             ))}
-            </div>
+          </div>
         )}
       </div>
 

@@ -18,7 +18,6 @@ const MobileNav: React.FC = () => {
   const borderClass = "border-border";
   const themeClasses = "bg-background/90 text-foreground";
 
-
   const navItems = [
     { icon: <Home size={24} />, label: "Home", path: "/" },
     { icon: <Search size={24} />, label: "Explore", path: "/explore" },
@@ -71,9 +70,13 @@ const MobileNav: React.FC = () => {
       >
         {({ isActive }) => (
           <motion.div whileTap={{ scale: 0.8 }} className="p-3">
-            <Avatar className={cn("w-6 h-6", isActive && "border-2 border-[#006a4e]")}>
+            <Avatar
+              className={cn("w-6 h-6", isActive && "border-2 border-[#006a4e]")}
+            >
               <AvatarImage src={currentUser.avatar} />
-              <AvatarFallback>{currentUser.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+              <AvatarFallback>
+                {currentUser.username?.[0]?.toUpperCase() || "?"}
+              </AvatarFallback>
             </Avatar>
           </motion.div>
         )}

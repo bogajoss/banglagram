@@ -21,7 +21,9 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
   };
 
   return (
-    <div className={`flex items-center gap-2 text-sm text-gray-500 ${className}`}>
+    <div
+      className={`flex items-center gap-2 text-sm text-gray-500 ${className}`}
+    >
       <style>{`
         @keyframes bounce {
           0%, 80%, 100% {
@@ -36,9 +38,18 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
         .dot-3 { animation-delay: 320ms; }
       `}</style>
       <div className="flex gap-1">
-        <span className="w-2 h-2 bg-gray-400 rounded-full dot-1" style={{ ...dotStyle }} />
-        <span className="w-2 h-2 bg-gray-400 rounded-full dot-2" style={{ ...dotStyle }} />
-        <span className="w-2 h-2 bg-gray-400 rounded-full dot-3" style={{ ...dotStyle }} />
+        <span
+          className="w-2 h-2 bg-gray-400 rounded-full dot-1"
+          style={{ ...dotStyle }}
+        />
+        <span
+          className="w-2 h-2 bg-gray-400 rounded-full dot-2"
+          style={{ ...dotStyle }}
+        />
+        <span
+          className="w-2 h-2 bg-gray-400 rounded-full dot-3"
+          style={{ ...dotStyle }}
+        />
       </div>
       {typingText}
     </div>

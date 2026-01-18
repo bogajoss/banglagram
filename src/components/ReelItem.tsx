@@ -40,9 +40,9 @@ const ReelItem: React.FC<ReelItemProps> = memo(
     const { user } = useAuth();
     const { mutate: toggleLike } = useToggleLike();
     const { mutate: followUser } = useFollowUser();
-    
+
     // View Tracking
-    const { ref: viewRef } = useViewTracker(reel.id, 'reel');
+    const { ref: viewRef } = useViewTracker(reel.id, "reel");
 
     const [showHeart, setShowHeart] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
@@ -224,7 +224,9 @@ const ReelItem: React.FC<ReelItemProps> = memo(
             >
               <Avatar className="w-8 h-8 border border-white/50 cursor-pointer">
                 <AvatarImage src={reel.user.avatar} />
-                <AvatarFallback>{reel.user.username[0].toUpperCase()}</AvatarFallback>
+                <AvatarFallback>
+                  {reel.user.username[0].toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <span className="font-semibold text-sm shadow-black drop-shadow-md text-white cursor-pointer hover:opacity-70 transition-opacity">
                 {reel.user.username}
@@ -296,9 +298,12 @@ const ReelItem: React.FC<ReelItemProps> = memo(
                 strokeWidth={1.5}
                 className="text-white drop-shadow-md"
               />
-               <span className="text-xs font-semibold drop-shadow-md">
-                 {Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(reel.views || 0)}
-               </span>
+              <span className="text-xs font-semibold drop-shadow-md">
+                {Intl.NumberFormat("en-US", {
+                  notation: "compact",
+                  maximumFractionDigits: 1,
+                }).format(reel.views || 0)}
+              </span>
             </div>
 
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -314,7 +319,9 @@ const ReelItem: React.FC<ReelItemProps> = memo(
               onClick={() => onUserClick(reel.user)}
             >
               <AvatarImage src={reel.user.avatar} />
-              <AvatarFallback>{reel.user.username[0].toUpperCase()}</AvatarFallback>
+              <AvatarFallback>
+                {reel.user.username[0].toUpperCase()}
+              </AvatarFallback>
             </Avatar>
           </div>
         </div>

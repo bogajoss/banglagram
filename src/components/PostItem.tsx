@@ -1,4 +1,4 @@
-import React, { useState, memo } from "react";
+import React, { useState, memo, useMemo } from "react";
 import {
   Heart,
   MessageCircle as CommentIcon,
@@ -8,6 +8,8 @@ import {
   Smile,
   Mic,
   BarChart2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import VoiceRecorder from "./VoiceRecorder";
 import OptimizedImage from "./OptimizedImage";
@@ -30,10 +32,10 @@ import VerifiedBadge from "./VerifiedBadge";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/en";
+import { cn } from "@/lib/utils";
 
 dayjs.extend(relativeTime);
 dayjs.locale("en");
-
 
 interface PostItemProps {
   post: Post;
@@ -52,7 +54,7 @@ const PostItem: React.FC<PostItemProps> = memo(
       useCreateComment();
 
     // View Tracking
-    const { ref: viewRef } = useViewTracker(post.id, 'post');
+    const { ref: viewRef } = useViewTracker(post.id, "post");
 
     const [showHeart, setShowHeart] = useState(false);
 
@@ -62,10 +64,27 @@ const PostItem: React.FC<PostItemProps> = memo(
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showRecorder, setShowRecorder] = useState(false);
+    
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const emojiPickerRef = React.useRef<HTMLDivElement>(null);
 
     const liked = post.hasLiked || false;
+
+    // Parse media sources
+    const mediaList = useMemo(() => {
+        if (post.content.type === "video") return [];
+        const src = post.content.src;
+        if (!src) return [];
+        try {
+            if (src.startsWith("[")) {
+                return JSON.parse(src) as string[];
+            }
+            return [src];
+        } catch (e) {
+            return [src];
+        }
+    }, [post.content.src, post.content.type]);
 
     React.useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
@@ -77,7 +96,8 @@ const PostItem: React.FC<PostItemProps> = memo(
         }
       };
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const handleEmojiClick = (emojiData: { emoji: string }) => {
@@ -129,6 +149,20 @@ const PostItem: React.FC<PostItemProps> = memo(
         },
       );
     };
+    
+    const nextImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (currentImageIndex < mediaList.length - 1) {
+            setCurrentImageIndex(prev => prev + 1);
+        }
+    };
+
+    const prevImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (currentImageIndex > 0) {
+            setCurrentImageIndex(prev => prev - 1);
+        }
+    };
 
     return (
       <motion.div
@@ -155,10 +189,7 @@ const PostItem: React.FC<PostItemProps> = memo(
           />
         )}
         {isEditOpen && (
-          <EditPostModal
-            post={post}
-            onClose={() => setIsEditOpen(false)}
-          />
+          <EditPostModal post={post} onClose={() => setIsEditOpen(false)} />
         )}
 
         <div className="flex items-center justify-between mb-3 px-3 md:px-0">
@@ -168,17 +199,20 @@ const PostItem: React.FC<PostItemProps> = memo(
           >
             <Avatar className="w-8 h-8 group-hover:scale-105 transition-transform">
               <AvatarImage src={post.user.avatar} />
-              <AvatarFallback>{post.user.username[0].toUpperCase()}</AvatarFallback>
+              <AvatarFallback>
+                {post.user.username[0].toUpperCase()}
+              </AvatarFallback>
             </Avatar>
             <div className="flex items-center gap-1 text-sm font-semibold">
               <span className="group-hover:opacity-70 transition-opacity text-foreground">
                 {post.user.username}
               </span>
               {post.user.isVerified && <VerifiedBadge />}
-              <span
-                className="text-muted-foreground font-normal"
-              >
-                • {post.createdAt ? dayjs(post.createdAt).fromNow(true) : post.time}
+              <span className="text-muted-foreground font-normal">
+                •{" "}
+                {post.createdAt
+                  ? dayjs(post.createdAt).fromNow(true)
+                  : post.time}
               </span>
             </div>
           </div>
@@ -192,15 +226,70 @@ const PostItem: React.FC<PostItemProps> = memo(
         </div>
 
         <div
-          className="w-full bg-muted md:rounded-[4px] md:border border-border overflow-hidden mb-3 aspect-square md:aspect-auto relative cursor-pointer"
+          className="w-full bg-muted md:rounded-[4px] md:border border-border overflow-hidden mb-3 aspect-square md:aspect-auto relative cursor-pointer group"
           onDoubleClick={handleDoubleClick}
         >
-          <OptimizedImage
-            src={post.content.src || post.content.poster}
-            className="w-full h-full object-cover"
-            alt="Post content"
-            loading="lazy"
-          />
+            {mediaList.length > 0 ? (
+                <>
+                    <div className="w-full h-full relative">
+                         <OptimizedImage
+                            src={mediaList[currentImageIndex]}
+                            className="w-full h-full object-cover"
+                            alt={`Post content ${currentImageIndex + 1}`}
+                            loading="lazy"
+                        />
+                    </div>
+                    
+                    {/* Navigation Buttons */}
+                    {mediaList.length > 1 && (
+                        <>
+                            {currentImageIndex > 0 && (
+                                <button 
+                                    onClick={prevImage}
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+                                >
+                                    <ChevronLeft size={20} />
+                                </button>
+                            )}
+                            
+                            {currentImageIndex < mediaList.length - 1 && (
+                                <button 
+                                    onClick={nextImage}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+                                >
+                                    <ChevronRight size={20} />
+                                </button>
+                            )}
+                            
+                            {/* Dots */}
+                            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 pointer-events-none">
+                                {mediaList.map((_, idx) => (
+                                    <div 
+                                        key={idx}
+                                        className={cn(
+                                            "w-1.5 h-1.5 rounded-full transition-colors shadow-sm",
+                                            idx === currentImageIndex ? "bg-white" : "bg-white/40"
+                                        )}
+                                    />
+                                ))}
+                            </div>
+                            
+                            {/* Count Indicator (Instagram style top right) */}
+                            <div className="absolute top-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                {currentImageIndex + 1}/{mediaList.length}
+                            </div>
+                        </>
+                    )}
+                </>
+            ) : (
+              <OptimizedImage
+                src={post.content.src || post.content.poster}
+                className="w-full h-full object-cover"
+                alt="Post content"
+                loading="lazy"
+              />
+            )}
+         
           <AnimatePresence>
             {showHeart && (
               <motion.div
@@ -241,12 +330,18 @@ const PostItem: React.FC<PostItemProps> = memo(
                 onClick={() => setIsShareOpen(true)}
               />
             </motion.div>
-            
-            <div className="flex items-center gap-1 ml-2 opacity-60 text-foreground" title="Views">
-               <BarChart2 size={22} className="" />
-               <span className="text-sm font-medium">
-                {Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(post.views || 0)}
-               </span>
+
+            <div
+              className="flex items-center gap-1 ml-2 opacity-60 text-foreground"
+              title="Views"
+            >
+              <BarChart2 size={22} className="" />
+              <span className="text-sm font-medium">
+                {Intl.NumberFormat("en-US", {
+                  notation: "compact",
+                  maximumFractionDigits: 1,
+                }).format(post.views || 0)}
+              </span>
             </div>
           </div>
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -295,12 +390,17 @@ const PostItem: React.FC<PostItemProps> = memo(
           {showRecorder ? (
             <div className="mt-2 bg-muted p-2 rounded-xl">
               <VoiceRecorder
-                onRecordingComplete={(blob) => handleAddComment(undefined, blob)}
+                onRecordingComplete={(blob) =>
+                  handleAddComment(undefined, blob)
+                }
                 onCancel={() => setShowRecorder(false)}
               />
             </div>
           ) : (
-            <form onSubmit={handleAddComment} className="flex gap-2 mt-2 items-center relative">
+            <form
+              onSubmit={handleAddComment}
+              className="flex gap-2 mt-2 items-center relative"
+            >
               {/* Emoji Picker */}
               {showEmojiPicker && (
                 <div
@@ -308,7 +408,9 @@ const PostItem: React.FC<PostItemProps> = memo(
                   className="absolute bottom-full left-0 z-50 shadow-2xl mb-2"
                 >
                   <EmojiPicker
-                    theme={theme === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT}
+                    theme={
+                      theme === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT
+                    }
                     onEmojiClick={handleEmojiClick}
                     lazyLoadEmojis={true}
                     skinTonesDisabled={true}
@@ -351,7 +453,6 @@ const PostItem: React.FC<PostItemProps> = memo(
               </button>
             </form>
           )}
-
         </div>
       </motion.div>
     );

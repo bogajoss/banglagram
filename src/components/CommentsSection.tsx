@@ -19,7 +19,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
   // Build the tree structure
   const rootComments = useMemo(() => {
     if (!comments) return [];
-    
+
     const map = new Map<string, Comment & { replies: Comment[] }>();
     const roots: (Comment & { replies: Comment[] })[] = [];
 
@@ -41,23 +41,22 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
     // Sort by date (newest first for roots? usually oldest first for comments, but IG is mixed)
     // Let's do newest first for roots, and oldest first for replies?
     // Actually IG puts "top" comments first. For simple chrono, newest on top.
-    
+
     // Reverse logic if we want oldest (conversation style) or newest (news style).
     // Let's stick to newest first as per query default.
     return roots;
   }, [comments]);
-
 
   if (isLoading) {
     return (
       <div className="p-4 space-y-4">
         {[1, 2, 3].map((i) => (
           <div key={i} className="flex gap-3">
-             <Skeleton className="w-8 h-8 rounded-full" />
-             <div className="flex-1 space-y-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-3 w-full" />
-             </div>
+            <Skeleton className="w-8 h-8 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-full" />
+            </div>
           </div>
         ))}
       </div>

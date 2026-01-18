@@ -79,7 +79,9 @@ const EditProfileModal: React.FC = () => {
     <Dialog open={isEditProfileOpen} onOpenChange={setEditProfileOpen}>
       <DialogContent className="max-w-md p-0 overflow-hidden border-none sm:rounded-xl">
         <DialogHeader className="p-4 border-b">
-          <DialogTitle className="text-center font-bold">Edit Profile</DialogTitle>
+          <DialogTitle className="text-center font-bold">
+            Edit Profile
+          </DialogTitle>
         </DialogHeader>
         <div className="p-6 flex flex-col gap-4 bg-background text-foreground">
           <div className="flex items-center gap-4 p-4 rounded-lg bg-muted">

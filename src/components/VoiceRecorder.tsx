@@ -28,7 +28,9 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       clearInterval(timerRef.current);
     }
     if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+      mediaRecorderRef.current.stream
+        .getTracks()
+        .forEach((track) => track.stop());
     }
   }, []);
 
@@ -53,7 +55,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
       mediaRecorder.start();
       setIsRecording(true);
-      
+
       timerRef.current = setInterval(() => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
@@ -147,9 +149,9 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           >
             <Trash2 size={18} />
           </Button>
-          
+
           <div className="flex-1 flex items-center gap-2">
-             <Button
+            <Button
               size="icon"
               variant="ghost"
               className="h-8 w-8"
@@ -157,15 +159,15 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             >
               {isPlaying ? <Pause size={18} /> : <Play size={18} />}
             </Button>
-             <div className="h-1 flex-1 bg-zinc-300 dark:bg-zinc-700 rounded-full overflow-hidden">
-                <div 
-                    className="h-full bg-blue-500 transition-all duration-100"
-                    style={{ width: `${(playbackTime / recordingTime) * 100}%` }}
-                />
-             </div>
-             <span className="text-xs font-mono text-zinc-500 w-10">
-                {formatTime(recordingTime)}
-             </span>
+            <div className="h-1 flex-1 bg-zinc-300 dark:bg-zinc-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-500 transition-all duration-100"
+                style={{ width: `${(playbackTime / recordingTime) * 100}%` }}
+              />
+            </div>
+            <span className="text-xs font-mono text-zinc-500 w-10">
+              {formatTime(recordingTime)}
+            </span>
           </div>
 
           <Button

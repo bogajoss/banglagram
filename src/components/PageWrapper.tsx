@@ -13,7 +13,7 @@ const PageWrapper: React.FC<PageWrapperProps> = ({ children }) => {
       exit={{ opacity: 0 }}
       transition={{
         duration: 0.15,
-        ease: "easeOut"
+        ease: "easeOut",
       }}
       className="w-full flex justify-center"
     >

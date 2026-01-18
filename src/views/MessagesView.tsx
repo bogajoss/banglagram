@@ -68,7 +68,10 @@ const MessagesView: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [selectedUserStatus, setSelectedUserStatus] = useState<{ isOnline: boolean; lastSeen: string | null }>({
+  const [selectedUserStatus, setSelectedUserStatus] = useState<{
+    isOnline: boolean;
+    lastSeen: string | null;
+  }>({
     isOnline: false,
     lastSeen: null,
   });
@@ -76,7 +79,6 @@ const MessagesView: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const [showRecorder, setShowRecorder] = useState(false);
-
 
   const borderClass = "border-border";
   const bgHover = "hover:bg-muted";
@@ -149,13 +151,12 @@ const MessagesView: React.FC = () => {
     selectedUser?.id ||
     conversations.find((c) => c.username === selectedUser?.username)?.id;
 
-
   // Use Hooks for Infinite Scroll
   const {
     data: messagesData,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage
+    isFetchingNextPage,
   } = useGetMessages(user?.id, selectedUserId);
 
   const messages = React.useMemo<DbMessage[]>(() => {
@@ -164,17 +165,18 @@ const MessagesView: React.FC = () => {
     return [...allMsgs].reverse();
   }, [messagesData]);
 
-
   const { mutate: sendMessage } = useSendMessage();
   const { mutate: markRead } = useMarkMessagesRead();
-  const { typingUsers, setTyping } = useTypingIndicator(selectedUserId ? [user?.id, selectedUserId].sort().join("-") : "");
+  const { typingUsers, setTyping } = useTypingIndicator(
+    selectedUserId ? [user?.id, selectedUserId].sort().join("-") : "",
+  );
 
   // Mark messages as read when viewing
   useEffect(() => {
     if (user?.id && selectedUserId && messages.length > 0) {
       // Check if there are unread messages from the other user
       const hasUnread = (messages as DbMessage[]).some(
-        (m: DbMessage) => m.sender_id === selectedUserId && !m.is_read
+        (m: DbMessage) => m.sender_id === selectedUserId && !m.is_read,
       );
 
       if (hasUnread) {
@@ -184,7 +186,9 @@ const MessagesView: React.FC = () => {
   }, [messages, selectedUserId, user?.id, markRead]);
 
   // Active status hook
-  const presenceRoomId = selectedUserId ? [user?.id, selectedUserId].sort().join("-") : "";
+  const presenceRoomId = selectedUserId
+    ? [user?.id, selectedUserId].sort().join("-")
+    : "";
   const { presenceState, setOnlineStatus } = useActiveStatus(presenceRoomId);
 
   // Track selected user's status from presence state
@@ -264,7 +268,7 @@ const MessagesView: React.FC = () => {
 
                   // Prevent duplicates
                   const exists = oldData.pages.some((page: DbMessage[]) =>
-                    page.some((m) => m.id === msg.id)
+                    page.some((m) => m.id === msg.id),
                   );
                   if (exists) return oldData;
 
@@ -277,7 +281,7 @@ const MessagesView: React.FC = () => {
                     ...oldData,
                     pages: newPages,
                   };
-                }
+                },
               );
             }
 
@@ -287,12 +291,14 @@ const MessagesView: React.FC = () => {
               type: "active",
             });
           }
-        }
+        },
       )
       .subscribe((status) => {
         console.log(`Realtime Subscription Status [${channelName}]:`, status);
         if (status === "CHANNEL_ERROR") {
-          console.error("Realtime connection failed. Check your network or project status.");
+          console.error(
+            "Realtime connection failed. Check your network or project status.",
+          );
         }
       });
 
@@ -331,9 +337,9 @@ const MessagesView: React.FC = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("messages")
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("messages").getPublicUrl(filePath);
 
       sendMessage({
         senderId: user.id,
@@ -348,7 +354,6 @@ const MessagesView: React.FC = () => {
       setIsUploading(false);
     }
   };
-
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -366,9 +371,9 @@ const MessagesView: React.FC = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("messages")
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("messages").getPublicUrl(filePath);
 
       sendMessage({
         senderId: user.id,
@@ -389,7 +394,6 @@ const MessagesView: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typingUsers]);
 
-
   const handleSelectUser = (user: User) => {
     navigate(`/messages/${user.username}`, { state: { user } });
   };
@@ -397,13 +401,11 @@ const MessagesView: React.FC = () => {
   return (
     <div className="w-full flex h-full md:h-[calc(100vh-2rem)] md:pt-4 md:pb-4 md:px-4 flex-col md:flex-row">
       {/* Sidebar List */}
-      <div
-        className="w-full h-full md:border border-border rounded-lg flex overflow-hidden relative shadow-lg"
-      >
+      <div className="w-full h-full md:border border-border rounded-lg flex overflow-hidden relative shadow-lg">
         <div
           className={cn(
             "w-full md:w-[397px] border-r border-border flex flex-col absolute md:relative inset-0 z-10 bg-background",
-            selectedUser ? "hidden md:flex" : "flex"
+            selectedUser ? "hidden md:flex" : "flex",
           )}
         >
           <div
@@ -425,9 +427,7 @@ const MessagesView: React.FC = () => {
           </div>
 
           <div className="px-5 py-4 shrink-0">
-            <div
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted"
-            >
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted">
               <Search size={16} className="text-muted-foreground" />
               <input
                 type="text"
@@ -469,16 +469,16 @@ const MessagesView: React.FC = () => {
                     >
                       <Avatar className="relative flex-shrink-0 w-14 h-14">
                         <AvatarImage src={u.avatar} />
-                        <AvatarFallback>{u.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                        <AvatarFallback>
+                          {u.username?.[0]?.toUpperCase() || "?"}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="flex-grow min-w-0 text-foreground">
                         <div className="text-sm truncate font-bold flex items-center gap-1">
                           {u.username}
                           {u.isVerified && <VerifiedBadge />}
                         </div>
-                        <div
-                          className="text-xs truncate text-muted-foreground"
-                        >
+                        <div className="text-xs truncate text-muted-foreground">
                           {u.name}
                         </div>
                       </div>
@@ -494,12 +494,14 @@ const MessagesView: React.FC = () => {
                   onClick={() => handleSelectUser(u)}
                   className={cn(
                     "flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors hover:bg-muted",
-                    selectedUser?.username === u.username && "bg-muted"
+                    selectedUser?.username === u.username && "bg-muted",
                   )}
                 >
                   <Avatar className="relative flex-shrink-0 w-14 h-14">
                     <AvatarImage src={u.avatar} />
-                    <AvatarFallback>{u.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                    <AvatarFallback>
+                      {u.username?.[0]?.toUpperCase() || "?"}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="flex-grow min-w-0 text-foreground">
                     <div className="text-sm truncate font-bold flex items-center gap-1">
@@ -511,10 +513,11 @@ const MessagesView: React.FC = () => {
                         "text-xs truncate",
                         !u.isRead && u.lastSenderId !== user?.id
                           ? "text-foreground font-bold"
-                          : "text-muted-foreground"
+                          : "text-muted-foreground",
                       )}
                     >
-                      {u.lastSenderId === user?.id ? "You: " : ""}{u.lastMessage || "Attachment"}
+                      {u.lastSenderId === user?.id ? "You: " : ""}
+                      {u.lastMessage || "Attachment"}
                     </div>
                   </div>
                 </div>
@@ -531,14 +534,13 @@ const MessagesView: React.FC = () => {
               </div>
             )}
           </div>
-
         </div>
 
         {/* Chat Area */}
         <div
           className={cn(
             "w-full flex-grow flex flex-col absolute md:relative inset-0 z-20 bg-background",
-            !selectedUser ? "hidden md:flex" : "flex"
+            !selectedUser ? "hidden md:flex" : "flex",
           )}
         >
           {selectedUser ? (
@@ -560,7 +562,9 @@ const MessagesView: React.FC = () => {
                     }
                   >
                     <AvatarImage src={selectedUser.avatar} />
-                    <AvatarFallback>{selectedUser.username[0].toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>
+                      {selectedUser.username[0].toUpperCase()}
+                    </AvatarFallback>
                     {selectedUserStatus.isOnline && (
                       <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
                     )}
@@ -587,62 +591,88 @@ const MessagesView: React.FC = () => {
                 </div>
               </div>
               <div className="flex-grow flex flex-col p-4 gap-4 overflow-y-auto">
-                                    {hasNextPage && (
-                                      <div className="flex justify-center py-2">
-                                        <button
-                                          onClick={() => fetchNextPage()}
-                                          disabled={isFetchingNextPage}
-                                          className="text-xs text-[#006a4e] font-bold py-1 px-3 rounded-full bg-muted hover:bg-accent transition-colors"
-                                        >
-                                          {isFetchingNextPage ? "Loading..." : "See older messages"}
-                                        </button>
-                                      </div>
-                                    )}
-                
-                                    {messages.map((msg: DbMessage, idx: number) => (
-                
-                                      <div
-                                        key={msg.id || idx}
-                                        className={`flex flex-col gap-1 max-w-[85%] ${msg.sender_id === user?.id ? "self-end items-end" : "self-start items-start"}`}
-                                      >
-                                        {msg.media_url && (
-                                          <div className="rounded-2xl overflow-hidden mb-1 border border-border">
-                                            {msg.media_url.endsWith(".webm") ? (
-                                              <AudioPlayer src={msg.media_url.includes("/storage/v1/object/messages/") && !msg.media_url.includes("/storage/v1/object/public/")
-                                                ? msg.media_url.replace("/storage/v1/object/messages/", "/storage/v1/object/public/messages/")
-                                                : msg.media_url}
-                                              />
-                                            ) : (
-                                              <img
-                                                src={msg.media_url.includes("/storage/v1/object/messages/") && !msg.media_url.includes("/storage/v1/object/public/")
-                                                  ? msg.media_url.replace("/storage/v1/object/messages/", "/storage/v1/object/public/messages/")
-                                                  : msg.media_url}
-                                                className="max-w-full h-auto max-h-[300px] object-cover"
-                                                alt="Shared image"
-                                                loading="lazy"
-                                              />
-                                            )}
-                                          </div>
-                                        )}
-                
-                                        {msg.content && (
-                                          <div
-                                            className={cn(
-                                              "rounded-2xl px-4 py-2 text-sm",
-                                              msg.sender_id === user?.id ? "bg-[#006a4e] text-white" : "bg-muted text-foreground"
-                                            )}
-                                          >
-                                            {msg.content}
-                                          </div>
-                                        )}
-                                        {msg.sender_id === user?.id && (
-                                          <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                            {msg.is_read ? <CheckCheck size={12} className="text-blue-500" /> : <Check size={12} />}
-                                          </div>
-                                        )}
-                                      </div>
-                                    ))}
-                
+                {hasNextPage && (
+                  <div className="flex justify-center py-2">
+                    <button
+                      onClick={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                      className="text-xs text-[#006a4e] font-bold py-1 px-3 rounded-full bg-muted hover:bg-accent transition-colors"
+                    >
+                      {isFetchingNextPage ? "Loading..." : "See older messages"}
+                    </button>
+                  </div>
+                )}
+
+                {messages.map((msg: DbMessage, idx: number) => (
+                  <div
+                    key={msg.id || idx}
+                    className={`flex flex-col gap-1 max-w-[85%] ${msg.sender_id === user?.id ? "self-end items-end" : "self-start items-start"}`}
+                  >
+                    {msg.media_url && (
+                      <div className="rounded-2xl overflow-hidden mb-1 border border-border">
+                        {msg.media_url.endsWith(".webm") ? (
+                          <AudioPlayer
+                            src={
+                              msg.media_url.includes(
+                                "/storage/v1/object/messages/",
+                              ) &&
+                              !msg.media_url.includes(
+                                "/storage/v1/object/public/",
+                              )
+                                ? msg.media_url.replace(
+                                    "/storage/v1/object/messages/",
+                                    "/storage/v1/object/public/messages/",
+                                  )
+                                : msg.media_url
+                            }
+                          />
+                        ) : (
+                          <img
+                            src={
+                              msg.media_url.includes(
+                                "/storage/v1/object/messages/",
+                              ) &&
+                              !msg.media_url.includes(
+                                "/storage/v1/object/public/",
+                              )
+                                ? msg.media_url.replace(
+                                    "/storage/v1/object/messages/",
+                                    "/storage/v1/object/public/messages/",
+                                  )
+                                : msg.media_url
+                            }
+                            className="max-w-full h-auto max-h-[300px] object-cover"
+                            alt="Shared image"
+                            loading="lazy"
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {msg.content && (
+                      <div
+                        className={cn(
+                          "rounded-2xl px-4 py-2 text-sm",
+                          msg.sender_id === user?.id
+                            ? "bg-[#006a4e] text-white"
+                            : "bg-muted text-foreground",
+                        )}
+                      >
+                        {msg.content}
+                      </div>
+                    )}
+                    {msg.sender_id === user?.id && (
+                      <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        {msg.is_read ? (
+                          <CheckCheck size={12} className="text-blue-500" />
+                        ) : (
+                          <Check size={12} />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
                 <div ref={messagesEndRef} />
               </div>
               <div className="p-4 shrink-0 relative">
@@ -653,7 +683,11 @@ const MessagesView: React.FC = () => {
                     className="absolute bottom-20 left-4 z-50 shadow-2xl"
                   >
                     <EmojiPicker
-                      theme={document.documentElement.classList.contains("dark") ? EmojiTheme.DARK : EmojiTheme.LIGHT}
+                      theme={
+                        document.documentElement.classList.contains("dark")
+                          ? EmojiTheme.DARK
+                          : EmojiTheme.LIGHT
+                      }
                       onEmojiClick={handleEmojiClick}
                       lazyLoadEmojis={true}
                       skinTonesDisabled={true}
@@ -677,7 +711,6 @@ const MessagesView: React.FC = () => {
                     />
                   </div>
                 ) : (
-
                   <form
                     className="border border-border rounded-[24px] min-h-[44px] flex items-end gap-1 p-1 bg-background"
                     onSubmit={(e) => {
@@ -696,9 +729,7 @@ const MessagesView: React.FC = () => {
                     {!newMessage.trim() && (
                       <>
                         {/* Media Upload */}
-                        <div
-                          className="p-2 shrink-0 cursor-pointer transition-colors rounded-full relative overflow-hidden hover:bg-muted text-muted-foreground"
-                        >
+                        <div className="p-2 shrink-0 cursor-pointer transition-colors rounded-full relative overflow-hidden hover:bg-muted text-muted-foreground">
                           <Camera size={24} />
                           <input
                             type="file"
@@ -735,22 +766,20 @@ const MessagesView: React.FC = () => {
                       <button
                         type="submit"
                         className="text-blue-500 font-bold px-3 py-2 shrink-0 cursor-pointer hover:text-blue-600 disabled:opacity-50 transition-colors"
-                        disabled={(!newMessage.trim() && !isUploading) || isUploading}
+                        disabled={
+                          (!newMessage.trim() && !isUploading) || isUploading
+                        }
                       >
                         {isUploading ? "..." : "Send"}
                       </button>
                     ) : null}
                   </form>
-
                 )}
-
               </div>
             </>
           ) : (
             <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8 bg-background">
-              <div
-                className="w-24 h-24 rounded-full border-2 border-foreground flex items-center justify-center mb-2 text-foreground"
-              >
+              <div className="w-24 h-24 rounded-full border-2 border-foreground flex items-center justify-center mb-2 text-foreground">
                 <MessageCircle size={48} strokeWidth={1} />
               </div>
               <div className="text-foreground">

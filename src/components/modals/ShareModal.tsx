@@ -19,10 +19,7 @@ interface ShareModalProps {
   shareUrl?: string;
 }
 
-const ShareModal: React.FC<ShareModalProps> = ({
-  onClose,
-  shareUrl,
-}) => {
+const ShareModal: React.FC<ShareModalProps> = ({ onClose, shareUrl }) => {
   const { showToast } = useAppStore();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
@@ -69,7 +66,9 @@ const ShareModal: React.FC<ShareModalProps> = ({
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
-  const users = searchQuery.trim() ? searchResults : (suggestedUsers.slice(0, 8) as User[]);
+  const users = searchQuery.trim()
+    ? searchResults
+    : (suggestedUsers.slice(0, 8) as User[]);
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
@@ -121,10 +120,14 @@ const ShareModal: React.FC<ShareModalProps> = ({
                   >
                     <Avatar className="w-10 h-10">
                       <AvatarImage src={user.avatar} />
-                      <AvatarFallback>{user.username?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                      <AvatarFallback>
+                        {user.username?.[0]?.toUpperCase() || "?"}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                      <span className="text-sm font-semibold">{user.username}</span>
+                      <span className="text-sm font-semibold">
+                        {user.username}
+                      </span>
                       <span className="text-xs opacity-70">
                         {user.name || user.username}
                       </span>
@@ -141,7 +144,8 @@ const ShareModal: React.FC<ShareModalProps> = ({
                     Send
                   </button>
                 </div>
-              )))}
+              ))
+            )}
           </div>
           <div className="p-4 border-t border-border flex gap-4 overflow-x-auto">
             <div

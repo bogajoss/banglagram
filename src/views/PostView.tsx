@@ -35,8 +35,11 @@ const PostView: React.FC = () => {
           <X className="h-10 w-10 text-muted-foreground" />
         </div>
         <h2 className="text-xl font-bold mb-2">Post not found</h2>
-        <p className="text-muted-foreground mb-6">The link you followed may be broken, or the post may have been removed.</p>
-        <Button 
+        <p className="text-muted-foreground mb-6">
+          The link you followed may be broken, or the post may have been
+          removed.
+        </p>
+        <Button
           onClick={() => navigate("/")}
           className="bg-[#006a4e] hover:bg-[#00523c] text-white px-8"
         >
@@ -51,7 +54,7 @@ const PostView: React.FC = () => {
       <div className="max-w-[600px] mx-auto px-0 md:px-4">
         {/* Mobile Header */}
         <div className="md:hidden flex items-center gap-4 px-4 mb-4">
-          <button 
+          <button
             onClick={() => navigate(-1)}
             className="p-2 rounded-full hover:bg-muted"
           >

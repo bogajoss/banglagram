@@ -12,7 +12,6 @@ const Layout: React.FC = () => {
   const location = useLocation();
   const themeClasses = "bg-background text-foreground";
 
-
   const isMessagesPage = location.pathname.startsWith("/messages");
   const isReelsPage = location.pathname.startsWith("/reels");
 

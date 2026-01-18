@@ -5,18 +5,18 @@ export const REALTIME_CONFIG = {
   // Message polling/refetch strategy
   REFETCH_INTERVAL: 0, // No polling - rely on Realtime only
   STALE_TIME: 0, // Always treat cache as stale until confirmed
-  
+
   // Optimistic updates
   OPTIMISTIC_UPDATE_ENABLED: true, // Show message immediately
-  
+
   // Debouncing
   TYPING_INDICATOR_DELAY: 500, // ms before showing typing
   TYPING_CLEAR_TIMEOUT: 3000, // ms before clearing typing status
-  
+
   // Scroll behavior
   AUTO_SCROLL_ENABLED: true, // Always scroll to latest message
   SCROLL_BEHAVIOR: "smooth", // Smooth scroll animation
-  
+
   // Query configuration
   QUERY_CONFIG: {
     // Refetch active queries immediately

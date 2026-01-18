@@ -43,7 +43,6 @@ export const useToggleLike = () => {
         if (error) throw error;
 
         // Notification is handled by DB trigger on_like_created
-
       }
     },
     onMutate: async ({ targetId, type, hasLiked }) => {

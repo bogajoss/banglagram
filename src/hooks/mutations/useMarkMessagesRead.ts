@@ -6,7 +6,13 @@ export const useMarkMessagesRead = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ senderId, receiverId }: { senderId: string; receiverId: string }) => {
+    mutationFn: async ({
+      senderId,
+      receiverId,
+    }: {
+      senderId: string;
+      receiverId: string;
+    }) => {
       const { error } = await (supabase.from("messages") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .update({ is_read: true })
         .eq("sender_id", senderId)
@@ -16,8 +22,8 @@ export const useMarkMessagesRead = () => {
       if (error) throw error;
     },
     onSuccess: (_, { senderId }) => {
-        queryClient.invalidateQueries({ queryKey: MESSAGES_QUERY_KEY(senderId) });
-        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      queryClient.invalidateQueries({ queryKey: MESSAGES_QUERY_KEY(senderId) });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
   });
 };

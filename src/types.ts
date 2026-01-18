@@ -15,7 +15,6 @@ export interface User {
   isFollowing?: boolean;
 }
 
-
 export interface Comment {
   id: string; // Add ID
   user: {

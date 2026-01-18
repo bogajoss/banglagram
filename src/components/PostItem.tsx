@@ -8,8 +8,6 @@ import {
   Smile,
   Mic,
   BarChart2,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import VoiceRecorder from "./VoiceRecorder";
 import OptimizedImage from "./OptimizedImage";
@@ -32,7 +30,7 @@ import VerifiedBadge from "./VerifiedBadge";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/en";
-import { cn } from "@/lib/utils";
+import ImageCarousel from "./ImageCarousel";
 
 dayjs.extend(relativeTime);
 dayjs.locale("en");
@@ -65,8 +63,6 @@ const PostItem: React.FC<PostItemProps> = memo(
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showRecorder, setShowRecorder] = useState(false);
     
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
     const emojiPickerRef = React.useRef<HTMLDivElement>(null);
 
     const liked = post.hasLiked || false;
@@ -149,20 +145,6 @@ const PostItem: React.FC<PostItemProps> = memo(
         },
       );
     };
-    
-    const nextImage = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (currentImageIndex < mediaList.length - 1) {
-            setCurrentImageIndex(prev => prev + 1);
-        }
-    };
-
-    const prevImage = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (currentImageIndex > 0) {
-            setCurrentImageIndex(prev => prev - 1);
-        }
-    };
 
     return (
       <motion.div
@@ -230,57 +212,12 @@ const PostItem: React.FC<PostItemProps> = memo(
           onDoubleClick={handleDoubleClick}
         >
             {mediaList.length > 0 ? (
-                <>
-                    <div className="w-full h-full relative">
-                         <OptimizedImage
-                            src={mediaList[currentImageIndex]}
-                            className="w-full h-full object-cover"
-                            alt={`Post content ${currentImageIndex + 1}`}
-                            loading="lazy"
-                        />
-                    </div>
-                    
-                    {/* Navigation Buttons */}
-                    {mediaList.length > 1 && (
-                        <>
-                            {currentImageIndex > 0 && (
-                                <button 
-                                    onClick={prevImage}
-                                    className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
-                                >
-                                    <ChevronLeft size={20} />
-                                </button>
-                            )}
-                            
-                            {currentImageIndex < mediaList.length - 1 && (
-                                <button 
-                                    onClick={nextImage}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
-                                >
-                                    <ChevronRight size={20} />
-                                </button>
-                            )}
-                            
-                            {/* Dots */}
-                            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 pointer-events-none">
-                                {mediaList.map((_, idx) => (
-                                    <div 
-                                        key={idx}
-                                        className={cn(
-                                            "w-1.5 h-1.5 rounded-full transition-colors shadow-sm",
-                                            idx === currentImageIndex ? "bg-white" : "bg-white/40"
-                                        )}
-                                    />
-                                ))}
-                            </div>
-                            
-                            {/* Count Indicator (Instagram style top right) */}
-                            <div className="absolute top-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                {currentImageIndex + 1}/{mediaList.length}
-                            </div>
-                        </>
-                    )}
-                </>
+                <ImageCarousel 
+                    images={mediaList} 
+                    className="w-full h-full"
+                    aspectRatio="aspect-square md:aspect-auto"
+                    onDoubleClick={handleDoubleClick}
+                />
             ) : (
               <OptimizedImage
                 src={post.content.src || post.content.poster}

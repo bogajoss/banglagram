@@ -9,8 +9,6 @@ import {
   Loader2,
   Mic,
   X,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
@@ -35,7 +33,7 @@ import "dayjs/locale/en";
 import { CommentsSection } from "../CommentsSection";
 import type { Comment } from "../../hooks/queries/useGetComments";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+import ImageCarousel from "../ImageCarousel";
 
 dayjs.extend(relativeTime);
 dayjs.locale("en");
@@ -63,8 +61,6 @@ const PostDetailsModal: React.FC = () => {
   const [showRecorder, setShowRecorder] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
   
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
   const emojiPickerRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -169,27 +165,12 @@ const PostDetailsModal: React.FC = () => {
     if (viewingPost) setViewingPost(null);
     if (viewingReel) setViewingReel(null);
     setReplyingTo(null);
-    setCurrentImageIndex(0);
   };
 
   const onUserClick = (user: User) => {
     onClose();
     navigate(`/profile/${user.username}`);
   };
-  
-    const nextImage = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (currentImageIndex < mediaList.length - 1) {
-            setCurrentImageIndex(prev => prev + 1);
-        }
-    };
-
-    const prevImage = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (currentImageIndex > 0) {
-            setCurrentImageIndex(prev => prev - 1);
-        }
-    };
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
@@ -209,50 +190,11 @@ const PostDetailsModal: React.FC = () => {
                 loop
               />
             ) : (
-                <>
-                  <img
-                    src={mediaList[currentImageIndex]}
-                    className="max-h-full max-w-full object-contain"
-                    alt="post detail"
-                    loading="lazy"
-                  />
-                  
-                   {/* Navigation Buttons */}
-                    {mediaList.length > 1 && (
-                        <>
-                            {currentImageIndex > 0 && (
-                                <button 
-                                    onClick={prevImage}
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
-                                >
-                                    <ChevronLeft size={24} />
-                                </button>
-                            )}
-                            
-                            {currentImageIndex < mediaList.length - 1 && (
-                                <button 
-                                    onClick={nextImage}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
-                                >
-                                    <ChevronRight size={24} />
-                                </button>
-                            )}
-                            
-                            {/* Dots */}
-                            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5">
-                                {mediaList.map((_, idx) => (
-                                    <div 
-                                        key={idx}
-                                        className={cn(
-                                            "w-1.5 h-1.5 rounded-full transition-colors shadow-sm",
-                                            idx === currentImageIndex ? "bg-white" : "bg-white/40"
-                                        )}
-                                    />
-                                ))}
-                            </div>
-                        </>
-                    )}
-                </>
+                <ImageCarousel 
+                    images={mediaList}
+                    className="w-full h-full bg-black"
+                    aspectRatio="max-h-full max-w-full"
+                />
             )}
           </div>
 

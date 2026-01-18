@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useAppStore } from "../../store/useAppStore";
 import { useUpdatePost } from "../../hooks/mutations/useUpdatePost";
 import type { Post } from "../../types";
@@ -10,8 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import ImageCarousel from "../ImageCarousel";
 
 interface EditPostModalProps {
   post: Post;
@@ -38,7 +37,6 @@ type EditPostFormValues = z.infer<typeof editPostSchema>;
 const EditPostModal: React.FC<EditPostModalProps> = ({ post, onClose }) => {
   const { showToast } = useAppStore();
   const { mutate: updatePost, isPending } = useUpdatePost();
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const form = useForm<EditPostFormValues>({
     resolver: zodResolver(editPostSchema),
@@ -74,22 +72,6 @@ const EditPostModal: React.FC<EditPostModalProps> = ({ post, onClose }) => {
         }
     }, [post.content.src, post.content.type]);
     
-    const nextImage = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
-        if (currentImageIndex < mediaList.length - 1) {
-            setCurrentImageIndex(prev => prev + 1);
-        }
-    };
-
-    const prevImage = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
-        if (currentImageIndex > 0) {
-            setCurrentImageIndex(prev => prev - 1);
-        }
-    };
-
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden border-none sm:rounded-xl">
@@ -99,50 +81,11 @@ const EditPostModal: React.FC<EditPostModalProps> = ({ post, onClose }) => {
             {post.content.type === "video" ? (
               <video src={post.content.src} className="max-h-full max-w-full" />
             ) : (
-                <>
-                  <img
-                    src={mediaList[currentImageIndex] || post.content.poster}
-                    className="max-h-full max-w-full object-contain"
-                    alt="preview"
-                    loading="lazy"
-                  />
-                  
-                   {/* Navigation Buttons */}
-                    {mediaList.length > 1 && (
-                        <>
-                            {currentImageIndex > 0 && (
-                                <button 
-                                    onClick={prevImage}
-                                    className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                    <ChevronLeft size={20} />
-                                </button>
-                            )}
-                            
-                            {currentImageIndex < mediaList.length - 1 && (
-                                <button 
-                                    onClick={nextImage}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                    <ChevronRight size={20} />
-                                </button>
-                            )}
-                            
-                            {/* Dots */}
-                            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 pointer-events-none">
-                                {mediaList.map((_, idx) => (
-                                    <div 
-                                        key={idx}
-                                        className={cn(
-                                            "w-1.5 h-1.5 rounded-full transition-colors shadow-sm",
-                                            idx === currentImageIndex ? "bg-white" : "bg-white/40"
-                                        )}
-                                    />
-                                ))}
-                            </div>
-                        </>
-                    )}
-                </>
+                <ImageCarousel 
+                    images={mediaList}
+                    className="w-full h-full bg-black"
+                    aspectRatio="max-h-full max-w-full"
+                />
             )}
           </div>
 

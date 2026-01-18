@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 
 import FileUploader from "../FileUploader";
+import ImageCarousel from "../ImageCarousel";
 
 const CreateModal: React.FC = () => {
   const { isCreateModalOpen, setCreateModalOpen, showToast } = useAppStore();
@@ -24,7 +25,6 @@ const CreateModal: React.FC = () => {
 
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
-  const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
   
   const [caption, setCaption] = useState("");
   const [isVideo, setIsVideo] = useState(false);
@@ -46,7 +46,6 @@ const CreateModal: React.FC = () => {
       
       const newPreviews = selectedFiles.map(f => URL.createObjectURL(f));
       setPreviews(newPreviews);
-      setCurrentPreviewIndex(0);
 
       // Default type based on file
       if (isVid) {
@@ -102,7 +101,6 @@ const CreateModal: React.FC = () => {
   const resetForm = () => {
     setFiles([]);
     setPreviews([]);
-    setCurrentPreviewIndex(0);
     setCaption("");
     setIsVideo(false);
     setCreateType(null);
@@ -113,14 +111,6 @@ const CreateModal: React.FC = () => {
       setCreateModalOpen(false);
       if (!isPending) resetForm();
     }
-  };
-
-  const nextPreview = () => {
-    setCurrentPreviewIndex((prev) => (prev + 1) % previews.length);
-  };
-
-  const prevPreview = () => {
-    setCurrentPreviewIndex((prev) => (prev - 1 + previews.length) % previews.length);
   };
 
   return (
@@ -185,45 +175,16 @@ const CreateModal: React.FC = () => {
               <div className="relative w-full h-full flex items-center justify-center bg-[#1a1a1a]">
                 {isVideo ? (
                   <video
-                    src={previews[currentPreviewIndex]}
+                    src={previews[0]}
                     controls
                     className="max-h-full max-w-full object-contain"
                   />
                 ) : (
-                  <>
-                     <img
-                      src={previews[currentPreviewIndex]}
-                      className="max-h-full max-w-full object-contain"
-                      alt="preview"
+                    <ImageCarousel 
+                        images={previews}
+                        className="w-full h-full bg-black"
+                        aspectRatio="max-h-full max-w-full"
                     />
-                    {previews.length > 1 && (
-                      <>
-                        <button 
-                          onClick={prevPreview}
-                          className="absolute left-4 p-1 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
-                        >
-                          <ArrowLeft size={20} />
-                        </button>
-                        <button 
-                          onClick={nextPreview}
-                          className="absolute right-4 p-1 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
-                        >
-                          <ChevronRight size={20} />
-                        </button>
-                        <div className="absolute bottom-4 flex gap-1">
-                          {previews.map((_, idx) => (
-                            <div 
-                              key={idx}
-                              className={cn(
-                                "w-1.5 h-1.5 rounded-full transition-colors",
-                                idx === currentPreviewIndex ? "bg-white" : "bg-white/50"
-                              )}
-                            />
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </>
                 )}
               </div>
             ) : (

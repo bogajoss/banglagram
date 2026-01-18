@@ -67,7 +67,7 @@ const EditPostModal: React.FC<EditPostModalProps> = ({ post, onClose }) => {
                 return JSON.parse(src) as string[];
             }
             return [src];
-        } catch (e) {
+        } catch {
             return [src];
         }
     }, [post.content.src, post.content.type]);

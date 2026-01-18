@@ -1,0 +1,2 @@
+ALTER TABLE reels ADD COLUMN IF NOT EXISTS thumbnail_url TEXT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS thumbnail_url TEXT;

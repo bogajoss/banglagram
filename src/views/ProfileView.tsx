@@ -181,7 +181,7 @@ const ProfileView: React.FC = () => {
             if (thumb && thumb.startsWith("[")) {
               thumb = JSON.parse(thumb)[0];
             }
-          } catch (e) {
+          } catch {
             // ignore
           }
           return (

@@ -1,16 +1,10 @@
-import React, { useState, useEffect, useRef, memo } from "react";
-import ReactPlayer from "react-player";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Player = ReactPlayer as any;
+import React, { useState, memo } from "react";
 import {
   Heart,
   MessageCircle as CommentIcon,
   Send,
   MoreHorizontal,
-  Volume2,
-  VolumeX,
   Music2,
-  Play,
   BarChart2,
 } from "lucide-react";
 import MoreOptionsModal from "./modals/MoreOptionsModal";
@@ -21,18 +15,19 @@ import { useFollowUser } from "../hooks/mutations/useFollowUser";
 import { useAuth } from "../hooks/useAuth";
 import { useViewTracker } from "../hooks/useViewTracker";
 
-interface ReelItemProps {
-  reel: Reel;
-  showToast: (msg: string) => void;
-  onUserClick: (user: User) => void;
-}
-
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useAppStore } from "../store/useAppStore";
 import VerifiedBadge from "./VerifiedBadge";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import VideoPlayer from "./VideoPlayer";
+
+interface ReelItemProps {
+  reel: Reel;
+  showToast: (msg: string) => void;
+  onUserClick: (user: User) => void;
+}
 
 const ReelItem: React.FC<ReelItemProps> = memo(
   ({ reel, showToast, onUserClick }) => {
@@ -45,14 +40,9 @@ const ReelItem: React.FC<ReelItemProps> = memo(
     const { ref: viewRef } = useViewTracker(reel.id, "reel");
 
     const [showHeart, setShowHeart] = useState(false);
-    const [isMuted, setIsMuted] = useState(true);
-    const [isPlaying, setIsPlaying] = useState(true);
-
     const [isOptionsOpen, setIsOptionsOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
-    const videoRef = useRef<HTMLDivElement>(null);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const videoTagRef = useRef<any>(null);
+    
     const shareUrl = `${window.location.origin}/reels/${reel.id}`;
 
     const isLiked = reel.hasLiked || false;
@@ -90,33 +80,6 @@ const ReelItem: React.FC<ReelItemProps> = memo(
       );
     };
 
-    const togglePlay = () => {
-      if (videoTagRef.current) {
-        if (isPlaying) {
-          setIsPlaying(false);
-        } else {
-          setIsPlaying(true);
-        }
-      }
-    };
-
-    useEffect(() => {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setIsPlaying(true);
-            setIsMuted(false);
-          } else {
-            setIsPlaying(false);
-            setIsMuted(true);
-          }
-        },
-        { threshold: 0.6 },
-      );
-      if (videoRef.current) observer.observe(videoRef.current);
-      return () => observer.disconnect();
-    }, []);
-
     const handleDoubleClick = () => {
       handleLike();
       setShowHeart(true);
@@ -147,59 +110,29 @@ const ReelItem: React.FC<ReelItemProps> = memo(
         )}
 
         <div
-          ref={videoRef}
           className="relative h-full md:h-[95vh] w-full md:w-[400px] bg-black md:rounded-lg overflow-hidden border-border md:border group shadow-2xl"
           onDoubleClick={handleDoubleClick}
         >
           {/* Render Video instead of Image for Reels if src is video */}
           {reel.src ? (
-            <div className="w-full h-full cursor-pointer" onClick={togglePlay}>
-              <Player
-                ref={videoTagRef}
-                url={reel.src}
-                width="100%"
-                height="100%"
-                playing={isPlaying}
-                muted={isMuted}
+            <div className="w-full h-full">
+              <VideoPlayer
+                src={reel.src}
+                className="w-full h-full object-cover"
+                autoPlay={true}
+                controls={true}
                 loop={true}
-                playsinline={true}
-                style={{ objectFit: "cover" }}
-                className="react-player pointer-events-none"
+                muted={true}
               />
             </div>
           ) : (
             <img
-              src={reel.src}
+              src={reel.poster || ""}
               className="w-full h-full object-cover"
-              onClick={() => setIsMuted(!isMuted)}
               alt="reel"
               loading="lazy"
             />
           )}
-
-          {/* Play/Pause Center Indicator */}
-          {!isPlaying && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-              <div className="bg-black/40 p-5 rounded-full backdrop-blur-sm">
-                <Play className="text-white w-10 h-10 fill-white" />
-              </div>
-            </div>
-          )}
-
-          {/* Play/Mute Status */}
-          <div
-            className="absolute top-4 right-4 bg-black/50 p-2 rounded-full cursor-pointer transition-opacity hover:bg-black/70 z-30"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsMuted(!isMuted);
-            }}
-          >
-            {isMuted ? (
-              <VolumeX className="text-white w-5 h-5" />
-            ) : (
-              <Volume2 className="text-white w-5 h-5" />
-            )}
-          </div>
 
           <AnimatePresence>
             {showHeart && (
@@ -217,46 +150,48 @@ const ReelItem: React.FC<ReelItemProps> = memo(
             )}
           </AnimatePresence>
 
-          <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent pt-20 pb-20 md:pb-4">
-            <div
-              className="flex items-center gap-3 mb-3"
-              onClick={() => onUserClick(reel.user)}
-            >
-              <Avatar className="w-8 h-8 border border-white/50 cursor-pointer">
-                <AvatarImage src={reel.user.avatar} />
-                <AvatarFallback>
-                  {reel.user.username[0].toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <span className="font-semibold text-sm shadow-black drop-shadow-md text-white cursor-pointer hover:opacity-70 transition-opacity">
-                {reel.user.username}
-              </span>
-              {reel.user.isVerified && <VerifiedBadge />}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`border border-white/30 rounded-lg px-3 py-1 text-xs font-semibold backdrop-blur-sm transition-colors ${reel.user.isFollowing ? "bg-white/20 text-white" : "text-white hover:bg-white/10"}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleFollow();
-                }}
-              >
-                {reel.user.isFollowing ? "Following" : "Follow"}
-              </motion.button>
-            </div>
-            <div className="text-sm mb-3 line-clamp-2 drop-shadow-md text-white">
-              {reel.caption}{" "}
-              <span className="text-zinc-300 cursor-pointer font-semibold hover:text-white">
-                More
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-xs drop-shadow-md text-white opacity-80">
-              <Music2 size={12} />
-              <div className="truncate w-40">{reel.audio}</div>
+          <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent pt-20 pb-20 md:pb-4 pointer-events-none">
+            <div className="pointer-events-auto">
+                <div
+                className="flex items-center gap-3 mb-3"
+                onClick={() => onUserClick(reel.user)}
+                >
+                <Avatar className="w-8 h-8 border border-white/50 cursor-pointer">
+                    <AvatarImage src={reel.user.avatar} />
+                    <AvatarFallback>
+                    {reel.user.username[0].toUpperCase()}
+                    </AvatarFallback>
+                </Avatar>
+                <span className="font-semibold text-sm shadow-black drop-shadow-md text-white cursor-pointer hover:opacity-70 transition-opacity">
+                    {reel.user.username}
+                </span>
+                {reel.user.isVerified && <VerifiedBadge />}
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`border border-white/30 rounded-lg px-3 py-1 text-xs font-semibold backdrop-blur-sm transition-colors ${reel.user.isFollowing ? "bg-white/20 text-white" : "text-white hover:bg-white/10"}`}
+                    onClick={(e) => {
+                    e.stopPropagation();
+                    handleFollow();
+                    }}
+                >
+                    {reel.user.isFollowing ? "Following" : "Follow"}
+                </motion.button>
+                </div>
+                <div className="text-sm mb-3 line-clamp-2 drop-shadow-md text-white">
+                {reel.caption}{" "}
+                <span className="text-zinc-300 cursor-pointer font-semibold hover:text-white">
+                    More
+                </span>
+                </div>
+                <div className="flex items-center gap-2 text-xs drop-shadow-md text-white opacity-80">
+                <Music2 size={12} />
+                <div className="truncate w-40">{reel.audio}</div>
+                </div>
             </div>
           </div>
 
-          <div className="absolute bottom-20 md:bottom-4 right-2 flex flex-col items-center gap-6 md:gap-4 text-white pb-safe">
+          <div className="absolute bottom-20 md:bottom-4 right-2 flex flex-col items-center gap-6 md:gap-4 text-white pb-safe pointer-events-auto">
             <div className="flex flex-col items-center gap-1">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                 <Heart

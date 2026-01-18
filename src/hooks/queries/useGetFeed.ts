@@ -39,6 +39,7 @@ export const useGetFeed = (userId?: string) => {
         content: {
           type: (item.type === "reel" ? "video" : "image") as "image" | "video",
           src: item.type === "reel" ? item.video_url : item.image_url,
+          poster: item.thumbnail_url || (item.type === "reel" ? item.video_url : item.image_url),
         },
         likes: item.likes_count || 0,
         caption: item.caption || "",

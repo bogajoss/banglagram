@@ -18,6 +18,7 @@ import {
 
 import FileUploader from "../FileUploader";
 import ImageCarousel from "../ImageCarousel";
+import { generateVideoThumbnail } from "@/lib/utils";
 
 const CreateModal: React.FC = () => {
   const { isCreateModalOpen, setCreateModalOpen, showToast } = useAppStore();
@@ -25,6 +26,7 @@ const CreateModal: React.FC = () => {
 
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   
   const [caption, setCaption] = useState("");
   const [isVideo, setIsVideo] = useState(false);
@@ -38,20 +40,24 @@ const CreateModal: React.FC = () => {
 
   const isPending = isPostPending || isReelPending || isStoryPending;
 
-  const onFileSelect = (selectedFiles: File[]) => {
+  const onFileSelect = async (selectedFiles: File[]) => {
     if (selectedFiles && selectedFiles.length > 0) {
       setFiles(selectedFiles);
-      const isVid = selectedFiles[0].type.startsWith("video/");
+      const firstFile = selectedFiles[0];
+      const isVid = firstFile.type.startsWith("video/");
       setIsVideo(isVid);
       
       const newPreviews = selectedFiles.map(f => URL.createObjectURL(f));
       setPreviews(newPreviews);
 
-      // Default type based on file
       if (isVid) {
         setCreateType("reel");
+        // Generate thumbnail
+        const thumb = await generateVideoThumbnail(firstFile);
+        setThumbnailFile(thumb);
       } else {
         setCreateType("post");
+        setThumbnailFile(null);
       }
     }
   };
@@ -61,7 +67,7 @@ const CreateModal: React.FC = () => {
 
     if (createType === "reel") {
       createReel(
-        { file: files[0], caption, userId: user.id, username: profile.username },
+        { file: files[0], thumbnail: thumbnailFile, caption, userId: user.id, username: profile.username },
         {
           onSuccess: () => {
             showToast("Reel shared");
@@ -85,7 +91,7 @@ const CreateModal: React.FC = () => {
       );
     } else {
       createPost(
-        { files, caption, userId: user.id, username: profile.username },
+        { files, thumbnail: thumbnailFile, caption, userId: user.id, username: profile.username },
         {
           onSuccess: () => {
             showToast("Post shared");
@@ -101,6 +107,7 @@ const CreateModal: React.FC = () => {
   const resetForm = () => {
     setFiles([]);
     setPreviews([]);
+    setThumbnailFile(null);
     setCaption("");
     setIsVideo(false);
     setCreateType(null);

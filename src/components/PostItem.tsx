@@ -31,6 +31,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/en";
 import ImageCarousel from "./ImageCarousel";
+import VideoPlayer from "./VideoPlayer";
 
 dayjs.extend(relativeTime);
 dayjs.locale("en");
@@ -77,7 +78,7 @@ const PostItem: React.FC<PostItemProps> = memo(
                 return JSON.parse(src) as string[];
             }
             return [src];
-        } catch (e) {
+        } catch {
             return [src];
         }
     }, [post.content.src, post.content.type]);
@@ -211,7 +212,14 @@ const PostItem: React.FC<PostItemProps> = memo(
           className="w-full bg-muted md:rounded-[4px] md:border border-border overflow-hidden mb-3 aspect-square md:aspect-auto relative cursor-pointer group"
           onDoubleClick={handleDoubleClick}
         >
-            {mediaList.length > 0 ? (
+            {post.content.type === "video" ? (
+                <VideoPlayer 
+                    src={post.content.src || ""} 
+                    poster={post.content.poster}
+                    className="w-full h-full"
+                    autoPlay={true}
+                />
+            ) : mediaList.length > 0 ? (
                 <ImageCarousel 
                     images={mediaList} 
                     className="w-full h-full"

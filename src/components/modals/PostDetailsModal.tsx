@@ -34,6 +34,7 @@ import { CommentsSection } from "../CommentsSection";
 import type { Comment } from "../../hooks/queries/useGetComments";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import ImageCarousel from "../ImageCarousel";
+import VideoPlayer from "../VideoPlayer";
 
 dayjs.extend(relativeTime);
 dayjs.locale("en");
@@ -102,7 +103,7 @@ const PostDetailsModal: React.FC = () => {
                 return JSON.parse(src) as string[];
             }
             return [src];
-        } catch (e) {
+        } catch {
             return [src];
         }
     }, [activeItem, isReel]);
@@ -181,14 +182,14 @@ const PostDetailsModal: React.FC = () => {
         <div className="flex flex-col md:flex-row h-full w-full bg-background">
           {/* Media Section */}
           <div className="hidden md:flex flex-1 bg-black items-center justify-center h-full border-r border-border relative group">
-            {isReel ? (
-              <video
-                src={mediaList[0]}
-                className="max-h-full max-w-full"
-                controls
-                autoPlay
-                loop
-              />
+            {isReel || (activeItem as Post).content.type === "video" ? (
+                <VideoPlayer 
+                    src={mediaList[0]}
+                    poster={(activeItem as Post).content?.poster}
+                    className="max-h-full max-w-full"
+                    autoPlay={true}
+                    controls={true}
+                />
             ) : (
                 <ImageCarousel 
                     images={mediaList}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { X, ChevronLeft, ChevronRight, Heart, Send } from "lucide-react";
 import { useAppStore } from "../store/useAppStore";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,8 +11,8 @@ import "dayjs/locale/en";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
 import { useNavigate } from "react-router-dom";
+import VideoPlayer from "./VideoPlayer";
 
 dayjs.extend(relativeTime);
 dayjs.locale("en");
@@ -28,15 +28,25 @@ const StoryViewer: React.FC = () => {
 
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [progress, setProgress] = useState(0);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
   if (initialStoryIndex !== -1 && currentIndex === -1) {
     setCurrentIndex(initialStoryIndex);
   }
 
+  const currentStory = stories[currentIndex];
+
+  const isVideo = useMemo(() => {
+    if (!currentStory) return false;
+    const url = currentStory.img;
+    return url.match(/\.(mp4|webm|ogg|mov)$/i) !== null;
+  }, [currentStory]);
+
   const handleNext = useCallback(() => {
     if (currentIndex < stories.length - 1) {
       setCurrentIndex((prev) => prev + 1);
       setProgress(0);
+      setIsVideoPlaying(false);
     } else {
       setViewingStory(null);
     }
@@ -46,11 +56,18 @@ const StoryViewer: React.FC = () => {
     if (currentIndex > 0) {
       setCurrentIndex((prev) => prev - 1);
       setProgress(0);
+      setIsVideoPlaying(false);
     }
   }, [currentIndex]);
 
   useEffect(() => {
     if (viewingStory === null || currentIndex === -1) return;
+    
+    // If it's a video, we rely on the video player's onEnded event, unless it's loading?
+    // Actually, for simplicity, let's keep the timer but pause it if video is playing? 
+    // Better: If video, disable timer and wait for onEnded.
+    
+    if (isVideo) return;
 
     const timer = setInterval(() => {
       setProgress((prev) => {
@@ -63,13 +80,12 @@ const StoryViewer: React.FC = () => {
     }, 50); // Approx 5 seconds total
 
     return () => clearInterval(timer);
-  }, [currentIndex, viewingStory, handleNext]);
+  }, [currentIndex, viewingStory, handleNext, isVideo]);
 
   if (viewingStory === null || currentIndex === -1 || stories.length === 0) {
     return null;
   }
 
-  const currentStory = stories[currentIndex];
   if (!currentStory) return null;
 
   const onClose = () => setViewingStory(null);
@@ -108,10 +124,10 @@ const StoryViewer: React.FC = () => {
                     idx < currentIndex
                       ? 1
                       : idx === currentIndex
-                        ? progress / 100
+                        ? isVideo ? (isVideoPlaying ? 1 : 0) : progress / 100
                         : 0,
                 }}
-                transition={{ type: "tween", ease: "linear" }}
+                transition={isVideo && idx === currentIndex ? { duration: 15, ease: "linear" } : { type: "tween", ease: "linear" }}
               />
             </div>
           ))}
@@ -152,7 +168,7 @@ const StoryViewer: React.FC = () => {
           </span>
         </div>
 
-        {/* Story Image */}
+        {/* Story Media */}
         <div className="flex-1 relative flex items-center justify-center bg-gray-900">
           <AnimatePresence mode="wait">
             <motion.div
@@ -160,18 +176,33 @@ const StoryViewer: React.FC = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="w-full h-full"
+              className="w-full h-full flex items-center justify-center"
             >
-              <img
-                src={currentStory.img}
-                className="w-full h-full object-contain"
-                alt="story"
-                loading="lazy"
-              />
+              {isVideo ? (
+                <VideoPlayer 
+                    src={currentStory.img}
+                    className="max-h-full max-w-full"
+                    autoPlay={true}
+                    controls={false}
+                    muted={false} // Stories usually play sound
+                    loop={false}
+                    onEnded={handleNext}
+                    onClick={() => {
+                        // Toggle pause logic could go here
+                    }}
+                />
+              ) : (
+                  <img
+                    src={currentStory.img}
+                    className="w-full h-full object-contain"
+                    alt="story"
+                    loading="lazy"
+                  />
+              )}
             </motion.div>
           </AnimatePresence>
 
-          {/* Tap Areas */}
+          {/* Tap Areas - Only valid if not clicking video controls (which we hid) */}
           <div
             className="absolute inset-y-0 left-0 w-1/3 z-10"
             onClick={handlePrev}

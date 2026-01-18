@@ -210,14 +210,13 @@ const ExploreView: React.FC = () => {
                                 <div className="grid grid-cols-3 gap-1 md:gap-4">
                               {postResults.map((post) => {
                                 let thumb = post.content.src || post.content.poster;
-                                try {
-                                  if (thumb && thumb.startsWith("[")) {
-                                    thumb = JSON.parse(thumb)[0];
-                                  }
-                                } catch (e) {
-                                  // ignore
-                                }
-                                return (
+                                                                    try {
+                                                                      if (thumb && thumb.startsWith("[")) {
+                                                                        thumb = JSON.parse(thumb)[0];
+                                                                      }
+                                                                    } catch {
+                                                                      // ignore
+                                                                    }                                return (
                                   <motion.div
                                     key={post.id}
                                     variants={itemVariants}
@@ -270,14 +269,13 @@ const ExploreView: React.FC = () => {
                               <React.Fragment key={i}>
                                 {page.map((post) => {
                                   let thumb = post.content.src || post.content.poster;
-                                  try {
-                                    if (thumb && thumb.startsWith("[")) {
-                                      thumb = JSON.parse(thumb)[0];
-                                    }
-                                  } catch (e) {
-                                    // ignore
-                                  }
-                                  return (
+                                                                        try {
+                                                                          if (thumb && thumb.startsWith("[")) {
+                                                                            thumb = JSON.parse(thumb)[0];
+                                                                          }
+                                                                        } catch {
+                                                                          // ignore
+                                                                        }                                  return (
                                     <motion.div
                                       key={post.id}
                                       variants={itemVariants}

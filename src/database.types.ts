@@ -53,6 +53,7 @@ export type Database = {
           user_id: string;
           caption: string | null;
           image_url: string;
+          thumbnail_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -60,6 +61,7 @@ export type Database = {
           user_id: string;
           caption?: string | null;
           image_url: string;
+          thumbnail_url?: string | null;
           created_at?: string;
         };
         Update: {
@@ -67,6 +69,7 @@ export type Database = {
           user_id?: string;
           caption?: string | null;
           image_url?: string;
+          thumbnail_url?: string | null;
           created_at?: string;
         };
       };
@@ -194,6 +197,7 @@ export type Database = {
           id: string;
           user_id: string;
           video_url: string;
+          thumbnail_url: string | null;
           caption: string | null;
           audio_track_name: string | null;
           created_at: string;
@@ -202,6 +206,7 @@ export type Database = {
           id?: string;
           user_id: string;
           video_url: string;
+          thumbnail_url?: string | null;
           caption?: string | null;
           audio_track_name?: string | null;
           created_at?: string;
@@ -210,6 +215,7 @@ export type Database = {
           id?: string;
           user_id?: string;
           video_url?: string;
+          thumbnail_url?: string | null;
           caption?: string | null;
           audio_track_name?: string | null;
           created_at?: string;
